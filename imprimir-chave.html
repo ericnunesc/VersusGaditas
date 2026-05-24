@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imprimir Chaveamento - Gaditas Torneios</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow+Condensed:wght@400;600&display=swap');
+
+  :root {
+    --ouro: #C9A03D;
+    --bg: #0F1923;
+    --texto: #E8F0F8;
+    --borda: #2A3F55;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Barlow Condensed', sans-serif;
+    background: #f5f5f0;
+    color: #1a2030;
+    min-height: 100vh;
+  }
+
+  /* ===== TELA DE SELEÇÃO ===== */
+  .selecao-wrap {
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+    color: var(--texto);
+  }
+
+  .selecao-titulo {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.8rem;
+    color: var(--ouro);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .selecao-sub {
+    font-size: 0.85rem;
+    color: #8A9CB0;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .categoria-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .categoria-item {
+    background: #1A2C3E;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    padding: 14px 18px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .categoria-item:hover {
+    border-color: var(--ouro);
+    background: #1e3248;
+  }
+
+  .cat-item-nome { font-family: 'Oswald', sans-serif; font-size: 1rem; color: var(--ouro); }
+  .cat-item-info { font-size: 0.78rem; color: #8A9CB0; margin-top: 2px; }
+  .cat-item-btn {
+    background: var(--ouro);
+    color: #1A2C3E;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .voltar-btn {
+    display: inline-block;
+    margin-bottom: 24px;
+    color: #8A9CB0;
+    text-decoration: none;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .voltar-btn:hover { color: var(--ouro); }
+
+  /* ===== PÁGINA DE IMPRESSÃO ===== */
+  .print-page {
+    display: none;
+    background: white;
+    padding: 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  .print-header {
+    text-align: center;
+    border-bottom: 2px solid #1a2030;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+
+  .print-header h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .print-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 4px;
+    color: #333;
+  }
+
+  .print-header p {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  /* ===== BRACKET ===== */
+  .bracket-wrap {
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .bracket {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-width: max-content;
+  }
+
+  .bracket-round {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    min-width: 160px;
+  }
+
+  .bracket-round-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    text-align: center;
+    text-transform: uppercase;
+    color: #666;
+    padding: 4px 0 8px 0;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 8px;
+  }
+
+  .bracket-matches {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    flex: 1;
+    gap: 8px;
+  }
+
+  .bracket-match {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .bracket-slot {
+    border-bottom: 1.5px solid #1a2030;
+    padding: 4px 6px;
+    font-size: 0.75rem;
+    min-height: 22px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 155px;
+  }
+
+  .bracket-slot.vencedor {
+    font-weight: 700;
+    color: #1a2030;
+  }
+
+  .bracket-slot.perdedor {
+    color: #999;
+  }
+
+  .bracket-slot.vazio {
+    color: #ccc;
+    font-style: italic;
+    font-size: 0.68rem;
+  }
+
+  .bracket-slot .num {
+    font-size: 0.65rem;
+    color: #999;
+    min-width: 14px;
+  }
+
+  .bracket-slot .equipe {
+    font-size: 0.62rem;
+    color: #888;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .bracket-vs {
+    font-size: 0.6rem;
+    color: #bbb;
+    text-align: center;
+    padding: 1px 0;
+  }
+
+  /* Conectores horizontais */
+  .bracket-connector {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 20px;
+    flex-shrink: 0;
+  }
+
+  .connector-group {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .connector-line {
+    width: 20px;
+    height: 1.5px;
+    background: #1a2030;
+  }
+
+  /* Pódio */
+  .podio-section {
+    margin-top: 24px;
+    border-top: 1.5px solid #1a2030;
+    padding-top: 16px;
+  }
+
+  .podio-titulo {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .podio-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .podio-item {
+    border: 1.5px solid #1a2030;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .podio-pos { font-size: 1.4rem; }
+  .podio-nome { font-family: 'Oswald', sans-serif; font-size: 0.9rem; margin-top: 4px; }
+  .podio-equipe { font-size: 0.72rem; color: #666; }
+
+  /* Lista de atletas */
+  .atletas-lista {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 20px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #ccc;
+  }
+
+  .atleta-linha {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    border-bottom: 0.5px solid #ddd;
+    padding: 3px 0;
+  }
+
+  .atleta-linha .num { font-weight: 700; min-width: 18px; color: #666; }
+  .atleta-linha .nome { flex: 1; }
+  .atleta-linha .eq { color: #888; font-size: 0.65rem; }
+
+  /* Botões de impressão */
+  .print-actions {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 100;
+  }
+
+  .print-actions button {
+    background: #1a2030;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .print-actions button.btn-print {
+    background: #C9A03D;
+    color: #1a2030;
+  }
+
+  @media print {
+    .selecao-wrap, .print-actions { display: none !important; }
+    .print-page { display: block !important; }
+    body { background: white; }
+    @page { margin: 15mm; size: A4 landscape; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SELEÇÃO DE CATEGORIA -->
+<div class="selecao-wrap" id="tela-selecao">
+  <div class="selecao-titulo">🖨️ Imprimir Chaveamento</div>
+  <div class="selecao-sub">Selecione a categoria para gerar o bracket para impressão</div>
+  <a href="index.html" class="voltar-btn">← Voltar ao Index</a>
+  <div class="categoria-lista" id="lista-categorias">
+    <div style="color:#8A9CB0;text-align:center;padding:32px">Carregando categorias...</div>
+  </div>
+</div>
+
+<!-- PÁGINA DE IMPRESSÃO -->
+<div class="print-page" id="tela-impressao">
+  <div class="print-actions">
+    <button onclick="voltarSelecao()">← Voltar</button>
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimir</button>
+  </div>
+  <div id="print-content"></div>
+</div>
+
+<script>
+// Carregar categorias
+function carregarCategorias() {
+  var raw = localStorage.getItem('gaditas_torneio_atual');
+  var lista = document.getElementById('lista-categorias');
+
+  if (!raw) {
+    lista.innerHTML = '<div style="color:#ef4444;text-align:center;padding:32px">Nenhuma competição ativa encontrada.</div>';
+    return;
+  }
+
+  var dados;
+  try { dados = JSON.parse(raw); } catch(e) {
+    lista.innerHTML = '<div style="color:#ef4444;text-align:center;padding:32px">Erro ao carregar dados.</div>';
+    return;
+  }
+
+  var cats = (dados.categorias || []);
+  if (!cats.length) {
+    lista.innerHTML = '<div style="color:#8A9CB0;text-align:center;padding:32px">Nenhuma categoria encontrada.</div>';
+    return;
+  }
+
+  lista.innerHTML = '';
+  cats.forEach(function(cat) {
+    var nAtletas = (cat.atletas || []).length;
+    var nLutas   = (cat.lutas   || []).length;
+    var status   = cat.campeao ? '✅ Finalizada' : cat.competicaoAtiva ? '🔴 Em andamento' : '⏳ Aguardando';
+    var div = document.createElement('div');
+    div.className = 'categoria-item';
+    div.innerHTML =
+      '<div>' +
+        '<div class="cat-item-nome">' + cat.nome + '</div>' +
+        '<div class="cat-item-info">' + nAtletas + ' atletas · ' + nLutas + ' lutas · ' + status + '</div>' +
+      '</div>' +
+      '<button class="cat-item-btn" onclick="imprimirCategoria(\'' + cat.chave + '\')">🖨️ Gerar</button>';
+    lista.appendChild(div);
+  });
+}
+
+function voltarSelecao() {
+  document.getElementById('tela-selecao').style.display = 'flex';
+  document.getElementById('tela-impressao').style.display = 'none';
+}
+
+function getNomeFase(nLutas, isUltima, isFirst, todasRodadas) {
+  if (nLutas === 0) return '';
+  if (isFirst && nLutas === 1) return 'Repescagem';
+  if (isUltima) return 'Final';
+  if (nLutas >= 16) return 'Dezesseis Avos';
+  if (nLutas >= 8)  return 'Oitavas de Final';
+  if (nLutas >= 4)  return 'Quartas de Final';
+  if (nLutas >= 2)  return 'Semifinal';
+  return 'Final';
+}
+
+function imprimirCategoria(chave) {
+  var raw = localStorage.getItem('gaditas_torneio_atual');
+  if (!raw) return;
+  var dados = JSON.parse(raw);
+  var cat = (dados.categorias || []).find(function(c){ return c.chave === chave; });
+  if (!cat) return;
+  document.getElementById('print-content').innerHTML = gerarHTMLBracket(cat, dados.nomeCompeticao || 'Competição');
+  document.getElementById('tela-selecao').style.display = 'none';
+  document.getElementById('tela-impressao').style.display = 'block';
+}
+
+// Constrói estrutura visual do bracket com diretos já posicionados
+function construirEstruturaBracket(cat) {
+  var atletas = cat.atletas || [];
+  var lutas = cat.lutas || [];
+  var n = atletas.length;
+  if (n === 0) return [];
+
+  // Separar lutas por rodada
+  var rodadasMap = {};
+  lutas.forEach(function(l) {
+    var r = Number(l.rodada || 1);
+    if (!rodadasMap[r]) rodadasMap[r] = [];
+    rodadasMap[r].push(l);
+  });
+
+  var base = Math.pow(2, Math.floor(Math.log2(n)));
+  var extras = n - base;
+  var temPrelim = extras > 0;
+  var totalRodadas = Math.ceil(Math.log2(Math.max(n, 2)));
+
+  // Calcular diretos (atletas que não precisam de repescagem)
+  var grupoPrelim = atletas.slice(0, extras * 2);   // ex: atletas 0,1 (com 5 atletas)
+  var diretos     = atletas.slice(extras * 2);       // ex: atletas 2,3,4
+
+  var rodadas = [];
+
+  // RODADA 1: Repescagem (só se houver prelim)
+  if (temPrelim) {
+    var lutasR1 = rodadasMap[1] || [];
+    // Preencher com slots vazios se não houver lutas ainda
+    var slotsR1 = [];
+    for (var i = 0; i < extras; i++) {
+      var lutaExist = lutasR1[i] || null;
+      if (!lutaExist) {
+        // Criar slot virtual com atletas do grupo prelim
+        var aA = grupoPrelim[i*2] || null;
+        var aB = grupoPrelim[i*2+1] || null;
+        slotsR1.push({ virtual: true, atletaA: aA, atletaB: aB });
+      } else {
+        slotsR1.push(lutaExist);
+      }
+    }
+    rodadas.push({ fase: 'Repescagem', lutas: slotsR1, isFirst: true, isUltima: false });
+  }
+
+  // RODADAS SEGUINTES: construir par a par
+  // Para a semifinal: pares de diretos + slot para vencedor(es) da repescagem
+  var rodadasRestantes = totalRodadas - (temPrelim ? 1 : 0);
+
+  // Construir cada rodada a partir dos dados reais + diretos
+  var totalRodasNormais = temPrelim ? totalRodadas : totalRodadas;
+  var startRod = temPrelim ? 2 : 1;
+
+  for (var rod = startRod; rod <= totalRodadas; rod++) {
+    var lutasRod = (rodadasMap[rod] || []).filter(function(l){ return l.fase !== '3º Lugar'; });
+    var isUltima = (rod === totalRodadas);
+    var isFirstRod = (rod === 1 && !temPrelim) || (rod === 2 && temPrelim);
+
+    // Quantas lutas esperadas nesta rodada
+    var esperadas;
+    if (rod === startRod && temPrelim) {
+      // Semis: (base/2) lutas — cada par de diretos + vencedor prelim
+      esperadas = base / 2;
+    } else {
+      esperadas = Math.pow(2, totalRodadas - rod);
+      if (esperadas < 1) esperadas = 1;
+    }
+
+    var slots = [];
+
+    if (rod === startRod && temPrelim && lutasRod.length === 0) {
+      // Semis ainda não geradas — mostrar diretos + slot do vencedor da repescagem
+      // Os diretos se pareiam: prelim winner + direto[0], direto[1]+direto[2], etc.
+      // Com 5 atletas: semi1 = [venc_repescagem, direto[0]], semi2 = [direto[1], direto[2]]
+      var diretosLeft = diretos.slice();
+      for (var s = 0; s < esperadas; s++) {
+        if (s === 0 && temPrelim) {
+          // Primeira semi: vencedor repescagem vs primeiro direto
+          slots.push({ virtual: true, atletaA: null, atletaALabel: '→ Venc. Repescagem', atletaB: diretosLeft.shift() || null });
+        } else {
+          var d1 = diretosLeft.shift() || null;
+          var d2 = diretosLeft.shift() || null;
+          slots.push({ virtual: true, atletaA: d1, atletaB: d2 });
+        }
+      }
+    } else {
+      // Lutas já existem ou rodada normal
+      for (var s = 0; s < esperadas; s++) {
+        if (lutasRod[s]) {
+          slots.push(lutasRod[s]);
+        } else {
+          // Slot vazio para rodadas futuras
+          slots.push(null);
+        }
+      }
+    }
+
+    var faseTitulo = getNomeFase(esperadas, isUltima, (rod === 1), null);
+    rodadas.push({ fase: faseTitulo, lutas: slots, isFirst: (rod === 1), isUltima: isUltima });
+  }
+
+  // Luta do 3º lugar (inserir antes da final se existir)
+  var luts3 = [];
+  Object.keys(rodadasMap).forEach(function(r) {
+    (rodadasMap[r] || []).forEach(function(l) {
+      if (l.fase === '3º Lugar') luts3.push(l);
+    });
+  });
+  if (luts3.length > 0 || cat.disputaTerceiro) {
+    var finalIdx = rodadas.length - 1;
+    var lut3 = luts3[0] || null;
+    var slot3 = lut3 ? lut3 : { virtual: true, atletaA: null, atletaALabel: '→ Perd. Semi 1', atletaB: null, atletaBLabel: '→ Perd. Semi 2', fase: '3º Lugar' };
+    rodadas.splice(finalIdx, 0, { fase: 'Disputa 3º Lugar', lutas: [slot3], isFirst: false, isUltima: false, eh3: true });
+  }
+
+  return rodadas;
+}
+
+function gerarHTMLBracket(cat, nomeCompeticao) {
+  var atletas = cat.atletas || [];
+  _atletasOrdem = atletas; // para lookup de posição
+  var rodadas = construirEstruturaBracket(cat);
+
+  var html = '<div class="print-header">';
+  html += '<h1>' + nomeCompeticao + '</h1>';
+  html += '<h2>' + cat.nome + '</h2>';
+  html += '<p>📍 ' + (cat.area || 'Tatame 1') + ' &nbsp;·&nbsp; 👥 ' + atletas.length + ' atletas</p>';
+  html += '</div>';
+
+  html += '<div class="bracket-wrap"><div class="bracket">';
+
+  rodadas.forEach(function(rod, ri) {
+    html += renderRound(rod.fase, rod.lutas, rod.eh3);
+    if (ri < rodadas.length - 1) {
+      var nConn = Math.max(1, Math.ceil(rod.lutas.filter(function(l){ return l !== null; }).length / 2));
+      if (rod.eh3) nConn = 1;
+      html += '<div class="bracket-connector">';
+      for (var i = 0; i < nConn; i++)
+        html += '<div class="connector-group"><div class="connector-line"></div></div>';
+      html += '</div>';
+    }
+  });
+
+  // Coluna resultado
+  html += '<div class="bracket-round"><div class="bracket-round-title">🏆 Resultado</div><div class="bracket-matches"><div class="bracket-match">';
+  if (cat.campeao) {
+    html += renderSlotAtleta(cat.campeao, true, '🥇');
+    html += '<div class="bracket-vs">───</div>';
+    html += renderSlotAtleta(cat.vice, false, '🥈');
+    if (cat.terceiros && cat.terceiros[0]) {
+      html += '<div class="bracket-vs" style="margin-top:6px">3º</div>';
+      html += renderSlotAtleta(cat.terceiros[0], false, '🥉');
+    }
+  } else {
+    html += '<div class="bracket-slot vazio" style="min-height:50px;border:1.5px dashed #ccc;justify-content:center;flex-direction:column"><div style="font-size:1.1rem">🥇</div><div style="color:#bbb;font-size:0.68rem">Campeão</div></div>';
+    html += '<div class="bracket-vs">───</div>';
+    html += '<div class="bracket-slot vazio" style="border:1.5px dashed #ccc"><span>🥈</span><span style="color:#bbb;margin-left:4px">Vice-campeão</span></div>';
+    html += '<div class="bracket-vs" style="margin-top:6px">3º</div>';
+    html += '<div class="bracket-slot vazio" style="border:1.5px dashed #ccc"><span>🥉</span><span style="color:#bbb;margin-left:4px">3º lugar</span></div>';
+  }
+  html += '</div></div></div>';
+
+  html += '</div></div>';
+
+  // Lista de atletas
+  if (atletas.length > 0) {
+    html += '<div class="atletas-lista">';
+    atletas.forEach(function(a, i) {
+      html += '<div class="atleta-linha"><span class="num">' + (i+1) + '</span><span class="nome">' + a.nome + '</span><span class="eq">' + (a.academia||'') + '</span></div>';
+    });
+    html += '</div>';
+  }
+
+  return html;
+}
+
+function renderSlotAtleta(atleta, vencedor, medalha) {
+  if (!atleta) return '<div class="bracket-slot vazio" style="border:1.5px dashed #ccc"><span>' + medalha + '</span><span style="color:#bbb;margin-left:4px">—</span></div>';
+  return '<div class="bracket-slot ' + (vencedor?'vencedor':'') + '"><span class="num">' + medalha + '</span><span>' + atleta.nome + '</span><span class="equipe">' + (atleta.academia||'') + '</span></div>';
+}
+
+function renderRound(titulo, lutasRod, eh3) {
+  var html = '<div class="bracket-round' + (eh3?' bracket-round-3':'') + '">';
+  html += '<div class="bracket-round-title">' + titulo + '</div>';
+  html += '<div class="bracket-matches">';
+
+  lutasRod.forEach(function(luta) {
+    html += '<div class="bracket-match">';
+
+    if (!luta) {
+      html += slotVazio('Aguardando');
+      html += '<div class="bracket-vs">vs</div>';
+      html += slotVazio('Aguardando');
+    } else if (luta.virtual) {
+      // Slot virtual: atletas já definidos mas luta não criada ainda
+      var labelA = luta.atletaALabel || null;
+      var labelB = luta.atletaBLabel || null;
+      html += renderAtletaSlot(luta.atletaA, false, labelA);
+      html += '<div class="bracket-vs">vs</div>';
+      html += renderAtletaSlot(luta.atletaB, false, labelB);
+    } else {
+      var vA = luta.vencedor && luta.atletaA && Number(luta.vencedor.id) === Number(luta.atletaA.id);
+      var vB = luta.vencedor && luta.atletaB && Number(luta.vencedor.id) === Number(luta.atletaB.id);
+      html += renderAtletaSlot(luta.atletaA, vA && luta.finalizada, null);
+      html += '<div class="bracket-vs">vs</div>';
+      html += renderAtletaSlot(luta.atletaB && !luta.atletaB.isWO ? luta.atletaB : null, vB && luta.finalizada, luta.atletaB && luta.atletaB.isWO ? 'BYE' : null);
+    }
+
+    html += '</div>';
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+// Lista global de atletas para lookup de posição sequencial
+var _atletasOrdem = [];
+
+function getPosAtleta(atleta) {
+  if (!atleta) return '';
+  for (var i = 0; i < _atletasOrdem.length; i++) {
+    if (Number(_atletasOrdem[i].id) === Number(atleta.id)) return i + 1;
+  }
+  return '';
+}
+
+function renderAtletaSlot(atleta, vencedor, labelOverride) {
+  if (labelOverride && !atleta) {
+    return '<div class="bracket-slot" style="border:1.5px dashed #999;background:#f9f9f9">' +
+           '<span style="color:#888;font-style:italic;font-size:0.68rem">' + labelOverride + '</span>' +
+           '</div>';
+  }
+  if (!atleta) return slotVazio('Aguardando');
+  var cls = vencedor ? 'vencedor' : '';
+  var pos = getPosAtleta(atleta);
+  return '<div class="bracket-slot ' + cls + '">' +
+         (pos ? '<span class="num">' + pos + '</span>' : '') +
+         '<span>' + atleta.nome + (vencedor ? ' ✓' : '') + '</span>' +
+         '<span class="equipe">' + (atleta.academia || '') + '</span>' +
+         '</div>';
+}
+
+function slotVazio(label) {
+  return '<div class="bracket-slot vazio" style="border:1.5px dashed #ddd"><span style="color:#ccc;font-size:0.68rem">' + (label||'') + '</span></div>';
+}
+
+// Inicializar
+carregarCategorias();
+</script>
+</body>
+</html>

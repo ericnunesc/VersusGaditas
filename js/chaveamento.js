@@ -605,29 +605,31 @@ function carregarEstadoSalvo() {
 // ==================== NOME DA FASE ====================
 
 function getNomeFase(numLutas, cat) {
-    // Se a categoria tem luta do 3º lugar na rodada atual → é disputa do 3º
     if (cat) {
         const rodAtual = Number(cat.rodadaAtual || 1);
         const lutasRod = (cat.lutas || []).filter(l => Number(l.rodada) === rodAtual);
         const temTerceiro = lutasRod.some(l => l.fase === '3º Lugar');
         const lutasNormais = lutasRod.filter(l => l.fase !== '3º Lugar');
 
-        // Luta do 3º lugar sozinha (sem final ainda)
         if (temTerceiro && lutasNormais.length === 0) return 'Disputa do 3º Lugar';
 
-        // Rodada 1 com diretosProximaRodada = preliminar/repescagem
+        // Detectar preliminar/repescagem: há rodadas posteriores com lutas normais >= lutas atuais
+        const nAtual = lutasNormais.length;
+        const todasRodadas = [...new Set((cat.lutas||[]).filter(l=>l.fase!=='3º Lugar').map(l=>Number(l.rodada)))].sort((a,b)=>a-b);
+        const idxAtual = todasRodadas.indexOf(rodAtual);
+        if (idxAtual >= 0 && idxAtual < todasRodadas.length - 1) {
+            // Há rodadas posteriores — verificar se a próxima tem >= lutas (indica que é prelim)
+            const proxRodada = todasRodadas[idxAtual + 1];
+            const lutasProx = (cat.lutas||[]).filter(l=>Number(l.rodada)===proxRodada && l.fase!=='3º Lugar').length;
+            if (lutasProx >= nAtual) return 'Repescagem';
+        }
+        // diretosProximaRodada ainda pendentes (rodada 1 não iniciada ainda)
         if (rodAtual === 1 && Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0) {
             return 'Repescagem';
         }
 
-        // 1 luta normal: só é Final se não há diretosProximaRodada pendentes
-        if (lutasNormais.length === 1) {
-            // Verificar se ainda tem diretos para próxima rodada
-            if (Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0) {
-                return 'Repescagem';
-            }
-            return 'Final';
-        }
+        if (lutasNormais.length === 1) return 'Final';
+        numLutas = lutasNormais.length;
     }
 
     if (numLutas >= 16) return 'Dezesseis Avos';
