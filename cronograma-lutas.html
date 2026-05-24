@@ -872,20 +872,26 @@ function getNomeFase(numLutas, cat) {
         var temTerceiro = lutasRod.some(function(l){ return l.fase === '3º Lugar'; });
         var lutasNormais = lutasRod.filter(function(l){ return l.fase !== '3º Lugar'; });
         if (temTerceiro && lutasNormais.length === 0) return 'Disputa do 3º Lugar';
-        if (rodAtual === 1 && Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0)
-            return 'Repescagem';
-        if (lutasNormais.length === 1) {
-            if (Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0)
-                return 'Repescagem';
-            return 'Final';
+        var nAtual = lutasNormais.length;
+        var todasRodadas = [];
+        (cat.lutas||[]).filter(function(l){ return l.fase!=='3º Lugar'; }).forEach(function(l){ var r=Number(l.rodada); if(todasRodadas.indexOf(r)<0) todasRodadas.push(r); });
+        todasRodadas.sort(function(a,b){return a-b;});
+        var idxAtual = todasRodadas.indexOf(rodAtual);
+        if (idxAtual >= 0 && idxAtual < todasRodadas.length - 1) {
+            var proxRodada = todasRodadas[idxAtual + 1];
+            var lutasProx = (cat.lutas||[]).filter(function(l){ return Number(l.rodada)===proxRodada && l.fase!=='3º Lugar'; }).length;
+            if (lutasProx >= nAtual) return 'Repescagem';
         }
+        if (rodAtual === 1 && Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0) return 'Repescagem';
+        if (lutasNormais.length === 1) return 'Final';
+        numLutas = lutasNormais.length;
     }
     if (numLutas >= 16) return 'Dezesseis Avos';
     if (numLutas >= 8)  return 'Oitavas de Final';
     if (numLutas >= 4)  return 'Quartas de Final';
     if (numLutas >= 2)  return 'Semifinal';
     return 'Final';
-}
+    }
 
 function carregarAgenda() {
     var raw = localStorage.getItem('gaditas_torneio_atual');

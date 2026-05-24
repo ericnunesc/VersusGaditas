@@ -514,6 +514,14 @@
 
     function saveTorneio(t) {
       localStorage.setItem('gaditas_torneio_atual', JSON.stringify(t));
+      // Forçar notificação para outras páginas (TV, index) na mesma sessão
+      try {
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'gaditas_torneio_atual',
+          newValue: JSON.stringify(t),
+          storageArea: localStorage
+        }));
+      } catch(e) {}
     }
 
     function hhmm2min(hhmm) {

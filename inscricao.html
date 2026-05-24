@@ -69,6 +69,14 @@
         </div>
 
         <div class="field">
+          <label for="fotoAtleta">📷 Foto do Atleta <span style="font-size:0.75rem;color:#888">(opcional — reduzida automaticamente)</span></label>
+          <input type="file" id="fotoAtleta" accept="image/*" capture="user" style="font-size:0.85rem" />
+          <div id="fotoAtletaPreview" style="margin-top:8px;display:none">
+            <img id="fotoAtletaImg" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--ouro,#C9A03D)" />
+          </div>
+        </div>
+
+        <div class="field">
           <label for="dataNascimento">Data de Nascimento</label>
           <input id="dataNascimento" name="dataNascimento" type="date" required />
           <div class="hint" id="idadeInfo">Idade de referência: -</div>
@@ -303,10 +311,43 @@
         academia: payload.equipeNome || payload.equipe,
         dataNascimento: $("dataNascimento").value,
         dataCadastro: new Date().toISOString(),
+        foto: fotoAtletaBase64 || null,
         origem: "inscricao"
       });
       setJSON(K.atletas, atletas);
+      fotoAtletaBase64 = null;
+      document.getElementById('fotoAtletaPreview').style.display = 'none';
+      document.getElementById('fotoAtleta').value = '';
     }
+
+    // ===== REDIMENSIONAR IMAGEM =====
+    function redimensionarImagem(file, maxSize, callback) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          var ratio = Math.min(maxSize / img.width, maxSize / img.height, 1);
+          canvas.width  = Math.round(img.width  * ratio);
+          canvas.height = Math.round(img.height * ratio);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          callback(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    var fotoAtletaBase64 = null;
+    document.getElementById('fotoAtleta').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      redimensionarImagem(file, 200, function(base64) {
+        fotoAtletaBase64 = base64;
+        document.getElementById('fotoAtletaImg').src = base64;
+        document.getElementById('fotoAtletaPreview').style.display = 'block';
+      });
+    });
 
     document.querySelectorAll(".pay-option").forEach(item=>{
       item.addEventListener("click", ()=>{

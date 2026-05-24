@@ -638,20 +638,22 @@ function getPlacar(chave, lutaId){
 
 // Calcular fase da competição
 function getFaseTitulo(totalAt, rod, cat) {
-    // Se temos a categoria, usar lógica pelo número de lutas (mais preciso)
     if (cat) {
         var rodAtual = Number(cat.rodadaAtual || cat.rodada || rod || 1);
         var lutasRod = (cat.lutas || []).filter(function(l){ return Number(l.rodada) === rodAtual; });
         var temTerceiro = lutasRod.some(function(l){ return l.fase === '3º Lugar'; });
         var lutasNormais = lutasRod.filter(function(l){ return l.fase !== '3º Lugar'; });
         if (temTerceiro && lutasNormais.length === 0) return 'Disputa do 3º Lugar';
-        if (rodAtual === 1 && Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0)
-            return 'Repescagem';
-        if (lutasNormais.length === 1) {
-            if (Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0)
-                return 'Repescagem';
-            return 'Final';
+        // Detectar repescagem: rodada atual tem >= lutas que a próxima
+        var todasR = []; (cat.lutas||[]).filter(function(l){ return l.fase!=='3º Lugar'; }).forEach(function(l){ var r=Number(l.rodada); if(todasR.indexOf(r)<0) todasR.push(r); }); todasR.sort(function(a,b){return a-b;});
+        var idxA = todasR.indexOf(rodAtual);
+        if (idxA >= 0 && idxA < todasR.length-1) {
+            var prox = todasR[idxA+1];
+            var nProx = (cat.lutas||[]).filter(function(l){ return Number(l.rodada)===prox && l.fase!=='3º Lugar'; }).length;
+            if (nProx >= lutasNormais.length) return 'Repescagem';
         }
+        if (rodAtual===1 && Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length>0) return 'Repescagem';
+        if (lutasNormais.length === 1) return 'Final';
         if (lutasNormais.length >= 16) return 'Dezesseis Avos';
         if (lutasNormais.length >= 8)  return 'Oitavas de Final';
         if (lutasNormais.length >= 4)  return 'Quartas de Final';
@@ -819,11 +821,24 @@ function montarChaveVisual(cat, crono, chave){
         else if (lutsN.length >= 4)  faseNome = 'Quartas de Final';
         else if (lutsN.length >= 2)  faseNome = 'Semifinal';
         else if (lutsN.length === 1) {
-            // É Repescagem se há rodadas posteriores com 2+ lutas normais (seria prelim)
+            // É Repescagem se:
+            // 1. Há rodadas posteriores com 2+ lutas (bracket já avançou), OU
+            // 2. Ainda há diretosProximaRodada pendentes (bracket não avançou ainda), OU
+            // 3. É a primeira rodada e há mais atletas que 2 (não pode ser final de 2 atletas)
             var ehRepescagem = false;
+            // Verificar rodadas posteriores já geradas
             for (var rr = r + 1; rr <= Math.max.apply(null, numRodadas); rr++) {
                 var lutasProx = (todasRodadasMap[rr] || []).filter(function(l){ return l.fase !== '3º Lugar'; });
                 if (lutasProx.length >= 2) { ehRepescagem = true; break; }
+            }
+            // Verificar se há diretos aguardando (rodadas futuras ainda não criadas)
+            if (!ehRepescagem && Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0) {
+                ehRepescagem = true;
+            }
+            // Verificar pelo número de atletas: se tem mais de 2 e é a primeira rodada
+            if (!ehRepescagem && r === Math.min.apply(null, numRodadas) && totalAtletas > 2) {
+                var base = Math.pow(2, Math.floor(Math.log2(totalAtletas)));
+                if (totalAtletas > base) ehRepescagem = true; // não é potência de 2 = tem prelim
             }
             faseNome = ehRepescagem ? 'Repescagem' : 'Final';
         }

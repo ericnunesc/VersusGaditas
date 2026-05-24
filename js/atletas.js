@@ -133,6 +133,15 @@ function editarAtleta(id) {
     popularSelectAcademia();
 
     document.getElementById('atleta-nome').value = atleta.nome;
+
+    // Mostrar foto existente
+    if (typeof _fotoAtletaBase64 !== 'undefined') _fotoAtletaBase64 = null;
+    const prev = document.getElementById('foto-atleta-preview');
+    if (prev) {
+        prev.innerHTML = atleta.foto
+            ? `<img src="${atleta.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+            : '📷';
+    }
     document.getElementById('atleta-sexo').value = atleta.sexo;
     document.getElementById('atleta-data-nascimento').value = atleta.dataNascimento;
     document.getElementById('atleta-faixa').value = atleta.faixa;
@@ -167,7 +176,9 @@ function salvarEdicaoAtleta(id) {
     const idx = atletas.findIndex(a => a.id === id);
     if (idx === -1) { mostrarToast('Atleta não encontrado!', 'erro'); return; }
 
-    atletas[idx] = { ...atletas[idx], nome, sexo, dataNascimento, faixa, peso, academia };
+    atletas[idx] = { ...atletas[idx], nome, sexo, dataNascimento, faixa, peso, academia,
+        foto: (typeof _fotoAtletaBase64 !== 'undefined' && _fotoAtletaBase64) ? _fotoAtletaBase64 : atletas[idx].foto
+    };
     localStorage.setItem('gaditas_atletas', JSON.stringify(atletas));
     if (typeof appState !== 'undefined') appState.atletas = atletas;
 
@@ -231,9 +242,14 @@ function atualizarListaAtletas() {
         const catIdade = determinarCategoriaIdade(idade);
         const catPeso = determinarCategoriaPeso(atleta.sexo, idade, atleta.peso, atleta.faixa);
         
+        const fotoHtml = atleta.foto
+            ? `<img src="${atleta.foto}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #C9A03D;flex-shrink:0" />`
+            : `<div style="width:48px;height:48px;border-radius:50%;background:#1A2C3E;border:1px solid #2A3F55;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🥋</div>`;
+
         return `
-            <div class="atleta-card">
-                <div class="atleta-info">
+            <div class="atleta-card" style="display:flex;align-items:center;gap:10px">
+                ${fotoHtml}
+                <div class="atleta-info" style="flex:1">
                     <h4>${atleta.nome}</h4>
                     <p>🏢 ${atleta.academia}</p>
                     <p>🎂 ${idade} anos | ${catIdade.nome}</p>
