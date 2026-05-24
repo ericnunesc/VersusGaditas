@@ -132,14 +132,24 @@
         <div class="pagamento" id="pagamento-opcoes"></div>
         <div id="pag-info" style="margin-top:12px;padding:12px;background:#F5F7FA;border-radius:8px;font-size:0.85rem;display:none;"></div>
         <div class="valor" id="pag-valor-display">Valor: R$ 120,00</div>
+
+        <div style="margin-top:14px">
+          <label style="display:block;font-size:0.82rem;font-weight:600;color:#333;margin-bottom:6px">📎 Comprovante de pagamento <span style="color:#e53e3e">*</span></label>
+          <input type="file" id="comprovante" accept="image/*" required style="width:100%;border:1px dashed #C9A03D;border-radius:8px;padding:10px;font-size:0.82rem;background:#FFFDF5;cursor:pointer;">
+          <p style="font-size:0.72rem;color:#8A9CB0;margin-top:4px">Envie foto ou print do comprovante (JPG, PNG)</p>
+          <div id="comprovantePreview" style="display:none;margin-top:8px;">
+            <img id="comprovanteImg" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #E2E8F0;">
+          </div>
+        </div>
+
         <div class="erro" id="erroForm"></div>
         <button class="btn" type="submit">✅ FINALIZAR INSCRIÇÃO</button>
       </section>
     </form>
 
     <section class="success" id="successBox">
-      <h3>✅ Atleta cadastrado!</h3>
-      <p>O atleta foi registrado com sucesso.</p>
+      <h3>✅ Inscrição enviada!</h3>
+      <p>Sua inscrição foi recebida e está <strong>aguardando aprovação</strong> do organizador após verificação do pagamento.</p>
       <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
         <button class="btn" id="btnNovaInscricao" type="button">+ Novo Atleta</button>
         <a href="index.html" class="btn" style="background:#16a34a;text-decoration:none;text-align:center">← Voltar ao Sistema</a>
@@ -291,6 +301,9 @@
         email: $("email").value.trim(),
         pagamento: (document.querySelector('input[name="pagamento"]:checked')||{}).value || "PIX",
         categoria: categoriaPorIdade(idadeNaData($("dataNascimento").value, REF)).nome,
+        foto: fotoAtletaBase64 || null,
+        comprovante: comprovanteBase64 || null,
+        status: "pendente",
         criadoEm: Date.now()
       };
 
@@ -298,23 +311,12 @@
       inscricoes.push(payload);
       setJSON(K.inscricoes, inscricoes);
 
-      const atletas = getJSON(K.atletas, []);
-      atletas.push({
-        id: Date.now(),
-        nome: payload.nome,
-        sexo: payload.sexo,
-        faixa: payload.faixa,
-        peso: payload.peso,
-        academia: payload.equipeNome || payload.equipe,
-        dataNascimento: $("dataNascimento").value,
-        dataCadastro: new Date().toISOString(),
-        foto: fotoAtletaBase64 || null,
-        origem: "inscricao"
-      });
-      setJSON(K.atletas, atletas);
       fotoAtletaBase64 = null;
+      comprovanteBase64 = null;
       document.getElementById('fotoAtletaPreview').style.display = 'none';
       document.getElementById('fotoAtleta').value = '';
+      document.getElementById('comprovantePreview').style.display = 'none';
+      document.getElementById('comprovante').value = '';
     }
 
     // ===== REDIMENSIONAR IMAGEM =====
@@ -343,6 +345,17 @@
         fotoAtletaBase64 = base64;
         document.getElementById('fotoAtletaImg').src = base64;
         document.getElementById('fotoAtletaPreview').style.display = 'block';
+      });
+    });
+
+    var comprovanteBase64 = null;
+    document.getElementById('comprovante').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      redimensionarImagem(file, 800, function(base64) {
+        comprovanteBase64 = base64;
+        document.getElementById('comprovanteImg').src = base64;
+        document.getElementById('comprovantePreview').style.display = 'block';
       });
     });
 
