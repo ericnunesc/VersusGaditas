@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Placar - Gaditas Torneios</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ouro:#C9A03D; --ouro-esc:#A0822E;
+            --bg:#060608; --bg2:#0E0E12; --bg3:#161620; --borda:#1E1E2A;
+            --texto:#E8E8F0; --texto-fraco:#5A5A7A;
+            --verde:#00E68A; --azul:#3B8BFF; --branco:#F0F0F0; --vermelho:#FF4444;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Barlow',sans-serif; background:var(--bg); color:var(--texto); min-height:100vh; display:flex; flex-direction:column; }
+        body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 100% 60% at 50% -10%, rgba(201,160,61,0.1) 0%, transparent 60%); pointer-events:none; z-index:0; }
+        .container { position:relative; z-index:1; max-width:700px; margin:0 auto; padding:16px 16px 40px; flex:1; display:flex; flex-direction:column; gap:14px; }
+
+        /* HEADER */
+        .header-pub { text-align:center; border-bottom:1px solid var(--borda); padding-bottom:12px; }
+        .header-pub h1 { font-family:'Oswald',sans-serif; font-size:1.4rem; color:var(--ouro); letter-spacing:3px; text-transform:uppercase; }
+        .header-pub p { font-size:0.6rem; color:var(--texto-fraco); letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
+        .relogio-pub { font-family:'Oswald',sans-serif; font-size:1.1rem; color:var(--ouro); letter-spacing:3px; margin-top:4px; }
+
+        /* SELETOR DE ÁREA */
+        .area-selector { background:var(--bg2); border:1px solid var(--borda); border-radius:10px; padding:12px; }
+        .area-selector label { font-size:0.68rem; color:var(--texto-fraco); letter-spacing:1px; text-transform:uppercase; display:block; margin-bottom:8px; }
+        .area-tabs { display:flex; gap:6px; flex-wrap:wrap; }
+        .area-btn { background:var(--bg3); border:1px solid var(--borda); color:var(--texto-fraco); padding:7px 14px; border-radius:7px; font-family:'Oswald',sans-serif; font-size:0.8rem; letter-spacing:1px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; }
+        .area-btn:hover { border-color:var(--ouro); color:var(--ouro); }
+        .area-btn.active { background:rgba(201,160,61,0.12); border-color:var(--ouro); color:var(--ouro); }
+        .area-btn.ao-vivo { border-color:var(--verde); color:var(--verde); animation:pulse-btn 1.5s infinite; }
+        @keyframes pulse-btn { 0%,100%{box-shadow:0 0 0 0 rgba(0,230,138,0.2)}50%{box-shadow:0 0 0 5px rgba(0,230,138,0)} }
+
+        /* SEM LUTA */
+        .sem-luta { text-align:center; padding:60px 20px; color:var(--texto-fraco); flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
+        .sem-luta .icon { font-size:3.5rem; opacity:0.3; }
+        .sem-luta h2 { font-family:'Oswald',sans-serif; font-size:1.2rem; letter-spacing:2px; }
+
+        /* CATEGORIA */
+        .cat-badge { background:rgba(201,160,61,0.1); border:1px solid rgba(201,160,61,0.3); border-radius:8px; padding:6px 14px; text-align:center; font-family:'Oswald',sans-serif; font-size:0.78rem; color:var(--ouro); letter-spacing:1px; }
+
+        /* PLACAR PRINCIPAL */
+        .placar-main { display:grid; grid-template-columns:1fr 70px 1fr; border-radius:14px; overflow:hidden; border:1px solid var(--borda); }
+
+        .atleta-pub { padding:18px 12px; display:flex; flex-direction:column; align-items:center; gap:6px; }
+        .atleta-pub.lado-a { background:linear-gradient(135deg,rgba(59,139,255,0.15),rgba(59,139,255,0.04)); border-right:1px solid var(--borda); }
+        .atleta-pub.lado-b { background:linear-gradient(135deg,rgba(240,240,240,0.07),rgba(240,240,240,0.02)); border-left:1px solid var(--borda); }
+        .atleta-pub.vencedor-destaque { animation:pulse-venc 1s ease-in-out infinite; }
+        @keyframes pulse-venc { 0%,100%{opacity:1}50%{opacity:0.75} }
+
+        /* Tag kimono */
+        .kimono-tag { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:10px; font-size:0.55rem; font-weight:700; letter-spacing:0.5px; margin-bottom:2px; }
+        .kimono-tag.azul { background:rgba(59,139,255,0.18); color:var(--azul); border:1px solid rgba(59,139,255,0.35); }
+        .kimono-tag.branco { background:rgba(240,240,240,0.08); color:var(--branco); border:1px solid rgba(240,240,240,0.2); }
+        .tarja-indicator { display:inline-flex; gap:2px; align-items:center; margin-left:4px; }
+        .tarja-bar { width:8px; height:14px; border-radius:2px; display:inline-block; }
+
+        .atleta-pub-nome { font-family:'Oswald',sans-serif; font-size:0.95rem; font-weight:700; text-align:center; line-height:1.2; }
+        .atleta-pub-acad { font-size:0.58rem; color:var(--texto-fraco); text-align:center; }
+
+        .pontos-pub { font-family:'Oswald',sans-serif; font-size:4rem; font-weight:900; line-height:1; text-align:center; }
+        .pontos-pub.azul { color:var(--azul); }
+        .pontos-pub.branco { color:var(--branco); }
+
+        .extras-atleta { display:flex; gap:5px; width:100%; }
+        .extra-mini { flex:1; background:rgba(255,255,255,0.04); border:1px solid var(--borda); border-radius:6px; padding:5px 4px; text-align:center; }
+        .extra-mini-label { font-size:0.48rem; color:var(--texto-fraco); letter-spacing:1px; text-transform:uppercase; margin-bottom:2px; }
+        .extra-mini-val { font-family:'Oswald',sans-serif; font-size:1rem; font-weight:700; }
+        .extra-mini-val.vant { color:var(--ouro); }
+        .extra-mini-val.pun { color:#FF6666; }
+
+        /* CENTRO */
+        .placar-centro { background:var(--bg2); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; padding:10px 4px; }
+        .vs-pub { font-family:'Oswald',sans-serif; font-size:1rem; font-weight:700; color:var(--ouro-esc); }
+        .tempo-pub { font-family:'Oswald',sans-serif; font-size:1.1rem; font-weight:700; color:var(--ouro); letter-spacing:2px; text-align:center; }
+        .tempo-pub.correndo { color:var(--verde); animation:blink-txt 1s infinite; }
+        .tempo-pub.overtime { color:var(--vermelho); animation:blink-txt 0.7s infinite; }
+        @keyframes blink-txt { 0%,100%{opacity:1}50%{opacity:0.45} }
+        .status-pub { font-size:0.48rem; color:var(--texto-fraco); letter-spacing:1px; text-align:center; text-transform:uppercase; }
+
+        /* RESULTADO */
+        .resultado-pub { background:rgba(0,230,138,0.08); border:2px solid rgba(0,230,138,0.4); border-radius:14px; padding:20px; text-align:center; animation:pulse-result 1.5s ease-in-out infinite; }
+        @keyframes pulse-result { 0%,100%{border-color:rgba(0,230,138,0.4)}50%{border-color:rgba(0,230,138,0.9)} }
+        .resultado-pub h2 { font-family:'Oswald',sans-serif; font-size:1.6rem; color:var(--verde); letter-spacing:2px; margin-bottom:4px; }
+        .resultado-pub p { font-size:0.75rem; color:var(--texto-fraco); }
+
+        .footer-pub { text-align:center; font-size:0.58rem; color:var(--texto-fraco); letter-spacing:1px; text-transform:uppercase; }
+
+        @media(max-width:400px){ .pontos-pub{font-size:3rem;} .atleta-pub-nome{font-size:0.82rem;} }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header-pub">
+        <h1>⚔️ Gaditas Torneios</h1>
+        <p>Placar ao Vivo</p>
+        <div class="relogio-pub" id="relogio-pub">--:--:--</div>
+    </div>
+
+    <!-- SELETOR DE ÁREA -->
+    <div class="area-selector">
+        <label>📍 Selecione o Tatame / Área</label>
+        <div class="area-tabs" id="area-tabs">
+            <div style="color:var(--texto-fraco);font-size:0.75rem">Carregando áreas...</div>
+        </div>
+    </div>
+
+    <!-- PLACAR -->
+    <div id="placar-display">
+        <div class="sem-luta">
+            <div class="icon">⚔️</div>
+            <h2>Aguardando Luta</h2>
+            <p>Selecione uma área acima para ver o placar.</p>
+        </div>
+    </div>
+
+    <div class="footer-pub">Atualização automática · Gaditas Torneios</div>
+</div>
+<script>
+function pad(n){ return n.toString().padStart(2,'0'); }
+setInterval(function(){ var d=new Date(); document.getElementById('relogio-pub').textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); },1000);
+
+var areaSelecionada = localStorage.getItem('gaditas_pub_area') || '';
+var duracaoPorFaixa = {Branca:5,Azul:6,Roxa:7,Marrom:8,Preta:10};
+
+// ===== AREAS =====
+function carregarAreas(){
+    var raw=localStorage.getItem('gaditas_torneio_atual'); if(!raw) return;
+    var dados; try{dados=JSON.parse(raw);}catch(e){return;}
+    var lutasAtivas=JSON.parse(localStorage.getItem('gaditas_lutas_ativas')||'{}');
+    var areasComAtiva=Object.values(lutasAtivas).filter(function(l){return l.ativo;}).map(function(l){
+        var cat=(dados.categorias||[]).find(function(c){return c.chave===l.chave;}); return cat?cat.area:null;
+    }).filter(Boolean);
+
+    var areas=[...new Set((dados.categorias||[]).map(function(c){return c.area||'Tatame 1';}))];
+    if(!areaSelecionada&&areas.length>0) areaSelecionada=areas[0];
+
+    var html=areas.map(function(area){
+        var temAtivo=areasComAtiva.indexOf(area)!==-1;
+        var cls='area-btn'+(area===areaSelecionada?' active':'')+(temAtivo?' ao-vivo':'');
+        return '<button class="'+cls+'" onclick="selecionarArea(\''+area+'\')">'+(temAtivo?'🔴 ':'')+area+'</button>';
+    }).join('');
+    document.getElementById('area-tabs').innerHTML=html||'<span style="color:var(--texto-fraco);font-size:0.75rem">Nenhuma área encontrada</span>';
+}
+
+function selecionarArea(area){
+    areaSelecionada=area;
+    localStorage.setItem('gaditas_pub_area',area);
+    carregarAreas();
+    atualizarPlacar();
+}
+
+// ===== PLACAR =====
+function atualizarPlacar(){
+    // Atualizar durações personalizadas
+    ['Branca','Azul','Roxa','Marrom','Preta'].forEach(function(f){
+        var s=localStorage.getItem('gaditas_duracao_'+f.toLowerCase());
+        if(s) duracaoPorFaixa[f]=parseInt(s);
+    });
+
+    if(!areaSelecionada){ mostrarSemLuta('Selecione uma área acima.'); return; }
+
+    var raw=localStorage.getItem('gaditas_torneio_atual');
+    if(!raw){ mostrarSemLuta('Nenhuma competição ativa.'); return; }
+    var dados; try{dados=JSON.parse(raw);}catch(e){ mostrarSemLuta('Erro ao carregar dados.'); return; }
+
+    var lutasAtivas=JSON.parse(localStorage.getItem('gaditas_lutas_ativas')||'{}');
+
+    // Buscar luta ao vivo NA ÁREA SELECIONADA
+    var lutaAtiva=null, catAtiva=null;
+    Object.values(lutasAtivas).forEach(function(la){
+        if(!la.ativo) return;
+        var cat=(dados.categorias||[]).find(function(c){return c.chave===la.chave&&c.area===areaSelecionada;});
+        if(!cat) return;
+        var l=(cat.lutas||[]).find(function(x){return x.id===la.lutaId;});
+        if(!l) return;
+        lutaAtiva=l; catAtiva=cat;
+    });
+
+    if(!lutaAtiva){
+        // Verificar se há resultado recente nesta área (últimos 90s)
+        var ultima=null, ultimaCat=null;
+        (dados.categorias||[]).filter(function(c){return c.area===areaSelecionada;}).forEach(function(cat){
+            (cat.lutas||[]).forEach(function(l){
+                if(l.finalizada&&l.vencedor&&l.fimMs){
+                    if(!ultima||Number(l.fimMs)>Number(ultima.fimMs)){ ultima=l; ultimaCat=cat; }
+                }
+            });
+        });
+        if(ultima&&(Date.now()-Number(ultima.fimMs))<90000){
+            mostrarResultado(ultima, ultimaCat);
+        } else {
+            mostrarSemLuta('Nenhuma luta ao vivo em '+areaSelecionada+' agora.');
+        }
+        return;
+    }
+
+    // Normalizar
+    if(lutaAtiva.inicioMs) lutaAtiva.inicioMs=Number(lutaAtiva.inicioMs);
+
+    // Carregar placar
+    var placarKey='gaditas_placar_'+catAtiva.chave+'_'+lutaAtiva.id;
+    var placarSalvo=localStorage.getItem(placarKey);
+    var placar={A:{pts:0,vant:0,pun:0},B:{pts:0,vant:0,pun:0}};
+    if(placarSalvo){ try{placar=JSON.parse(placarSalvo);}catch(e){} }
+
+    // Cronômetro — lê do gaditas_placar_crono (independente)
+    var tempoStr='--:--', tempoClasse='', tempoLabel='AGUARDANDO';
+    var cronoData=null;
+    try{ var cs=localStorage.getItem('gaditas_placar_crono'); if(cs) cronoData=JSON.parse(cs); }catch(e){}
+    if(cronoData){
+        var duracaoSeg=Math.floor((cronoData.durMs||360000)/1000);
+        var decorrido=0;
+        if(cronoData.ativo&&cronoData.inicio) decorrido=Math.floor((Date.now()-cronoData.inicio)/1000);
+        else if(cronoData.acumulado) decorrido=Math.floor(cronoData.acumulado/1000);
+        var restante=duracaoSeg-decorrido;
+        if(restante<0) restante=0;
+        var tempoZerado = restante===0 && cronoData.ativo;
+        var mostrar=restante;
+        tempoStr=pad(Math.floor(mostrar/60))+':'+pad(mostrar%60);
+        tempoClasse=tempoZerado?'overtime':cronoData.ativo?'correndo':'';
+        tempoLabel=tempoZerado?'TEMPO ESGOTADO':cronoData.ativo?'EM ANDAMENTO':'PAUSADO';
+    }
+
+    var vA=lutaAtiva.vencedor&&lutaAtiva.vencedor.id===lutaAtiva.atletaA.id;
+    var vB=lutaAtiva.vencedor&&lutaAtiva.atletaB&&lutaAtiva.vencedor.id===lutaAtiva.atletaB.id;
+
+    var html='';
+    html+='<div class="cat-badge">🏅 '+catAtiva.nome+' &nbsp;·&nbsp; 📍 '+areaSelecionada+'</div>';
+
+    // PLACAR PRINCIPAL
+    html+='<div class="placar-main">';
+
+    // Atleta A — Azul + tarja verde/amarela
+    html+='<div class="atleta-pub lado-a'+(vA?' vencedor-destaque':'')+'">'+
+        '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center">'+
+        '<span class="kimono-tag azul">🥋 AZUL</span>'+
+        '<span class="tarja-indicator" title="Tarja do árbitro">'+
+        '<span class="tarja-bar" style="background:#00C853"></span>'+
+        '<span class="tarja-bar" style="background:#FFD600"></span>'+
+        '</span>'+
+        '</div>'+
+        '<div class="atleta-pub-nome">'+(vA?'🏆 ':'')+lutaAtiva.atletaA.nome+'</div>'+
+        '<div class="atleta-pub-acad">'+lutaAtiva.atletaA.academia+'</div>'+
+        '<div class="pontos-pub azul">'+placar.A.pts+'</div>'+
+        '<div class="extras-atleta">'+
+        '<div class="extra-mini"><div class="extra-mini-label">Vant.</div><div class="extra-mini-val vant">'+placar.A.vant+'</div></div>'+
+        '<div class="extra-mini"><div class="extra-mini-label">Pun.</div><div class="extra-mini-val pun">'+placar.A.pun+'</div></div>'+
+        '</div>'+
+        '</div>';
+
+    // Centro
+    html+='<div class="placar-centro">'+
+        '<div class="vs-pub">VS</div>'+
+        '<div class="tempo-pub '+tempoClasse+'">'+tempoStr+'</div>'+
+        '<div class="status-pub">'+tempoLabel+'</div>'+
+        '</div>';
+
+    // Atleta B — Branco
+    html+='<div class="atleta-pub lado-b'+(vB?' vencedor-destaque':'')+'">'+
+        '<span class="kimono-tag branco">🥋 BRANCO</span>'+
+        '<div class="atleta-pub-nome">'+(vB?'🏆 ':'')+lutaAtiva.atletaB.nome+'</div>'+
+        '<div class="atleta-pub-acad">'+lutaAtiva.atletaB.academia+'</div>'+
+        '<div class="pontos-pub branco">'+placar.B.pts+'</div>'+
+        '<div class="extras-atleta">'+
+        '<div class="extra-mini"><div class="extra-mini-label">Vant.</div><div class="extra-mini-val vant">'+placar.B.vant+'</div></div>'+
+        '<div class="extra-mini"><div class="extra-mini-label">Pun.</div><div class="extra-mini-val pun">'+placar.B.pun+'</div></div>'+
+        '</div>'+
+        '</div>';
+
+    html+='</div>'; // placar-main
+
+    // Vencedor declarado
+    if(lutaAtiva.vencedor){
+        html+='<div class="resultado-pub"><h2>🏆 '+lutaAtiva.vencedor.nome+'</h2><p>'+lutaAtiva.vencedor.academia+' · VENCEDOR</p></div>';
+    }
+
+    document.getElementById('placar-display').innerHTML=html;
+}
+
+function mostrarResultado(luta, cat){
+    var placar={A:{pts:0,vant:0,pun:0},B:{pts:0,vant:0,pun:0}};
+    try{ var ps=localStorage.getItem('gaditas_placar_'+cat.chave+'_'+luta.id); if(ps) placar=JSON.parse(ps); }catch(e){}
+    document.getElementById('placar-display').innerHTML=
+        '<div class="cat-badge">🏅 '+cat.nome+' &nbsp;·&nbsp; 📍 '+(cat.area||areaSelecionada)+'</div>'+
+        '<div class="resultado-pub">'+
+        '<h2>🏆 '+luta.vencedor.nome+'</h2>'+
+        '<p>'+luta.vencedor.academia+' · CAMPEÃO desta luta</p>'+
+        '<p style="margin-top:8px;font-size:0.8rem;color:var(--texto)">'+
+        luta.atletaA.nome+' <strong>'+placar.A.pts+'</strong> × <strong>'+placar.B.pts+'</strong> '+luta.atletaB.nome+
+        '</p>'+
+        '</div>';
+}
+
+function mostrarSemLuta(msg){
+    document.getElementById('placar-display').innerHTML=
+        '<div class="sem-luta"><div class="icon">⚔️</div><h2>Aguardando Luta</h2><p>'+(msg||'Nenhuma luta ao vivo agora.')+'</p></div>';
+}
+
+// ===== LOOP =====
+function tick(){
+    carregarAreas();
+    atualizarPlacar();
+}
+
+tick();
+setInterval(tick, 1000); // 1s para cronômetro fluido
+</script>
+</body>
+</html>

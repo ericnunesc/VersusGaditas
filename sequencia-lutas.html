@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaditas Torneios - Sistema de Horários Automático</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255,215,0,0.5);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #ccc;
+            font-size: 0.9em;
+        }
+
+        /* Info Bar */
+        .info-bar {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .current-time {
+            font-size: 1.2em;
+            background: rgba(255,215,0,0.2);
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 1.3em;
+        }
+
+        .current-time span {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .auto-btn {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #1a1a2e;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .auto-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+        }
+
+        .info-text {
+            background: rgba(255,100,100,0.2);
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            border-left: 3px solid #FF6347;
+        }
+
+        /* Status Card */
+        .status-card {
+            background: linear-gradient(135deg, #1e1e3e, #0f0f1f);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 5px solid #FFD700;
+        }
+
+        .status-card h3 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .ongoing-match {
+            font-size: 1.1em;
+            margin: 5px 0;
+        }
+
+        .match-time {
+            color: #00ff9d;
+            font-weight: bold;
+        }
+
+        /* Table Styles */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        th {
+            background: rgba(255,215,0,0.2);
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            color: #FFD700;
+            font-size: 0.9em;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .match-number {
+            font-weight: bold;
+            color: #FFD700;
+            width: 50px;
+        }
+
+        .time-cell {
+            font-family: monospace;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #00ff9d;
+        }
+
+        .team-name {
+            font-weight: 500;
+        }
+
+        .team-vs {
+            color: #FFD700;
+            margin: 0 5px;
+        }
+
+        .gaditas {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .checkmat {
+            color: #ff6b6b;
+        }
+
+        .alliance {
+            color: #4ecdc4;
+        }
+
+        /* Aviso */
+        .warning {
+            background: rgba(255,100,0,0.2);
+            border: 1px solid #FFA500;
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 20px;
+            font-size: 0.85em;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+                font-size: 0.85em;
+            }
+            
+            .auto-btn {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥋 Gaditas Torneios</h1>
+            <p>Sistema de Horários com Ajuste Automático | Faixa Preta - Tatame 1</p>
+        </div>
+
+        <div class="info-bar">
+            <div class="current-time">
+                🕐 Horário atual: <span id="currentTime">--:--</span>
+            </div>
+            <button class="auto-btn" onclick="ajustarHorariosAutomatico()">
+                🔄 Ajustar horários a partir de agora
+            </button>
+            <div class="info-text">
+                ⚡ Cada luta: 5 min | Intervalo: 1 min | Ciclo total: 6 min
+            </div>
+        </div>
+
+        <div class="status-card">
+            <h3>🎯 EM ANDAMENTO - Faixa Preta</h3>
+            <div class="ongoing-match">
+                📍 <strong>Tatame 1</strong> • Última luta finalizada
+            </div>
+            <div class="ongoing-match">
+                ⏱️ Próxima luta começará <strong>imediatamente</strong> após ajuste
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="matchesTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>HORÁRIO</th>
+                        <th>LUTA</th>
+                        <th>ST</th>
+                    </tr>
+                </thead>
+                <tbody id="matchesBody">
+                    <!-- Dados serão inseridos via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="warning">
+            💡 <strong>Como funciona:</strong> Clique em "Ajustar horários a partir de agora" → O sistema usa o horário atual do seu computador → Recalcula automaticamente TODOS os horários das próximas lutas (respeitando 5min de luta + 1min de intervalo) → Os horários da tabela serão atualizados instantaneamente.
+        </div>
+    </div>
+
+    <script>
+        // Carregar lutas do torneio real
+        function carregarMatchesDoTorneio() {
+            const matches = [];
+            try {
+                const raw = localStorage.getItem('gaditas_torneio_atual');
+                if (!raw) return matches;
+                const dados = JSON.parse(raw);
+                const cats = dados.categorias || [];
+                let num = 1;
+                cats.forEach(function(cat) {
+                    const rodAtual = Number(cat.rodadaAtual || 1);
+                    const lutas = (cat.lutas || []).filter(l => Number(l.rodada) === rodAtual);
+                    lutas.forEach(function(luta) {
+                        if (!luta.atletaA || luta.atletaA.isWO) return;
+                        matches.push({
+                            number: num + '°',
+                            originalTime: '--:--',
+                            fighter1: luta.atletaA.nome || '?',
+                            fighter2: luta.atletaB && !luta.atletaB.isWO ? luta.atletaB.nome : 'BYE',
+                            team1: luta.atletaA.academia || '',
+                            team2: luta.atletaB && !luta.atletaB.isWO ? (luta.atletaB.academia || '') : '',
+                            status: luta.finalizada ? 'completed' : 'upcoming',
+                            categoria: cat.nome || '',
+                            area: cat.area || 'Tatame 1',
+                            fase: luta.fase || ''
+                        });
+                        num++;
+                    });
+                });
+            } catch(e) { console.error('Erro ao carregar torneio:', e); }
+            return matches;
+        }
+
+        let matches = carregarMatchesDoTorneio();
+
+        // Parâmetros — lê duração salva nas configs
+        const FIGHT_DURATION = parseInt(localStorage.getItem('gaditas_duracao_azul') || '6');
+        const INTERVAL = 1; // minuto entre lutas
+        const CYCLE_DURATION = FIGHT_DURATION + INTERVAL;
+
+        // Auto-atualizar a cada 5s
+        setInterval(function() {
+            matches = carregarMatchesDoTorneio();
+            recalcSchedules(startTime, 0);
+            renderTable();
+        }, 5000);
+
+        // Função para formatar hora (HH:MM)
+        function formatTime(date) {
+            return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Função para somar minutos a uma data
+        function addMinutes(date, minutes) {
+            return new Date(date.getTime() + minutes * 60000);
+        }
+
+        // Atualizar relógio atual na tela
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('currentTime').innerText = formatTime(now);
+        }
+
+        // Converter string HH:MM para objeto Date (considerando hoje)
+        function timeStringToDate(timeStr) {
+            const today = new Date();
+            const [hours, minutes] = timeStr.split(':');
+            const date = new Date(today);
+            date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            return date;
+        }
+
+        // Obter horário atual sem data (só HH:MM)
+        function getCurrentTimeString() {
+            const now = new Date();
+            return formatTime(now);
+        }
+
+        // Função principal: recalcular todos os horários a partir de um horário base
+        function recalcSchedules(startTime, startMatchIndex) {
+            let currentTime = new Date(startTime);
+            
+            for (let i = startMatchIndex; i < matches.length; i++) {
+                // Atualiza o horário da luta atual
+                matches[i].calculatedTime = formatTime(currentTime);
+                
+                // Avança para o início da próxima luta (duração da luta + intervalo)
+                currentTime = addMinutes(currentTime, FIGHT_DURATION + INTERVAL);
+            }
+        }
+
+        // Ajuste automático baseado no horário atual
+        function ajustarHorariosAutomatico() {
+            const now = new Date();
+            const horarioAtual = formatTime(now);
+            
+            // Encontrar a primeira luta upcoming (não completada)
+            let firstUpcomingIndex = -1;
+            for (let i = 0; i < matches.length; i++) {
+                if (matches[i].status !== 'completed') {
+                    firstUpcomingIndex = i;
+                    break;
+                }
+            }
+            
+            if (firstUpcomingIndex === -1) {
+                alert("Todas as lutas já foram concluídas!");
+                return;
+            }
+            
+            // Confirmar com o usuário
+            const confirmMsg = `Usar horário atual (${horarioAtual}) como início da luta ${matches[firstUpcomingIndex].number}?\n\n` +
+                              `Todas as lutas seguintes serão recalculadas automaticamente.\n` +
+                              `(Cada luta: ${FIGHT_DURATION}min + ${INTERVAL}min de intervalo)`;
+            
+            if (confirm(confirmMsg)) {
+                // Recalcular a partir do horário atual
+                recalcSchedules(now, firstUpcomingIndex);
+                
+                // Atualizar a tabela
+                renderTable();
+                
+                // Mostrar mensagem de sucesso
+                showTemporaryMessage(`✅ Horários atualizados! Luta ${matches[firstUpcomingIndex].number} começa às ${horarioAtual}`);
+            }
+        }
+        
+        // Função para mostrar mensagem temporária
+        function showTemporaryMessage(msg) {
+            const infoBar = document.querySelector('.info-bar');
+            const oldContent = infoBar.innerHTML;
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.className = 'info-text';
+            tempDiv.style.background = 'rgba(0,255,0,0.2)';
+            tempDiv.style.borderLeft = '3px solid #00ff00';
+            tempDiv.innerHTML = `✅ ${msg}`;
+            
+            infoBar.appendChild(tempDiv);
+            
+            setTimeout(() => {
+                infoBar.removeChild(tempDiv);
+            }, 3000);
+        }
+
+        // Renderizar tabela
+        function renderTable() {
+            const tbody = document.getElementById('matchesBody');
+            if (!matches || matches.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:24px">Nenhuma competição ativa ou sem lutas na rodada atual</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            
+            matches.forEach((match, index) => {
+                const row = tbody.insertRow();
+                
+                // Número da luta
+                const cellNum = row.insertCell(0);
+                cellNum.className = 'match-number';
+                cellNum.innerText = match.number;
+                
+                // Horário (prioriza horário calculado, senão usa original)
+                const cellTime = row.insertCell(1);
+                cellTime.className = 'time-cell';
+                const timeToShow = match.calculatedTime || match.originalTime;
+                cellTime.innerText = timeToShow;
+                
+                // Luta (fighters e equipes)
+                const cellFight = row.insertCell(2);
+                cellFight.className = 'team-name';
+                
+                let fightHtml = '';
+                
+                if (match.fighter2 === 'BYE') {
+                    fightHtml = `<strong>${match.fighter1}</strong> <span class="team-vs">${match.fighter2}</span>`;
+                    if (match.team1) {
+                        fightHtml += ` <span class="${match.team1.toLowerCase()}">${match.team1}</span>`;
+                    }
+                    if (match.special) {
+                        fightHtml += `<br><small style="color:#aaa;">${match.special}</small>`;
+                    }
+                } else {
+                    fightHtml = `<strong>${match.fighter1}</strong> <span class="team-vs">vs</span> <strong>${match.fighter2}</strong>`;
+                    if (match.team1 || match.team2) {
+                        fightHtml += `<br><small>`;
+                        if (match.team1) fightHtml += `<span class="${match.team1.toLowerCase()}">${match.team1}</span> `;
+                        if (match.team2) fightHtml += `<span class="${match.team2.toLowerCase()}">${match.team2}</span>`;
+                        fightHtml += `</small>`;
+                    }
+                }
+                
+                if (match.categoria) {
+                    fightHtml += `<br><small style="color:#aaa;">${match.categoria}${match.area ? ' · ' + match.area : ''}${match.fase ? ' · ' + match.fase : ''}</small>`;
+                }
+                if (match.specialRef) {
+                    fightHtml += `<br><small style="color:#aaa;">Ref: ${match.specialRef}</small>`;
+                }
+                
+                cellFight.innerHTML = fightHtml;
+                
+                // ST (Status ou informação extra)
+                const cellSt = row.insertCell(3);
+                if (index < 2) {
+                    cellSt.innerHTML = '✅ Realizada';
+                    cellSt.style.color = '#00ff9d';
+                } else if (index === firstUpcomingIndex()) {
+                    cellSt.innerHTML = '▶ PRÓXIMA';
+                    cellSt.style.color = '#FFD700';
+                    cellSt.style.fontWeight = 'bold';
+                } else if (index > firstUpcomingIndex()) {
+                    cellSt.innerHTML = '⏱ Aguardando';
+                    cellSt.style.color = '#aaa';
+                } else {
+                    cellSt.innerHTML = '';
+                }
+            });
+        }
+        
+        // Encontrar índice da primeira luta não concluída
+        function firstUpcomingIndex() {
+            for (let i = 0; i < matches.length; i++) {
+                if (matches[i].status !== 'completed') {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        // Inicializar com horários originais (caso não tenha ajustado ainda)
+        function initializeDefaultSchedules() {
+            // Se não houver horário calculado para a primeira upcoming, mantém original
+            const firstUp = firstUpcomingIndex();
+            if (firstUp !== -1 && !matches[firstUp].calculatedTime) {
+                // Não recalcula automaticamente, apenas usa os originais
+                for (let i = 0; i < matches.length; i++) {
+                    matches[i].calculatedTime = null;
+                }
+            }
+            renderTable();
+        }
+
+        // Atualizar relógio a cada segundo
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime();
+        
+        // Inicializar
+        initializeDefaultSchedules();
+    </script>
+</body>
+</html>

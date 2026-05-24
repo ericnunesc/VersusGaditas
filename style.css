@@ -1,0 +1,1111 @@
+/* ==================== RESET ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #F5F7FA;
+    color: #1A2C3E;
+    line-height: 1.5;
+}
+
+/* ==================== LAYOUT PRINCIPAL ==================== */
+.app {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 32px;
+}
+
+/* ==================== TOP BAR ==================== */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    font-size: 2rem;
+}
+
+.logo-area h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1A2C3E;
+    letter-spacing: -0.3px;
+}
+
+.logo-area p {
+    font-size: 0.7rem;
+    color: #8A9CB0;
+}
+
+.top-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: 1px solid #E2E8F0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    background: #FFFFFF;
+    border-color: #C9A03D;
+}
+
+/* ==================== STATUS BAR ==================== */
+.status-bar {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 24px;
+}
+
+.status-competicao-ativa, .status-competicao-inativa {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* ==================== TABS ==================== */
+.tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.tab {
+    background: transparent;
+    border: none;
+    padding: 10px 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #8A9CB0;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 8px 8px 0 0;
+}
+
+.tab:hover {
+    color: #C9A03D;
+}
+
+.tab.active {
+    color: #C9A03D;
+    border-bottom: 2px solid #C9A03D;
+}
+
+.tab-badge {
+    background: #E2E8F0;
+    color: #1A2C3E;
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    margin-left: 6px;
+}
+
+/* ==================== CONTENT ==================== */
+.content {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* ==================== CARDS ==================== */
+.card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #E2E8F0;
+    background: #FAFBFC;
+}
+
+.card-header h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1A2C3E;
+}
+
+.card-subtitle {
+    font-size: 0.75rem;
+    color: #8A9CB0;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.card-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #E2E8F0;
+    background: #FAFBFC;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* ==================== STATS GRID ==================== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-icon {
+    font-size: 2rem;
+}
+
+.stat-info h3 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #C9A03D;
+    line-height: 1.2;
+}
+
+.stat-info p {
+    font-size: 0.75rem;
+    color: #8A9CB0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ==================== RANKING TABLE ==================== */
+.ranking-table {
+    overflow-x: auto;
+}
+
+.ranking-header {
+    display: grid;
+    grid-template-columns: 60px 1fr 100px;
+    padding: 10px 0;
+    color: #8A9CB0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.ranking-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 100px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.ranking-row:last-child {
+    border-bottom: none;
+}
+
+.ranking-pos {
+    font-weight: 600;
+}
+
+.ranking-pos.top-1 { color: #C9A03D; }
+.ranking-pos.top-2 { color: #94A3B8; }
+.ranking-pos.top-3 { color: #CD7F32; }
+
+.ranking-nome {
+    font-weight: 500;
+}
+
+.ranking-pontos {
+    text-align: right;
+    font-weight: 600;
+    color: #C9A03D;
+}
+
+/* ==================== ATLETAS GRID ==================== */
+.atletas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.atleta-card {
+    background: #FAFBFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.atleta-card:hover {
+    border-color: #C9A03D;
+    background: #FFFFFF;
+}
+
+.atleta-info h4 {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+.atleta-info p {
+    font-size: 0.7rem;
+    color: #8A9CB0;
+    margin: 2px 0;
+}
+
+.atleta-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ==================== BOTÕES ==================== */
+.btn-primary {
+    background: #C9A03D;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 40px;
+    font-weight: 500;
+    font-size: 0.8rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #A0822E;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #E2E8F0;
+    padding: 6px 14px;
+    border-radius: 40px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #1A2C3E;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    border-color: #C9A03D;
+    color: #C9A03D;
+}
+
+.btn-danger {
+    background: transparent;
+    border: 1px solid #EF4444;
+    padding: 6px 14px;
+    border-radius: 40px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #EF4444;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background: #EF4444;
+    color: white;
+}
+
+.btn-small {
+    background: transparent;
+    border: 1px solid #E2E8F0;
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.btn-vitoria {
+    background: transparent;
+    border: 1px solid #10B981;
+    color: #10B981;
+    border-radius: 30px;
+    padding: 4px 12px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.btn-vitoria:hover {
+    background: #10B981;
+    color: white;
+}
+
+/* ==================== INPUTS ==================== */
+.input, .select {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 40px;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.input:focus, .select:focus {
+    outline: none;
+    border-color: #C9A03D;
+}
+
+.filtros-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+/* ==================== CHAVEAMENTO ==================== */
+.categorias-resumo {
+    margin-bottom: 24px;
+}
+
+.categorias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.categoria-resumo-card {
+    background: #FAFBFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.categoria-resumo-card h4 {
+    font-size: 0.8rem;
+    color: #C9A03D;
+    margin-bottom: 6px;
+}
+
+.categoria-chave {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.categoria-header {
+    background: #FAFBFC;
+    padding: 12px 20px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.categoria-header h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #C9A03D;
+}
+
+.lutas-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.luta-card {
+    background: #FAFBFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.luta-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.7rem;
+    color: #8A9CB0;
+}
+
+.luta-status {
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+}
+
+.status-pendente {
+    background: #FEF3C7;
+    color: #D97706;
+}
+
+.status-finalizada {
+    background: #D1FAE5;
+    color: #059669;
+}
+
+.luta-atletas {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+}
+
+.luta-atleta {
+    text-align: center;
+    padding: 12px;
+    border-radius: 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+}
+
+.luta-atleta.vencedor {
+    background: #D1FAE5;
+    border-color: #10B981;
+}
+
+.atleta-nome {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+.atleta-academia {
+    font-size: 0.65rem;
+    color: #8A9CB0;
+}
+
+.luta-vs {
+    font-weight: 700;
+    color: #C9A03D;
+}
+
+.categoria-actions {
+    padding: 12px 20px;
+    text-align: center;
+    border-top: 1px solid #E2E8F0;
+}
+
+.categoria-finalizada {
+    text-align: center;
+    padding: 24px;
+}
+
+.campeao-info {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #C9A03D;
+    margin: 8px 0;
+}
+
+/* ==================== HISTÓRICO ==================== */
+.historico-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.historico-card {
+    background: #FAFBFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.historico-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.historico-data {
+    font-size: 0.7rem;
+    color: #8A9CB0;
+}
+
+.historico-categoria-badge {
+    background: #E2E8F0;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+}
+
+.ranking-mini-item {
+    font-size: 0.8rem;
+    padding: 4px 0;
+}
+
+.ranking-mini-item.gold { color: #C9A03D; }
+.ranking-mini-item.silver { color: #94A3B8; }
+.ranking-mini-item.bronze { color: #CD7F32; }
+
+.comp-campeao {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #E2E8F0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #C9A03D;
+}
+
+/* ==================== CONFIGURAÇÕES ==================== */
+.config-section {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.config-section h4 {
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    color: #1A2C3E;
+}
+
+.config-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+/* ==================== LEGENDA ==================== */
+.legenda-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: #1A2C3E;
+}
+
+.legenda-cor {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.legenda-cor.gold { background: #C9A03D; }
+.legenda-cor.gray { background: #94A3B8; }
+.legenda-cor.blue { background: #3B82F6; }
+.legenda-cor.silver { background: #9CA3AF; }
+.legenda-cor.bronze { background: #CD7F32; }
+
+/* ==================== TABELAS ==================== */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #E2E8F0;
+    font-size: 0.8rem;
+}
+
+.table th {
+    color: #8A9CB0;
+    font-weight: 600;
+}
+
+/* ==================== MODAL ==================== */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #FFFFFF;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #E2E8F0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.preview-box {
+    background: #FAFBFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 0.8rem;
+}
+
+/* ==================== TOAST ==================== */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1100;
+}
+
+.toast {
+    background: #FFFFFF;
+    border-left: 4px solid #C9A03D;
+    padding: 12px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-top: 8px;
+    animation: slideIn 0.2s ease;
+}
+
+.toast-sucesso { border-left-color: #10B981; }
+.toast-erro { border-left-color: #EF4444; }
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 48px;
+    color: #8A9CB0;}
+    
+    /* =========================================================
+   PATCH VISUAL — ADM CHAVEAMENTO (CSS ONLY)
+   Sem alterar HTML/JS/regras de negócio.
+   Cole no FINAL do style.css
+   ========================================================= */
+
+/* Tokens de refinamento (mantém sua paleta dourada) */
+:root {
+    --adm-bg: #F5F7FA;
+    --adm-surface: #FFFFFF;
+    --adm-surface-soft: #FAFBFC;
+    --adm-border: #E2E8F0;
+    --adm-text: #1A2C3E;
+    --adm-muted: #8A9CB0;
+    --adm-gold: #C9A03D;
+    --adm-gold-dark: #A0822E;
+    --adm-success: #10B981;
+    --adm-warning: #D97706;
+    --adm-danger: #EF4444;
+    --adm-radius-lg: 16px;
+    --adm-radius-md: 12px;
+    --adm-radius-sm: 10px;
+    --adm-shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.06);
+    --adm-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+/* Fundo e respiro geral */
+body {
+    background: linear-gradient(180deg, #F8FAFC 0%, #F5F7FA 100%);
+    color: var(--adm-text);
+}
+
+/* Header/topbar com mais presença visual */
+.top-bar {
+    background: var(--adm-surface);
+    border: 1px solid var(--adm-border);
+    border-radius: var(--adm-radius-lg);
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    box-shadow: var(--adm-shadow-sm);
+}
+
+.logo-area h1 {
+    font-size: 1.05rem;
+    letter-spacing: -0.2px;
+}
+
+.logo-area p {
+    font-size: 0.72rem;
+}
+
+/* Botões de ícone mais consistentes */
+.icon-btn {
+    background: #fff;
+    border: 1px solid var(--adm-border);
+    border-radius: 10px;
+}
+
+.icon-btn:hover {
+    background: #FFFCF5;
+    border-color: var(--adm-gold);
+    transform: translateY(-1px);
+}
+
+/* Barra de status mais legível */
+.status-bar {
+    border-radius: var(--adm-radius-lg);
+    box-shadow: var(--adm-shadow-sm);
+    padding: 14px 16px;
+}
+
+/* Seção de tabs com acabamento */
+.tabs {
+    gap: 8px;
+    border-bottom: none;
+    margin-bottom: 16px;
+    padding: 4px;
+    background: #EEF2F7;
+    border-radius: 12px;
+    display: inline-flex;
+    flex-wrap: wrap;
+}
+
+.tab {
+    border-radius: 9px;
+    padding: 9px 14px;
+    font-weight: 600;
+}
+
+.tab:hover {
+    background: #fff;
+}
+
+.tab.active {
+    background: #fff;
+    color: var(--adm-gold);
+    border-bottom: none;
+    box-shadow: inset 0 0 0 1px #F3E3B6;
+}
+
+.tab-badge {
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+}
+
+/* Cards gerais mais “clean” */
+.card {
+    border-radius: var(--adm-radius-lg);
+    box-shadow: var(--adm-shadow-sm);
+}
+
+.card-header {
+    background: linear-gradient(180deg, #FCFDFE 0%, #F8FAFC 100%);
+}
+
+.card-header h3 {
+    font-size: 0.92rem;
+}
+
+/* Botões principais */
+.btn-primary {
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(201, 160, 61, 0.25);
+}
+
+.btn-primary:hover {
+    background: var(--adm-gold-dark);
+    transform: translateY(-1px);
+}
+
+.btn-secondary,
+.btn-danger,
+.btn-small,
+.btn-vitoria {
+    transition: all 0.2s ease;
+}
+
+/* Inputs */
+.input, .select {
+    background: #fff;
+    border: 1px solid var(--adm-border);
+    min-height: 36px;
+}
+
+.input:focus, .select:focus {
+    border-color: var(--adm-gold);
+    box-shadow: 0 0 0 3px rgba(201, 160, 61, 0.15);
+}
+
+/* ==================== CHAVEAMENTO (refino visual) ==================== */
+
+.categoria-chave {
+    border-radius: var(--adm-radius-lg);
+    box-shadow: var(--adm-shadow-sm);
+}
+
+.categoria-header {
+    background: linear-gradient(180deg, #FCFDFE 0%, #F8FAFC 100%);
+    padding: 14px 20px;
+}
+
+.categoria-header h4 {
+    font-size: 0.86rem;
+    letter-spacing: 0.1px;
+}
+
+.lutas-container {
+    gap: 12px;
+}
+
+.luta-card {
+    background: #fff;
+    border-radius: var(--adm-radius-md);
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.04);
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.luta-card:hover {
+    transform: translateY(-1px);
+    border-color: #D8E0EC;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.luta-header {
+    margin-bottom: 10px;
+}
+
+.luta-status {
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.status-pendente {
+    background: #FFF7E8;
+    color: var(--adm-warning);
+    border-color: #FDE7BE;
+}
+
+.status-finalizada {
+    background: #EAFBF3;
+    color: #059669;
+    border-color: #B7EBCF;
+}
+
+.luta-atletas {
+    gap: 12px;
+}
+
+.luta-atleta {
+    background: #fff;
+    border-radius: var(--adm-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.luta-atleta:hover {
+    border-color: #D6DFEB;
+    background: #FCFDFE;
+}
+
+.luta-atleta.vencedor {
+    background: #EAFBF3;
+    border-color: var(--adm-success);
+    box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.15);
+}
+
+.atleta-nome {
+    font-size: 0.86rem;
+}
+
+.atleta-academia {
+    font-size: 0.68rem;
+}
+
+.luta-vs {
+    font-size: 0.78rem;
+    letter-spacing: 0.4px;
+}
+
+/* Resumo por categoria */
+.categorias-grid {
+    gap: 10px;
+}
+
+.categoria-resumo-card {
+    background: #fff;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.categoria-resumo-card:hover {
+    border-color: #D6DFEB;
+    box-shadow: var(--adm-shadow-sm);
+    transform: translateY(-1px);
+}
+
+/* Tabelas */
+.table th, .table td {
+    padding: 11px 10px;
+}
+
+.table th {
+    background: #FAFBFC;
+    color: var(--adm-muted);
+}
+
+/* Modal */
+.modal-content {
+    border: 1px solid var(--adm-border);
+    box-shadow: var(--adm-shadow-md);
+}
+
+.modal-header,
+.modal-footer {
+    background: #FCFDFE;
+}
+
+/* Toast mais discreto */
+.toast {
+    border-radius: 10px;
+    box-shadow: var(--adm-shadow-md);
+}
+
+/* Scrollbars discretas nas listas longas */
+.atletas-grid::-webkit-scrollbar,
+.historico-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.atletas-grid::-webkit-scrollbar-thumb,
+.historico-list::-webkit-scrollbar-thumb {
+    background: #D5DDE8;
+    border-radius: 999px;
+}
+
+.atletas-grid::-webkit-scrollbar-track,
+.historico-list::-webkit-scrollbar-track {
+    background: #F1F5F9;
+}
+
+/* Responsivo */
+@media (max-width: 1024px) {
+    .app {
+        padding: 18px 16px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+@media (max-width: 640px) {
+    .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .tabs {
+        width: 100%;
+    }
+
+    .tab {
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .luta-atletas {
+        grid-template-columns: 1fr;
+    }
+
+    .luta-vs {
+        text-align: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

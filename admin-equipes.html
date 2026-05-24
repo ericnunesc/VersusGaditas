@@ -1,0 +1,279 @@
+<!-- arquivo: admin-equipe.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Equipes - GADITAS TORNEIOS</title>
+  <style>
+    :root {
+      --bg: #0f1220; --card: #171b2e; --text: #f2f5ff; --muted: #aab3d1;
+      --primary: #3b82f6; --success: #16a34a; --warning: #f59e0b; --danger: #dc2626; --border: #2b3358;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: var(--bg); color: var(--text); }
+    .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+    .back { color: #9fc0ff; text-decoration: none; font-size: 14px; }
+    .logo { text-align: center; margin: 10px 0 0; font-size: 36px; }
+    h1 { text-align: center; margin: 6px 0 4px; font-size: 24px; }
+    .subtitle { text-align: center; color: var(--muted); margin-bottom: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+    .card h2 { margin: 0 0 14px; font-size: 18px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+    .field input { width: 100%; border: 1px solid var(--border); background: #0f1430; color: var(--text); border-radius: 10px; padding: 11px 12px; font-size: 15px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { border: none; border-radius: 10px; padding: 10px 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-warning { background: var(--warning); color: #111827; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-ghost { background: #111935; color: var(--text); border: 1px solid var(--border); }
+    .msg { margin-top: 10px; font-size: 13px; font-weight: 700; min-height: 18px; }
+    .msg.ok { color: #86efac; } .msg.err { color: #fecaca; }
+    .list { display: grid; gap: 10px; }
+    .item { background: #111935; border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .item .meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .item .actions { display: flex; gap: 8px; }
+    .empty { border: 1px dashed var(--border); border-radius: 12px; padding: 12px; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a class="back" href="admin.html">← Voltar para Admin</a>
+    <div class="logo">🏢</div>
+    <h1>Administração de Equipes</h1>
+    <div class="subtitle">Incluir, alterar e excluir equipes</div>
+
+    <section class="card">
+      <h2 id="tituloForm">➕ Incluir equipe</h2>
+      <form id="formEquipe">
+        <input type="hidden" id="editId" />
+        <div class="field">
+          <label for="nomeEquipe">Nome da equipe</label>
+          <input id="nomeEquipe" required />
+        </div>
+        <div class="field">
+          <label for="professorResponsavel">Professor responsável</label>
+          <input id="professorResponsavel" required />
+        </div>
+        <div class="field">
+          <label for="telefoneProfessor">Telefone do professor</label>
+          <input id="telefoneProfessor" required />
+        </div>
+
+        <div class="row">
+          <button type="submit" class="btn btn-primary" id="btnSalvar">Salvar equipe</button>
+          <button type="button" class="btn btn-ghost" id="btnCancelarEdicao" style="display:none;">Cancelar edição</button>
+          <button type="button" class="btn btn-danger" id="btnLimparTudo">Limpar todas</button>
+        </div>
+        <div id="msg" class="msg"></div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>📋 Equipes cadastradas</h2>
+      <div id="lista" class="list"></div>
+    </section>
+  </div>
+
+  <script>
+    const K_EQ = "equipes";
+    const $ = id => document.getElementById(id);
+
+    function getEquipes() {
+      try {
+        const raw = localStorage.getItem(K_EQ);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function setEquipes(arr) {
+      localStorage.setItem(K_EQ, JSON.stringify(arr));
+      window.dispatchEvent(new Event("gdt:update"));
+    }
+
+    function uid() {
+      return Date.now().toString() + "_" + Math.random().toString(36).slice(2, 7);
+    }
+
+    function showMsg(text, type = "") {
+      const m = $("msg");
+      m.textContent = text;
+      m.className = "msg " + type;
+    }
+
+    function limparMsg() {
+      showMsg("", "");
+    }
+
+    function formatarTelefoneBR(v) {
+      const d = (v || "").replace(/\D/g, "").slice(0, 11);
+      if (d.length <= 10) {
+        return d.replace(/^(\d{0,2})(\d{0,4})(\d{0,4}).*$/, (_, a, b, c) =>
+          [a && `(${a}`, a.length === 2 && ") ", b, b && c && "-", c].filter(Boolean).join("")
+        );
+      }
+      return d.replace(/^(\d{2})(\d{5})(\d{4}).*$/, "($1) $2-$3");
+    }
+
+    function telefoneValido(v) {
+      const d = (v || "").replace(/\D/g, "");
+      return d.length >= 10 && d.length <= 11;
+    }
+
+    function resetForm() {
+      $("editId").value = "";
+      $("formEquipe").reset();
+      $("tituloForm").textContent = "➕ Incluir equipe";
+      $("btnSalvar").textContent = "Salvar equipe";
+      $("btnCancelarEdicao").style.display = "none";
+      $("nomeEquipe").focus();
+    }
+
+    function render() {
+      const lista = $("lista");
+      const equipes = getEquipes();
+
+      if (!equipes.length) {
+        lista.innerHTML = `<div class="empty">Nenhuma equipe cadastrada.</div>`;
+        return;
+      }
+
+      lista.innerHTML = equipes
+        .slice()
+        .sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"))
+        .map(eq => `
+          <div class="item">
+            <div>
+              <strong>${eq.nome}</strong>
+              <div class="meta">Professor: ${eq.professorResponsavel || "-"}</div>
+              <div class="meta">Telefone: ${eq.telefoneProfessor || "-"}</div>
+            </div>
+            <div class="actions">
+              <button class="btn btn-warning" data-edit="${eq.id}">Alterar</button>
+              <button class="btn btn-danger" data-del="${eq.id}">Excluir</button>
+            </div>
+          </div>
+        `).join("");
+    }
+
+    function salvarOuAlterar() {
+      const editId = $("editId").value;
+      const nome = $("nomeEquipe").value.trim();
+      const professorResponsavel = $("professorResponsavel").value.trim();
+      const telefoneProfessor = $("telefoneProfessor").value.trim();
+
+      if (!nome || !professorResponsavel || !telefoneProfessor) {
+        showMsg("Preencha todos os campos.", "err");
+        return;
+      }
+
+      if (!telefoneValido(telefoneProfessor)) {
+        showMsg("Telefone inválido.", "err");
+        return;
+      }
+
+      const equipes = getEquipes();
+      const duplicada = equipes.find(e =>
+        e.nome?.toLowerCase() === nome.toLowerCase() &&
+        String(e.id) !== String(editId || "")
+      );
+      if (duplicada) {
+        showMsg("Já existe equipe com esse nome.", "err");
+        return;
+      }
+
+      if (editId) {
+        const i = equipes.findIndex(e => String(e.id) === String(editId));
+        if (i === -1) {
+          showMsg("Equipe não encontrada para alteração.", "err");
+          return;
+        }
+        equipes[i] = { ...equipes[i], nome, professorResponsavel, telefoneProfessor };
+        setEquipes(equipes);
+        render();
+        resetForm();
+        showMsg("Equipe alterada com sucesso.", "ok");
+        return;
+      }
+
+      equipes.push({ id: uid(), nome, professorResponsavel, telefoneProfessor });
+      setEquipes(equipes);
+      render();
+      resetForm();
+      showMsg("Equipe incluída com sucesso.", "ok");
+    }
+
+    function editarEquipe(id) {
+      const equipe = getEquipes().find(e => String(e.id) === String(id));
+      if (!equipe) return;
+
+      $("editId").value = equipe.id;
+      $("nomeEquipe").value = equipe.nome || "";
+      $("professorResponsavel").value = equipe.professorResponsavel || "";
+      $("telefoneProfessor").value = equipe.telefoneProfessor || "";
+
+      $("tituloForm").textContent = "✏️ Alterar equipe";
+      $("btnSalvar").textContent = "Salvar alterações";
+      $("btnCancelarEdicao").style.display = "inline-block";
+      showMsg("Editando equipe selecionada.", "ok");
+      $("nomeEquipe").focus();
+    }
+
+    function excluirEquipe(id) {
+      const equipes = getEquipes();
+      const alvo = equipes.find(e => String(e.id) === String(id));
+      if (!alvo) return;
+
+      if (!confirm(`Excluir a equipe "${alvo.nome}"?`)) return;
+      setEquipes(equipes.filter(e => String(e.id) !== String(id)));
+
+      if ($("editId").value === String(id)) resetForm();
+      render();
+      showMsg("Equipe excluída.", "ok");
+    }
+
+    function limparTodas() {
+      if (!getEquipes().length) {
+        showMsg("Não há equipes para limpar.", "err");
+        return;
+      }
+      if (!confirm("Tem certeza que deseja excluir TODAS as equipes?")) return;
+      setEquipes([]);
+      render();
+      resetForm();
+      showMsg("Todas as equipes foram removidas.", "ok");
+    }
+
+    $("telefoneProfessor").addEventListener("input", () => {
+      $("telefoneProfessor").value = formatarTelefoneBR($("telefoneProfessor").value);
+    });
+
+    $("formEquipe").addEventListener("submit", (e) => {
+      e.preventDefault();
+      salvarOuAlterar();
+    });
+
+    $("btnCancelarEdicao").addEventListener("click", () => {
+      resetForm();
+      limparMsg();
+    });
+
+    $("btnLimparTudo").addEventListener("click", limparTodas);
+
+    $("lista").addEventListener("click", (e) => {
+      const idEdit = e.target.getAttribute("data-edit");
+      const idDel = e.target.getAttribute("data-del");
+      if (idEdit) editarEquipe(idEdit);
+      if (idDel) excluirEquipe(idDel);
+    });
+
+    render();
+    resetForm();
+  </script>
+</body>
+</html>

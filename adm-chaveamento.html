@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Adm Chaveamento - Gaditas Torneios</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ouro: #C9A03D;
+      --ouro-esc: #A0822E;
+      --bg: #060608;
+      --bg2: #0E0E12;
+      --bg3: #161620;
+      --borda: #1E1E2A;
+      --texto: #E8E8F0;
+      --texto-fraco: #5A5A7A;
+      --verde: #00E68A;
+      --azul: #3B8BFF;
+      --vermelho: #FF4444;
+      --laranja: #F59E0B;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg);
+      color: var(--texto);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(201,160,61,0.07) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 16px 40px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0 14px;
+      border-bottom: 1px solid var(--borda);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--ouro), var(--ouro-esc));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 16px rgba(201,160,61,0.25);
+    }
+
+    .logo-text h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--ouro);
+      letter-spacing: 1px;
+    }
+
+    .logo-text p {
+      font-size: 0.62rem;
+      color: var(--texto-fraco);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .header-right { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .btn-nav {
+      background: var(--bg3);
+      border: 1px solid var(--borda);
+      color: var(--texto-fraco);
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      cursor: pointer;
+      font-family: 'Barlow', sans-serif;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-nav:hover { border-color: var(--ouro); color: var(--ouro); }
+
+    .status-bar {
+      background: var(--bg2);
+      border: 1px solid var(--borda);
+      border-left: 3px solid var(--ouro);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .comp-nome {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      color: var(--ouro);
+    }
+
+    .status-counts {
+      display: flex;
+      gap: 16px;
+      font-size: 0.78rem;
+      flex-wrap: wrap;
+    }
+
+    .count-item { display: flex; align-items: center; gap: 6px; color: var(--texto-fraco); }
+    .count-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+    .filtros {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filtro-label {
+      font-size: 0.78rem;
+      color: var(--texto-fraco);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-right: 2px;
+    }
+
+    .filtro-btn {
+      background: var(--bg2);
+      border: 1px solid var(--borda);
+      color: var(--texto-fraco);
+      padding: 7px 14px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filtro-btn:hover,
+    .filtro-btn.active {
+      border-color: var(--ouro);
+      color: var(--ouro);
+      background: rgba(201,160,61,0.08);
+    }
+
+    .areas-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .area-tab {
+      background: var(--bg2);
+      border: 1px solid var(--borda);
+      color: var(--texto-fraco);
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .area-tab.active {
+      border-color: var(--verde);
+      color: var(--verde);
+      box-shadow: 0 0 0 2px rgba(0,230,138,.12);
+    }
+
+    .categoria-card {
+      background: var(--bg2);
+      border: 1px solid var(--borda);
+      border-radius: 16px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .categoria-header {
+      background: linear-gradient(180deg, #1b1b2b 0%, #171725 100%);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--borda);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .cat-nome {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.05rem;
+      color: var(--ouro);
+      letter-spacing: .4px;
+    }
+
+    .cat-meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: .8rem;
+      color: var(--texto-fraco);
+    }
+
+    .btn-avancar {
+      background: rgba(201,160,61,.15);
+      border: 1px solid var(--ouro);
+      color: var(--ouro);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: .78rem;
+      cursor: pointer;
+    }
+
+    .luta-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background .2s;
+    }
+    .luta-item:last-child { border-bottom: none; }
+
+    .luta-item.aoVivo { background: rgba(0,230,138,.08); }
+    .luta-item.atrasada { background: rgba(255,68,68,.10); }
+    .luta-item.proximo { background: rgba(59,139,255,.08); }
+    .luta-item.finalizada { opacity: .58; }
+
+    .luta-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .luta-seq {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.55rem;
+      color: #6b6b91;
+      width: 28px;
+    }
+
+    .luta-horario {
+      font-family: 'Oswald', sans-serif;
+      font-size: 2rem;
+      line-height: 1;
+      font-weight: 700;
+      color: var(--ouro);
+      letter-spacing: 1px;
+    }
+
+    .luta-horario.verde { color: var(--verde); }
+    .luta-horario.vermelho { color: var(--vermelho); }
+    .luta-horario.azul { color: var(--azul); }
+
+    .badge {
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: .78rem;
+      font-weight: 700;
+      background: rgba(255,255,255,.02);
+    }
+    .badge-ao-vivo { border-color: rgba(0,230,138,.6); color: var(--verde); background: rgba(0,230,138,.12); }
+    .badge-atrasada { border-color: rgba(255,68,68,.6); color: #ff7777; background: rgba(255,68,68,.12); }
+    .badge-proximo { border-color: rgba(59,139,255,.6); color: #7ab1ff; background: rgba(59,139,255,.12); }
+    .badge-finalizada { border-color: rgba(255,255,255,.2); color: #a7a7ba; }
+    .badge-pendente { border-color: rgba(245,158,11,.5); color: #ffc86f; background: rgba(245,158,11,.10); }
+
+    .luta-atletas {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .atleta-box {
+      background: #161628;
+      border: 1px solid #26263b;
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 70px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .atleta-box.vencedor {
+      border-color: rgba(0,230,138,.75);
+      background: rgba(0,230,138,.10);
+      box-shadow: inset 0 0 0 1px rgba(0,230,138,.15);
+    }
+
+    .atleta-nome-card {
+      font-size: 1.75rem;
+      line-height: 1;
+      font-weight: 700;
+      color: #f1f1f6;
+      margin-bottom: 2px;
+    }
+
+    .atleta-acad-card {
+      font-size: .6rem;
+      color: var(--texto-fraco);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+    }
+
+    .vs-label {
+      color: var(--ouro);
+      font-family: 'Oswald', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 1px;
+      opacity: .95;
+    }
+
+    .luta-acoes {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .btn-iniciar, .btn-vencedor, .btn-placar {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 1.65rem;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform .1s ease, filter .2s;
+    }
+
+    .btn-iniciar { background: linear-gradient(135deg, #2d7bff, #1f56c5); color: #e9f2ff; }
+    .btn-vencedor { background: rgba(201,160,61,.18); color: #ffd77a; border: 1px solid rgba(201,160,61,.5); }
+    .btn-placar { background: rgba(59,139,255,.20); color: #85bdff; border: 1px solid rgba(59,139,255,.55); }
+
+    .btn-iniciar:hover, .btn-vencedor:hover, .btn-placar:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .empty {
+      border: 1px dashed var(--borda);
+      border-radius: 14px;
+      padding: 40px 16px;
+      text-align: center;
+      color: var(--texto-fraco);
+      background: rgba(255,255,255,.01);
+    }
+
+    @media (max-width: 768px) {
+      .luta-horario { font-size: 1.7rem; }
+      .atleta-nome-card { font-size: 1.45rem; }
+      .vs-label { font-size: 1.7rem; }
+      .btn-iniciar, .btn-vencedor, .btn-placar { font-size: 1.35rem; padding: 9px 12px; }
+    }
+
+    @media (max-width: 520px) {
+      .luta-atletas { grid-template-columns: 1fr auto 1fr; gap: 8px; }
+      .atleta-nome-card { font-size: 1.25rem; }
+      .btn-iniciar, .btn-vencedor, .btn-placar { font-size: 1.2rem; }
+      .luta-acoes { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+      .btn-placar { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <div class="logo-icon">⚔️</div>
+        <div class="logo-text">
+          <h1>Adm Chaveamento</h1>
+          <p>Gaditas Torneios · Controle de Lutas</p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <a class="btn-nav" href="index.html">🏠 Index</a>
+        <a class="btn-nav" href="agenda-lutas.html">📅 Agenda</a>
+        <a class="btn-nav" href="placar-adm.html">🥊 Placar Adm</a>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div class="comp-nome" id="comp-nome">Carregando...</div>
+      <div class="status-counts">
+        <div class="count-item"><span class="count-dot" style="background:var(--verde)"></span><span id="cnt-ao-vivo">0</span> ao vivo</div>
+        <div class="count-item"><span class="count-dot" style="background:var(--vermelho)"></span><span id="cnt-atrasadas">0</span> atrasadas</div>
+        <div class="count-item"><span class="count-dot" style="background:var(--laranja)"></span><span id="cnt-pendentes">0</span> pendentes</div>
+        <div class="count-item"><span class="count-dot" style="background:#444"></span><span id="cnt-finalizadas">0</span> finalizadas</div>
+      </div>
+    </div>
+
+    <div class="filtros">
+      <span class="filtro-label">Ver:</span>
+      <button class="filtro-btn active" data-filtro="todas">📋 Todas</button>
+      <button class="filtro-btn" data-filtro="aoVivo">🔴 Ao Vivo</button>
+      <button class="filtro-btn" data-filtro="atrasada">⚠️ Atrasadas</button>
+      <button class="filtro-btn" data-filtro="proximo">⚡ Próximas</button>
+      <button class="filtro-btn" data-filtro="finalizada">✅ Finalizadas</button>
+    </div>
+
+    <div class="areas-tabs" id="areas-tabs"></div>
+
+    <div id="painel" class="empty">Carregando...</div>
+  </div>
+
+  <script>
+    var horarioInicio = localStorage.getItem('gaditas_horario_inicio') || '09:00';
+
+    // Fase pelo número de lutas na rodada (mais preciso)
+    function getNomeFasePorLutas(numLutas, cat) {
+        if (cat) {
+            var rodAtual = Number(cat.rodadaAtual || 1);
+            var lutasRod = (cat.lutas || []).filter(function(l){ return Number(l.rodada) === rodAtual; });
+            var temTerceiro = lutasRod.some(function(l){ return l.fase === '3º Lugar'; });
+            var lutasNormais = lutasRod.filter(function(l){ return l.fase !== '3º Lugar'; });
+            if (temTerceiro && lutasNormais.length === 0) return 'Disputa do 3º Lugar';
+            if (rodAtual === 1 && Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0)
+                return 'Repescagem';
+            if (lutasNormais.length === 1) {
+                if (Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0)
+                    return 'Repescagem';
+                return 'Final';
+            }
+            numLutas = lutasNormais.length;
+        }
+        if (numLutas >= 16) return 'Dezesseis Avos';
+        if (numLutas >= 8)  return 'Oitavas de Final';
+        if (numLutas >= 4)  return 'Quartas de Final';
+        if (numLutas >= 2)  return 'Semifinal';
+        return 'Final';
+    }
+
+    function getFaseTituloLocal(tot, rod) {
+        if(tot===3){return rod===1?'Semifinal':rod===2?'Repescagem':'Final';}
+        var pot=Math.pow(2,Math.ceil(Math.log2(Math.max(tot,2))));
+        var rRest=Math.log2(pot)-(rod-1);
+        if(rRest<=1) return 'Final';
+        if(rRest<=2) return 'Semifinal';
+        if(rRest<=3) return 'Quartas de Final';
+        if(rRest<=4) return 'Oitavas de Final';
+        if(rRest<=5) return 'Dezesseis Avos';
+        return 'Fase '+rod;
+    }
+    var duracaoPorFaixa = { Branca:5, Azul:6, Roxa:7, Marrom:8, Preta:10,
+                            Cinza:3, Amarela:3, Laranja:3, Verde:4 };
+    var duracaoPorIdade = { 'Pre-Mirim':2,'Mirim 1':2,'Mirim 2':2,
+                            'Infantil 1':3,'Infantil 2':3,'Infanto-Juvenil':4,'Juvenil':4 };
+
+    // Carregar durações salvas do índice
+    (function() {
+        var mapa = { Branca:'branca',Azul:'azul',Roxa:'roxa',Marrom:'marrom',Preta:'preta',
+                     Cinza:'cinza',Amarela:'amarela',Laranja:'laranja',Verde:'verde' };
+        Object.keys(mapa).forEach(function(f) {
+            var s=localStorage.getItem('gaditas_duracao_'+mapa[f]); if(s) duracaoPorFaixa[f]=parseInt(s);
+        });
+        var mapaI={'Pre-Mirim':'pre-mirim','Mirim 1':'mirim1','Mirim 2':'mirim2',
+                   'Infantil 1':'infantil1','Infantil 2':'infantil2',
+                   'Infanto-Juvenil':'infanto-juvenil','Juvenil':'juvenil'};
+        Object.keys(mapaI).forEach(function(c) {
+            var s=localStorage.getItem('gaditas_duracao_'+mapaI[c]); if(s) duracaoPorIdade[c]=parseInt(s);
+        });
+    })();
+
+    var areaAtiva = null;
+    var filtroAtivo = 'todas';
+
+    function getTorneio() {
+      try { return JSON.parse(localStorage.getItem('gaditas_torneio_atual') || '{}'); }
+      catch(e) { return {}; }
+    }
+
+    function saveTorneio(t) {
+      localStorage.setItem('gaditas_torneio_atual', JSON.stringify(t));
+    }
+
+    function hhmm2min(hhmm) {
+      var p = String(hhmm || '09:00').split(':');
+      return (parseInt(p[0], 10) || 9) * 60 + (parseInt(p[1], 10) || 0);
+    }
+
+    function min2hhmm(m) {
+      var h = Math.floor(m / 60);
+      var mm = m % 60;
+      return String(h).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+    }
+
+    function getDuracaoLuta(luta) {
+      var fA = (luta && luta.atletaA && luta.atletaA.faixa) ? luta.atletaA.faixa : 'Branca';
+      var faixasInfantis = ['Cinza','Amarela','Laranja','Verde'];
+      if (faixasInfantis.indexOf(fA) >= 0) return 3;
+      return duracaoPorFaixa[fA] || 5;
+    }
+
+    function getStatus(item) {
+      var luta = item.luta;
+      if (luta.finalizada) return 'finalizada';
+      if (luta.inicioMs && !luta.fimMs) return 'aoVivo';
+
+      var agora = new Date();
+      var agoraMin = (agora.getHours() * 60) + agora.getMinutes();
+
+      // atrasada se passou 2 min do horário previsto e ainda não iniciou
+      if (agoraMin > (item.horarioMin + 2)) return 'atrasada';
+      return 'proximo';
+    }
+
+    function abrirPlacar(chave, lutaId) {
+      try {
+        var dados = getTorneio();
+        var categoria = (dados.categorias || []).find(function (c) { return c.chave === chave; });
+        if (!categoria) { alert('Categoria não encontrada.'); return false; }
+
+        var luta = (categoria.lutas || []).find(function (l) { return Number(l.id) === Number(lutaId); });
+        if (!luta) { alert('Luta não encontrada.'); return false; }
+
+        localStorage.setItem('gaditas_placar_contexto', JSON.stringify({
+          chave: chave,
+          lutaId: Number(lutaId),
+          categoria: categoria.nome || '',
+          area: categoria.area || '',
+          atletaA: luta.atletaA || null,
+          atletaB: luta.atletaB || null,
+          pontos: luta.pontos || { A: 0, B: 0 }
+        }));
+
+        var url = new URL('placar-adm.html', window.location.href);
+        url.searchParams.set('chave', chave);
+        url.searchParams.set('lutaId', String(lutaId));
+        window.location.href = url.toString();
+        return false;
+      } catch (e) {
+        console.error(e);
+        alert('Erro ao abrir placar.');
+        return false;
+      }
+    }
+    window.abrirPlacar = abrirPlacar;
+
+    function iniciarLuta(chave, lutaId) {
+      // ADM Chaveamento não inicia lutas — apenas ADM Placar pode fazer isso
+      alert('⚠️ Use o ADM Placar para iniciar lutas.');
+    }
+
+    function declararVencedor(chave, lutaId, lado) {
+      var t = getTorneio();
+      var cat = (t.categorias || []).find(function(c){ return c.chave === chave; });
+      if (!cat) return;
+
+      var luta = (cat.lutas || []).find(function(l){ return Number(l.id) === Number(lutaId); });
+      if (!luta) return;
+
+      // ADM Chaveamento só pode CORRIGIR lutas já finalizadas
+      if (!luta.finalizada) {
+        alert('⚠️ Esta luta ainda não foi finalizada.\nUse o ADM Placar para declarar o vencedor.');
+        return;
+      }
+
+      // BLOQUEIO: se qualquer luta da rodada SEGUINTE já foi iniciada, não permite correção
+      var rodadaLuta = Number(luta.rodada);
+      var proximaRodada = rodadaLuta + 1;
+      var lutasProximaFase = (cat.lutas || []).filter(function(l){
+        return Number(l.rodada) === proximaRodada;
+      });
+      var faseJaIniciada = lutasProximaFase.some(function(l){
+        return l.inicioMs || l.finalizada;
+      });
+
+      if (faseJaIniciada) {
+        alert('⚠️ A próxima fase já foi iniciada.\nNão é possível corrigir resultados desta rodada.');
+        return;
+      }
+
+      var novoVencedor = (lado === 'A') ? luta.atletaA : luta.atletaB;
+      if (!novoVencedor || Number(novoVencedor.id) < 0) return;
+
+      if (!confirm('Corrigir vencedor para ' + novoVencedor.nome + '?')) return;
+
+      luta.vencedor = novoVencedor;
+
+      saveTorneio(t);
+      carregarRenderizar();
+    }
+
+    function avancarRodada(chave) {
+      var t = getTorneio();
+      var cat = (t.categorias || []).find(function(c){ return c.chave === chave; });
+      if (!cat) return;
+
+      var rodadaAtual = Number(cat.rodadaAtual || 1);
+      var lutasRodada = (cat.lutas || []).filter(function(l){ return Number(l.rodada) === rodadaAtual; });
+
+      if (lutasRodada.some(function(l){ return !l.finalizada; })) {
+        alert('Ainda existem lutas pendentes nessa rodada.');
+        return;
+      }
+
+      // Vencedores da rodada (excluindo luta do 3º lugar)
+      var vencedores = lutasRodada
+        .filter(function(l){ return l.fase !== '3º Lugar'; })
+        .map(function(l){ return l.vencedor; })
+        .filter(function(v){ return v && Number(v.id) > 0; });
+
+      if (vencedores.length === 1) {
+        // Final terminou — verificar se 3º lugar também foi resolvido
+        cat.campeao = vencedores[0];
+
+        var lutaFinal = lutasRodada.find(function(l){ return l.finalizada && l.vencedor && l.fase !== '3º Lugar'; });
+        if (lutaFinal) {
+          var perdedorFinal = Number(lutaFinal.atletaA && lutaFinal.atletaA.id) === Number(lutaFinal.vencedor.id)
+            ? lutaFinal.atletaB : lutaFinal.atletaA;
+          if (perdedorFinal) cat.vice = perdedorFinal;
+        }
+        cat.campeaoWO = (cat.atletas && cat.atletas.length <= 1);
+
+        if (cat.disputaTerceiro) {
+          var lutaTerceiro = lutasRodada.find(function(l){ return l.fase === '3º Lugar'; });
+          if (lutaTerceiro && lutaTerceiro.finalizada) {
+            var terceiro = lutaTerceiro.vencedor;
+            var quarto = (lutaTerceiro.atletaA && Number(lutaTerceiro.atletaA.id) === Number(terceiro && terceiro.id))
+              ? lutaTerceiro.atletaB : lutaTerceiro.atletaA;
+            cat.terceiros = terceiro ? [terceiro] : [];
+            cat.quartos   = quarto   ? [quarto]   : [];
+            cat.status = 'finalizada';
+          } else {
+            // 3º ainda pendente
+            cat.status = 'disputa_terceiro';
+          }
+        } else {
+          // Sem disputa de 3º — registrar dois terceiros das semis
+          var perdedoresSemis2 = [];
+          var todasR = [];
+          (cat.lutas || []).forEach(function(x){
+            if (x.finalizada && !x.temBye && x.fase !== '3º Lugar') {
+              var r = Number(x.rodada);
+              if (todasR.indexOf(r) === -1) todasR.push(r);
+            }
+          });
+          todasR.sort(function(a,b){return a-b;});
+          if (todasR.length >= 2) {
+            var rSemi = todasR[todasR.length-2];
+            (cat.lutas||[]).forEach(function(x){
+              if (Number(x.rodada)===rSemi && x.finalizada && x.vencedor && x.fase!=='3º Lugar') {
+                var p = Number(x.atletaA&&x.atletaA.id)===Number(x.vencedor.id)?x.atletaB:x.atletaA;
+                if (p && Number(p.id)>0 && !perdedoresSemis2.find(function(s){return Number(s.id)===Number(p.id);}))
+                  perdedoresSemis2.push(p);
+              }
+            });
+          }
+          if (perdedoresSemis2.length > 0) cat.terceiros = perdedoresSemis2;
+          cat.status = 'finalizada';
+        }
+
+        saveTorneio(t);
+        carregarRenderizar();
+        return;
+      }
+
+      if (vencedores.length % 2 !== 0) {
+        vencedores.push({ id: -(Date.now()), nome: 'BYE', academia: '---', isBye: true });
+      }
+
+      var novaRodada = rodadaAtual + 1;
+      var novoId = Math.max(0, ...((cat.lutas || []).map(function(l){ return Number(l.id) || 0; }))) + 1;
+
+      // Gerar lutas da próxima fase
+      for (var i = 0; i < vencedores.length; i += 2) {
+        cat.lutas.push({
+          id: novoId++,
+          atletaA: vencedores[i],
+          atletaB: vencedores[i + 1],
+          vencedor: null,
+          rodada: novaRodada,
+          status: 'pendente',
+          finalizada: false,
+          pontos: { A: 0, B: 0 },
+          temBye: !!(vencedores[i + 1] && Number(vencedores[i + 1].id) < 0),
+          inicioMs: null,
+          fimMs: null
+        });
+      }
+
+      // Se são semifinais (2 vencedores → 1 final) e formato = 'um', gerar 3º na mesma rodada
+      var formatoT = localStorage.getItem('gaditas_formato_terceiro') || 'dois';
+      if (vencedores.length === 2 && formatoT === 'um') {
+        var perdedoresSemisAdm = lutasRodada
+          .filter(function(l){ return l.fase !== '3º Lugar'; })
+          .map(function(l){ return Number(l.atletaA&&l.atletaA.id)===Number(l.vencedor&&l.vencedor.id)?l.atletaB:l.atletaA; })
+          .filter(function(p){ return p && Number(p.id) > 0; });
+
+        if (perdedoresSemisAdm.length === 2) {
+          cat.lutas.push({
+            id: novoId++,
+            atletaA: perdedoresSemisAdm[0],
+            atletaB: perdedoresSemisAdm[1],
+            vencedor: null,
+            rodada: novaRodada,
+            status: 'pendente',
+            finalizada: false,
+            pontos: { A: 0, B: 0 },
+            temBye: false,
+            inicioMs: null,
+            fimMs: null,
+            fase: '3º Lugar'
+          });
+          cat.disputaTerceiro = true;
+        }
+      }
+
+      cat.rodadaAtual = novaRodada;
+      saveTorneio(t);
+      carregarRenderizar();
+    }
+
+    function carregarRenderizar() {
+      var torneio = getTorneio();
+      var painel = document.getElementById('painel');
+      var areasWrap = document.getElementById('areas-tabs');
+
+      if (!torneio || !torneio.competicaoAtiva || !(torneio.categorias || []).length) {
+        document.getElementById('comp-nome').textContent = 'Nenhuma competição ativa';
+        document.getElementById('cnt-ao-vivo').textContent = '0';
+        document.getElementById('cnt-atrasadas').textContent = '0';
+        document.getElementById('cnt-pendentes').textContent = '0';
+        document.getElementById('cnt-finalizadas').textContent = '0';
+        areasWrap.innerHTML = '';
+        painel.className = 'empty';
+        painel.innerHTML = 'Nenhuma competição ativa no momento.';
+        return;
+      }
+
+      document.getElementById('comp-nome').textContent = '🏆 ' + (torneio.nomeCompeticao || 'Competição');
+
+      var categorias = torneio.categorias || [];
+      var areas = [...new Set(categorias.map(function(c){ return c.area || 'Tatame 1'; }))];
+
+      if (!areaAtiva || !areas.includes(areaAtiva)) areaAtiva = areas[0];
+
+      // Tabs de área
+      areasWrap.innerHTML = areas.map(function(a){
+        var totalArea = categorias
+          .filter(function(c){ return (c.area || 'Tatame 1') === a; })
+          .reduce(function(s, c){ return s + (c.lutas || []).length; }, 0);
+
+        var finArea = categorias
+          .filter(function(c){ return (c.area || 'Tatame 1') === a; })
+          .reduce(function(s, c){ return s + (c.lutas || []).filter(function(l){ return l.finalizada; }).length; }, 0);
+
+        return '<button class="area-tab ' + (a === areaAtiva ? 'active' : '') + '" onclick="selecionarArea(\'' + a + '\')">' +
+               a + ' (' + finArea + '/' + totalArea + ')</button>';
+      }).join('');
+
+      // Flatten lutas + previsão por área
+      var baseMin = hhmm2min(horarioInicio);
+      var mapaAreaOffset = {};
+      var itens = [];
+
+      categorias.forEach(function(cat){
+        var area = cat.area || 'Tatame 1';
+        if (mapaAreaOffset[area] == null) mapaAreaOffset[area] = 0;
+
+        var rodadaAtual = Number(cat.rodadaAtual || 1);
+        var lutasRodada = (cat.lutas || []).filter(function(l){ return Number(l.rodada) === rodadaAtual; });
+
+        lutasRodada.forEach(function(luta){
+          var dur = getDuracaoLuta(luta);
+          var hMin = baseMin + mapaAreaOffset[area];
+          mapaAreaOffset[area] += dur;
+
+          itens.push({
+            cat: cat,
+            luta: luta,
+            area: area,
+            horarioMin: hMin,
+            horario: min2hhmm(hMin)
+          });
+        });
+      });
+
+      // contadores
+      var cAo = 0, cAt = 0, cPe = 0, cFi = 0;
+      itens.forEach(function(it){
+        var s = getStatus(it);
+        if (s === 'aoVivo') cAo++;
+        else if (s === 'atrasada') cAt++;
+        else if (s === 'finalizada') cFi++;
+        else cPe++;
+      });
+
+      document.getElementById('cnt-ao-vivo').textContent = cAo;
+      document.getElementById('cnt-atrasadas').textContent = cAt;
+      document.getElementById('cnt-pendentes').textContent = cPe;
+      document.getElementById('cnt-finalizadas').textContent = cFi;
+
+      // filtro por área + status
+      var itensFiltrados = itens.filter(function(it){
+        var okArea = it.area === areaAtiva;
+        if (!okArea) return false;
+        if (filtroAtivo === 'todas') return true;
+        return getStatus(it) === filtroAtivo;
+      });
+
+      if (!itensFiltrados.length) {
+        painel.className = 'empty';
+        painel.innerHTML = 'Nenhuma luta neste filtro.';
+        return;
+      }
+
+      // agrupar por categoria
+      var porCat = {};
+      var ordemCat = [];
+      itensFiltrados.forEach(function(it){
+        if (!porCat[it.cat.chave]) {
+          porCat[it.cat.chave] = { cat: it.cat, itens: [] };
+          ordemCat.push(it.cat.chave);
+        }
+        porCat[it.cat.chave].itens.push(it);
+      });
+
+      var html = '';
+      ordemCat.forEach(function(chaveCat){
+        var grupo = porCat[chaveCat];
+        var cat = grupo.cat;
+        var totalLutas = (cat.lutas || []).length;
+        var finLutas = (cat.lutas || []).filter(function(l){ return l.finalizada; }).length;
+        var rodadaAtual = Number(cat.rodadaAtual || 1);
+        var lutasRodada = (cat.lutas || []).filter(function(l){ return Number(l.rodada) === rodadaAtual; });
+        var podeAvancar = !cat.campeao && lutasRodada.length > 0 && lutasRodada.every(function(l){ return l.finalizada; });
+
+        html += '<div class="categoria-card">';
+        html += '  <div class="categoria-header">';
+        html += '    <div class="cat-nome">🏅 ' + cat.nome + '</div>';
+        html += '    <div class="cat-meta">';
+        html += '      <span>📍 ' + (cat.area || 'Tatame 1') + '</span>';
+        html += '      <span>' + finLutas + '/' + totalLutas + ' lutas</span>';
+        var lutasNormaisAdm = lutasRodada.filter(function(l){ return l.fase !== '3º Lugar'; });
+        var nomeFaseAdm = getNomeFasePorLutas ? getNomeFasePorLutas(lutasNormaisAdm.length, cat) : ('Rodada ' + rodadaAtual);
+        html += '      <span style="color:#C9A03D;font-weight:700">' + nomeFaseAdm + '</span>';
+        if (cat.campeao) html += '<span style="color:var(--verde)">🏆 ' + cat.campeao.nome + '</span>';
+        if (podeAvancar) html += '<span style="font-size:0.75rem;color:#10B981;padding:4px 8px">✅ Rodada completa — próxima fase sendo gerada automaticamente</span>';
+        html += '    </div>';
+        html += '  </div>';
+
+        grupo.itens.sort(function(a, b){
+          // 3º lugar vem antes da final
+          var aEh3 = a.luta.fase === '3º Lugar' ? 0 : 1;
+          var bEh3 = b.luta.fase === '3º Lugar' ? 0 : 1;
+          return aEh3 - bEh3;
+        });
+
+        grupo.itens.forEach(function(item, idx){
+          var luta = item.luta;
+          var status = getStatus(item);
+          var isBye = luta.atletaB && (luta.atletaB.isBye || Number(luta.atletaB.id) < 0);
+          var aoVivo = status === 'aoVivo';
+
+          var vA = luta.vencedor && luta.atletaA && Number(luta.vencedor.id) === Number(luta.atletaA.id);
+          var vB = luta.vencedor && luta.atletaB && Number(luta.vencedor.id) === Number(luta.atletaB.id);
+
+          var horClasse = aoVivo ? 'verde' : (status === 'atrasada' ? 'vermelho' : 'azul');
+          var badge =
+            status === 'aoVivo' ? '<span class="badge badge-ao-vivo">🔴 AO VIVO</span>' :
+            status === 'atrasada' ? '<span class="badge badge-atrasada">🔴 ATRASADA</span>' :
+            status === 'proximo' ? '<span class="badge badge-proximo">⚡ PRÓXIMA</span>' :
+            status === 'finalizada' ? '<span class="badge badge-finalizada">✓ FINALIZADA</span>' :
+            '<span class="badge badge-pendente">⏳ PENDENTE</span>';
+
+          html += '<div class="luta-item ' + status + '">';
+          html += '  <div class="luta-top">';
+          html += '    <div class="luta-seq">' + (idx + 1) + '</div>';
+          html += '    <div class="luta-horario ' + horClasse + '">' + item.horario + '</div>';
+          html +=      badge;
+          html += '  </div>';
+
+          html += '  <div class="luta-atletas">';
+          html += '    <div class="atleta-box ' + (vA ? 'vencedor' : '') + '">';
+          html += '      <div class="atleta-nome-card">' + (luta.atletaA ? luta.atletaA.nome : '?') + (vA ? ' 🏆' : '') + '</div>';
+          html += '      <div class="atleta-acad-card">' + (luta.atletaA ? (luta.atletaA.academia || '') : '') + '</div>';
+          html += '    </div>';
+          html += '    <div class="vs-label">VS</div>';
+          html += '    <div class="atleta-box ' + (vB ? 'vencedor' : '') + '" style="' + (isBye ? 'opacity:.55;' : '') + '">';
+          html += '      <div class="atleta-nome-card">' + (luta.atletaB ? luta.atletaB.nome : '?') + (vB ? ' 🏆' : '') + '</div>';
+          html += '      <div class="atleta-acad-card">' + (luta.atletaB && luta.atletaB.academia !== '---' ? (luta.atletaB.academia || '') : '') + '</div>';
+          html += '    </div>';
+          html += '  </div>';
+
+          if (!luta.finalizada) {
+            html += '<div class="luta-acoes">';
+            html += '<span style="font-size:0.75rem;color:#8A9CB0;padding:6px">📱 Use o ADM Placar para iniciar e pontuar</span>';
+            html += '</div>';
+          } else {
+            // Verificar se próxima fase já foi iniciada (bloqueio)
+            var rodadaLuta = Number(luta.rodada);
+            var lutasProxFase = (cat.lutas || []).filter(function(l){ return Number(l.rodada) === rodadaLuta + 1; });
+            var bloqueado = lutasProxFase.some(function(l){ return l.inicioMs || l.finalizada; });
+
+            html += '<div class="luta-acoes">';
+            if (bloqueado) {
+              html += '<span style="font-size:0.72rem;color:#ef4444;padding:6px">🔒 Próxima fase iniciada — correção bloqueada</span>';
+            } else {
+              html += '<span style="font-size:0.7rem;color:#8A9CB0;margin-bottom:4px;display:block">✏️ Corrigir vencedor:</span>';
+              html += '<button class="btn-vencedor" onclick="declararVencedor(\'' + cat.chave + '\',' + luta.id + ',\'A\')">✏️ ' + (luta.atletaA?.nome || 'Atleta A') + '</button>';
+              if (!isBye) {
+                html += '<button class="btn-vencedor" onclick="declararVencedor(\'' + cat.chave + '\',' + luta.id + ',\'B\')">✏️ ' + (luta.atletaB?.nome || 'Atleta B') + '</button>';
+              }
+            }
+            html += '</div>';
+          }
+
+          html += '</div>';
+        });
+
+        html += '</div>';
+      });
+
+      painel.className = '';
+      painel.innerHTML = html;
+    }
+
+    function selecionarArea(a) {
+      areaAtiva = a;
+      carregarRenderizar();
+    }
+
+    // filtros
+    document.querySelectorAll('.filtro-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        document.querySelectorAll('.filtro-btn').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        filtroAtivo = btn.getAttribute('data-filtro');
+        carregarRenderizar();
+      });
+    });
+
+    carregarRenderizar();
+    setInterval(carregarRenderizar, 5000);
+
+    window.addEventListener('storage', function(e){
+      if (['gaditas_torneio_atual','gaditas_lutas_ativas','gaditas_horario_inicio'].includes(e.key)) {
+        if (e.key === 'gaditas_horario_inicio') horarioInicio = e.newValue || horarioInicio;
+        carregarRenderizar();
+      }
+    });
+  </script>
+</body>
+</html>

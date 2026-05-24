@@ -1,0 +1,371 @@
+<!-- arquivo: inscricao.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inscrição - GADITAS TORNEIOS</title>
+  <style>
+    :root{
+      --bg:#0f1220; --card:#171b2e; --text:#f2f5ff; --muted:#aab3d1;
+      --primary:#3b82f6; --success:#16a34a; --border:#2b3358; --danger:#dc2626;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+    .container{max-width:780px;margin:0 auto;padding:16px}
+    .back{color:#9fc0ff;text-decoration:none;font-size:14px}
+    .logo{text-align:center;font-size:36px;margin:8px 0 0}
+    h1{text-align:center;margin:6px 0 4px}
+    .subtitle{text-align:center;color:var(--muted);margin-bottom:14px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+    .card h2{margin:0 0 12px;font-size:18px}
+    .field{margin-bottom:12px}
+    .field label{display:block;margin-bottom:6px;font-size:14px;font-weight:700}
+    .field input,.field select{
+      width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--border);
+      background:#10162f;color:var(--text);font-size:15px
+    }
+    .radio-group{display:flex;gap:14px;flex-wrap:wrap}
+    .radio-group label{display:inline-flex;gap:6px;align-items:center;font-weight:600}
+    .hint{color:var(--muted);font-size:12px}
+    .categoria-preview{
+      border:1px dashed var(--border);border-radius:12px;padding:12px;background:#10162f;font-weight:700
+    }
+    .pagamento{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .pay-option{
+      border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;cursor:pointer;background:#10162f
+    }
+    .pay-option.active{border-color:var(--primary);outline:2px solid #1d4ed866}
+    .pay-option input{display:none}
+    .valor{margin-top:10px;font-size:18px;font-weight:800}
+    .btn{
+      width:100%;padding:13px;border:none;border-radius:12px;background:var(--primary);
+      color:#fff;font-size:15px;font-weight:800;cursor:pointer
+    }
+    .erro{color:#fecaca;margin:10px 0 0;font-weight:700;font-size:13px}
+    .success{
+      display:none;background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.35);
+      border-radius:14px;padding:14px
+    }
+    .success h3{margin:0 0 8px;color:#bbf7d0}
+    .footer{text-align:center;color:var(--muted);font-size:12px;margin-top:10px}
+    @media(max-width:700px){.pagamento{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a class="back" href="index.html">← Voltar para o Sistema</a>
+    <div class="logo">🏆</div>
+    <h1>GADITAS TORNEIOS</h1>
+    <div class="subtitle">Faça sua inscrição agora</div>
+
+    <form id="formInscricao" novalidate>
+      <section class="card">
+        <h2>📝 Seus dados</h2>
+
+        <div class="field">
+          <label for="nome">Nome completo</label>
+          <input id="nome" name="nome" required />
+        </div>
+
+        <div class="field">
+          <label for="dataNascimento">Data de Nascimento</label>
+          <input id="dataNascimento" name="dataNascimento" type="date" required />
+          <div class="hint" id="idadeInfo">Idade de referência: -</div>
+        </div>
+
+        <div class="field">
+          <label>Sexo</label>
+          <div class="radio-group">
+            <label><input type="radio" name="sexo" value="M" required /> Masculino</label>
+            <label><input type="radio" name="sexo" value="F" required /> Feminino</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="faixa">Faixa</label>
+          <select id="faixa" name="faixa" required>
+            <option value="">Selecione</option>
+          </select>
+          <div class="hint" id="faixaInfo">As faixas disponíveis mudam conforme a idade.</div>
+        </div>
+
+        <div class="field">
+          <label for="peso">Peso (kg)</label>
+          <input id="peso" name="peso" type="number" step="0.1" min="1" required />
+        </div>
+
+        <div class="field">
+          <label for="equipe">Equipe / Academia</label>
+          <select id="equipe" name="equipe" required>
+            <option value="">Selecione sua equipe</option>
+          </select>
+          <div class="hint" id="equipeInfo"></div>
+        </div>
+
+        <div class="field">
+          <label for="telefone">Telefone (WhatsApp)</label>
+          <input id="telefone" name="telefone" required />
+        </div>
+
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" required />
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>🏆 Sua categoria</h2>
+        <div class="categoria-preview" id="categoriaPreview">Preencha seus dados</div>
+      </section>
+
+      <section class="card">
+        <h2>💰 Pagamento</h2>
+        <div class="pagamento">
+          <label class="pay-option active"><input type="radio" name="pagamento" value="PIX" checked />📱 PIX</label>
+          <label class="pay-option"><input type="radio" name="pagamento" value="Cartão" />💳 Cartão</label>
+          <label class="pay-option"><input type="radio" name="pagamento" value="Boleto" />📄 Boleto</label>
+        </div>
+        <div class="valor">Valor: R$ 120,00</div>
+        <div class="erro" id="erroForm"></div>
+        <button class="btn" type="submit">✅ FINALIZAR INSCRIÇÃO</button>
+      </section>
+    </form>
+
+    <section class="success" id="successBox">
+      <h3>✅ Atleta cadastrado!</h3>
+      <p>O atleta foi registrado com sucesso.</p>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn" id="btnNovaInscricao" type="button">+ Novo Atleta</button>
+        <a href="index.html" class="btn" style="background:#16a34a;text-decoration:none;text-align:center">← Voltar ao Sistema</a>
+      </div>
+    </section>
+
+    <div class="footer">Gaditas Torneios - Sistema oficial CBJJ/IBJJF</div>
+  </div>
+
+  <script>
+    const K = { equipes:"equipes", inscricoes:"inscricoes", atletas:"gaditas_atletas" };
+    const REF = new Date();
+
+    // Tabela oficial CBJJ/IBJJF — espelhada do config.js
+    const CATEGORIAS_IDADE = [
+      { nome: "Pré-Mirim",       idadeMin: 4,  idadeMax: 5,  faixas: ["Branca"] },
+      { nome: "Mirim 1",         idadeMin: 6,  idadeMax: 7,  faixas: ["Branca", "Cinza", "Amarela"] },
+      { nome: "Mirim 2",         idadeMin: 8,  idadeMax: 9,  faixas: ["Branca", "Cinza", "Amarela"] },
+      { nome: "Infantil 1",      idadeMin: 10, idadeMax: 11, faixas: ["Branca", "Cinza", "Amarela", "Laranja"] },
+      { nome: "Infantil 2",      idadeMin: 12, idadeMax: 13, faixas: ["Branca", "Cinza", "Amarela", "Laranja"] },
+      { nome: "Infanto-Juvenil", idadeMin: 14, idadeMax: 15, faixas: ["Branca", "Cinza", "Amarela", "Laranja", "Verde"] },
+      { nome: "Juvenil",         idadeMin: 16, idadeMax: 17, faixas: ["Branca", "Azul", "Roxa"] },
+      { nome: "Adulto",          idadeMin: 18, idadeMax: 29, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 1",        idadeMin: 30, idadeMax: 35, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 2",        idadeMin: 36, idadeMax: 40, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 3",        idadeMin: 41, idadeMax: 45, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 4",        idadeMin: 46, idadeMax: 50, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 5",        idadeMin: 51, idadeMax: 55, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 6",        idadeMin: 56, idadeMax: 99, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] }
+    ];
+
+    const $ = id => document.getElementById(id);
+
+    function getJSON(k, fb){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):fb; }catch{return fb;} }
+    function setJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); window.dispatchEvent(new Event("gdt:update")); }
+    function uid(){ return Date.now()+"_"+Math.random().toString(36).slice(2,7); }
+
+    function idadeNaData(nascISO, ref){
+      const n = new Date(nascISO+"T00:00:00"), r = new Date(ref);
+      let i = r.getFullYear()-n.getFullYear();
+      const m = r.getMonth()-n.getMonth();
+      if (m<0 || (m===0 && r.getDate()<n.getDate())) i--;
+      return i;
+    }
+
+    function categoriaPorIdade(idade) {
+      const cat = CATEGORIAS_IDADE.find(c => idade >= c.idadeMin && idade <= c.idadeMax);
+      return cat || CATEGORIAS_IDADE[CATEGORIAS_IDADE.length - 1];
+    }
+
+    function faixasPermitidas(idade) {
+      return categoriaPorIdade(idade).faixas;
+    }
+
+    function normalizarEquipe(e){
+      if(typeof e==="string"){ const n=e.trim(); return n?{id:n,nome:n}:null; }
+      if(e && typeof e==="object"){
+        const nome=(e.nome||e.nomeEquipe||e.equipe||"").toString().trim();
+        if(!nome) return null;
+        return { id:(e.id||nome).toString(), nome };
+      }
+      return null;
+    }
+
+    function carregarEquipes(){
+      const arr = getJSON(K.equipes, []);
+      return Array.isArray(arr) ? arr.map(normalizarEquipe).filter(Boolean) : [];
+    }
+
+    function popularEquipes(){
+      const el = $("equipe");
+      const list = carregarEquipes();
+      el.innerHTML = '<option value="">Selecione sua equipe</option>';
+      list.sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR")).forEach(eq=>{
+        const op=document.createElement("option");
+        op.value=eq.id; op.textContent=eq.nome; op.dataset.nome=eq.nome;
+        el.appendChild(op);
+      });
+      $("equipeInfo").textContent = list.length ? `${list.length} equipe(s) disponível(is).` : "Nenhuma equipe cadastrada no admin-equipe.";
+    }
+
+    function atualizarFaixas(){
+      const dn = $("dataNascimento").value;
+      const faixa = $("faixa");
+      if(!dn){
+        $("idadeInfo").textContent = "Idade de referência: -";
+        $("faixaInfo").textContent = "As faixas disponíveis mudam conforme a idade.";
+        faixa.innerHTML = '<option value="">Selecione</option>';
+        atualizarPreview();
+        return;
+      }
+
+      const idade = idadeNaData(dn, REF);
+      const cat = categoriaPorIdade(idade);
+      const permitidas = faixasPermitidas(idade);
+      const atual = faixa.value;
+
+      $("idadeInfo").textContent = `Idade de referência: ${idade} ano(s)`;
+      $("faixaInfo").textContent = `${cat.nome} (${cat.idadeMin}–${cat.idadeMax} anos): apenas ${permitidas.join(", ")}.`;
+
+      faixa.innerHTML = '<option value="">Selecione</option>';
+      permitidas.forEach(f=>{
+        const op=document.createElement("option");
+        op.value=f; op.textContent=f;
+        faixa.appendChild(op);
+      });
+      if(permitidas.includes(atual)) faixa.value = atual;
+      atualizarPreview();
+    }
+
+    function atualizarPreview(){
+      const dn = $("dataNascimento").value;
+      const faixa = $("faixa").value || "-";
+      const peso = $("peso").value || "-";
+      const sexo = (document.querySelector('input[name="sexo"]:checked') || {}).value || "-";
+
+      if(!dn){ $("categoriaPreview").textContent = "Preencha seus dados"; return; }
+      const idade = idadeNaData(dn, REF);
+      const cat = categoriaPorIdade(idade);
+      $("categoriaPreview").textContent = `${cat.nome} | Sexo: ${sexo} | ${cat.idadeMin}–${cat.idadeMax} anos | Faixa: ${faixa} | Peso: ${peso} kg`;
+    }
+
+    function formatarTelefoneBR(v){
+      const d=(v||"").replace(/\D/g,"").slice(0,11);
+      if(d.length<=10) return d.replace(/^(\d{0,2})(\d{0,4})(\d{0,4}).*$/, (_,a,b,c)=>[a&&`(${a}`,a.length===2&&") ",b,b&&c&&"-",c].filter(Boolean).join(""));
+      return d.replace(/^(\d{2})(\d{5})(\d{4}).*$/, "($1) $2-$3");
+    }
+
+    function telefoneValido(v){
+      const d=(v||"").replace(/\D/g,"");
+      return d.length>=10 && d.length<=11;
+    }
+
+    function salvarInscricao(){
+      const equipeEl = $("equipe");
+      const option = equipeEl.options[equipeEl.selectedIndex];
+      const equipeNome = option?.dataset?.nome || "";
+
+      const payload = {
+        id: uid(),
+        nome: $("nome").value.trim(),
+        dataNascimento: $("dataNascimento").value,
+        sexo: (document.querySelector('input[name="sexo"]:checked')||{}).value || "",
+        faixa: $("faixa").value,
+        peso: $("peso").value,
+        equipe: equipeEl.value,
+        equipeNome,
+        telefone: $("telefone").value,
+        email: $("email").value.trim(),
+        pagamento: (document.querySelector('input[name="pagamento"]:checked')||{}).value || "PIX",
+        categoria: categoriaPorIdade(idadeNaData($("dataNascimento").value, REF)).nome,
+        criadoEm: Date.now()
+      };
+
+      const inscricoes = getJSON(K.inscricoes, []);
+      inscricoes.push(payload);
+      setJSON(K.inscricoes, inscricoes);
+
+      const atletas = getJSON(K.atletas, []);
+      atletas.push({
+        id: Date.now(),
+        nome: payload.nome,
+        sexo: payload.sexo,
+        faixa: payload.faixa,
+        peso: payload.peso,
+        academia: payload.equipeNome || payload.equipe,
+        dataNascimento: $("dataNascimento").value,
+        dataCadastro: new Date().toISOString(),
+        origem: "inscricao"
+      });
+      setJSON(K.atletas, atletas);
+    }
+
+    document.querySelectorAll(".pay-option").forEach(item=>{
+      item.addEventListener("click", ()=>{
+        document.querySelectorAll(".pay-option").forEach(x=>x.classList.remove("active"));
+        item.classList.add("active");
+        item.querySelector("input").checked = true;
+      });
+    });
+
+    $("telefone").addEventListener("input", ()=> $("telefone").value = formatarTelefoneBR($("telefone").value));
+    $("dataNascimento").addEventListener("change", atualizarFaixas);
+    $("faixa").addEventListener("change", atualizarPreview);
+    $("peso").addEventListener("input", atualizarPreview);
+    document.querySelectorAll('input[name="sexo"]').forEach(r=>r.addEventListener("change", atualizarPreview));
+
+    window.addEventListener("storage", popularEquipes);
+    window.addEventListener("gdt:update", popularEquipes);
+
+    $("formInscricao").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      $("erroForm").textContent = "";
+      if(!$("formInscricao").reportValidity()) return;
+
+      const dn = $("dataNascimento").value;
+      const idade = idadeNaData(dn, REF);
+      const permitidas = faixasPermitidas(idade);
+      if(!permitidas.includes($("faixa").value)){
+        $("erroForm").textContent = "Faixa inválida para a idade informada.";
+        return;
+      }
+
+      if(!$("equipe").value){
+        $("erroForm").textContent = "Selecione uma equipe válida.";
+        return;
+      }
+
+      if(!telefoneValido($("telefone").value)){
+        $("erroForm").textContent = "Telefone inválido. Use DDD + número.";
+        return;
+      }
+
+      salvarInscricao();
+      $("successBox").style.display = "block";
+      $("successBox").scrollIntoView({behavior:"smooth", block:"center"});
+    });
+
+    $("btnNovaInscricao").addEventListener("click", ()=>{
+      $("formInscricao").reset();
+      $("erroForm").textContent = "";
+      $("successBox").style.display = "none";
+      atualizarFaixas();
+      atualizarPreview();
+      popularEquipes();
+      window.scrollTo({top:0,behavior:"smooth"});
+    });
+
+    popularEquipes();
+    atualizarFaixas();
+    atualizarPreview();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Agenda de Lutas - Gaditas Torneios</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ouro: #C9A03D;
+            --ouro-escuro: #A0822E;
+            --bg: #060608;
+            --bg2: #0E0E12;
+            --bg3: #161620;
+            --borda: #1E1E2A;
+            --texto: #E8E8F0;
+            --texto-fraco: #5A5A7A;
+            --verde: #00E68A;
+            --azul: #3B8BFF;
+            --vermelho: #FF4444;
+            --laranja: #F59E0B;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Barlow', sans-serif;
+            background: var(--bg);
+            color: var(--texto);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,160,61,0.07) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; }
+
+        /* HEADER */
+        .header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 0 14px; border-bottom: 1px solid var(--borda);
+            margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; box-shadow: 0 4px 16px rgba(201,160,61,0.25);
+        }
+        .logo-text h1 { font-family: 'Oswald', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--ouro); letter-spacing: 2px; }
+        .logo-text p { font-size: 0.6rem; color: var(--texto-fraco); letter-spacing: 1px; text-transform: uppercase; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .relogio { font-family: 'Oswald', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--ouro); letter-spacing: 3px; }
+        .btn-cfg {
+            background: var(--bg3); border: 1px solid var(--borda); color: var(--texto-fraco);
+            padding: 7px 12px; border-radius: 7px; font-size: 0.72rem; cursor: pointer;
+            font-family: 'Barlow', sans-serif; transition: all 0.2s;
+        }
+        .btn-cfg:hover { border-color: var(--ouro); color: var(--ouro); }
+
+        /* STATUS COMP */
+        .status-comp {
+            background: var(--bg2); border: 1px solid var(--borda); border-left: 3px solid var(--ouro);
+            border-radius: 10px; padding: 11px 16px; margin-bottom: 16px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+        }
+        .comp-nome { font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 600; color: var(--ouro); letter-spacing: 1px; }
+        .comp-info { font-size: 0.68rem; color: var(--texto-fraco); display: flex; gap: 14px; }
+        .update-dot { display: inline-block; width: 6px; height: 6px; background: var(--verde); border-radius: 50%; margin-right: 5px; animation: blink-badge 1.5s infinite; }
+
+        /* TABS */
+        .areas-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+        .area-tab {
+            background: var(--bg2); border: 1px solid var(--borda); color: var(--texto-fraco);
+            padding: 8px 16px; border-radius: 8px;
+            font-family: 'Barlow Condensed', sans-serif; font-size: 0.82rem; font-weight: 600;
+            letter-spacing: 1px; cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+        }
+        .area-tab:hover { border-color: var(--ouro-escuro); color: var(--ouro); }
+        .area-tab.active { background: rgba(201,160,61,0.1); border-color: var(--ouro); color: var(--ouro); }
+        .area-tab .tab-badge { display: inline-block; background: rgba(201,160,61,0.15); color: var(--ouro); font-size: 0.62rem; padding: 1px 6px; border-radius: 10px; margin-left: 5px; }
+        .area-tab.tem-ao-vivo { border-color: var(--verde); color: var(--verde); animation: pulse-tab 1.5s infinite; }
+        .area-tab.tem-atraso:not(.tem-ao-vivo) { border-color: var(--vermelho); color: var(--vermelho); }
+        @keyframes pulse-tab { 0%,100%{box-shadow:0 0 0 0 rgba(0,230,138,0.2)} 50%{box-shadow:0 0 0 5px rgba(0,230,138,0)} }
+
+        /* PAINEL */
+        .area-panel { display: none; }
+        .area-panel.active { display: block; }
+
+        /* ALERTA DE ATRASO */
+
+
+        /* TABELA */
+        .lutas-table-wrap { background: var(--bg2); border: 1px solid var(--borda); border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+        .lutas-rows { padding: 4px 6px; }
+        .table-cat-header {
+            padding: 11px 18px; background: var(--bg3); border-bottom: 1px solid var(--borda);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;
+        }
+        .cat-nome { font-family: 'Oswald', sans-serif; font-size: 0.9rem; color: var(--ouro); letter-spacing: 1px; }
+        .cat-info { font-size: 0.68rem; color: var(--texto-fraco); }
+
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            padding: 9px 14px; text-align: left;
+            font-family: 'Barlow Condensed', sans-serif; font-size: 0.68rem; font-weight: 600;
+            letter-spacing: 1.5px; text-transform: uppercase; color: var(--texto-fraco);
+            background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--borda);
+        }
+        tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.3s; position: relative; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody td { padding: 13px 14px; vertical-align: middle; }
+
+        /* ---- STATUS DAS LINHAS ---- */
+
+        /* FINALIZADA */
+        .row-finalizada { opacity: 0.38; }
+        .row-finalizada td { color: var(--texto-fraco) !important; }
+
+        /* PENDENTE */
+        .row-pendente { background: transparent; }
+
+        /* === LINHAS DE LUTA — layout em grid (não table) para fundo piscar corretamente === */
+        .luta-row {
+            display: grid;
+            grid-template-columns: 44px 90px 1fr 44px 1fr 130px;
+            align-items: center;
+            padding: 13px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            gap: 8px;
+            border-radius: 4px;
+        }
+        .luta-row:last-child { border-bottom: none; }
+
+        .luta-row-header {
+            display: grid;
+            grid-template-columns: 44px 90px 1fr 44px 1fr 130px;
+            padding: 9px 14px;
+            gap: 8px;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--borda);
+        }
+        .luta-row-header span {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.68rem; font-weight: 600;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--texto-fraco);
+        }
+
+        /* FINALIZADA */
+        .row-finalizada { opacity: 0.38; }
+
+        /* AO VIVO — verde piscando na linha INTEIRA */
+        .row-ao-vivo {
+            animation: blink-row-verde 0.9s ease-in-out infinite;
+            border-radius: 6px;
+            border-bottom: none !important;
+            margin-bottom: 1px;
+        }
+        @keyframes blink-row-verde {
+            0%,100% { background: rgba(0,230,138,0.13); }
+            50%      { background: rgba(0,230,138,0.30); }
+        }
+
+        /* PRÓXIMA — azul piscando na linha INTEIRA */
+        .row-proximo {
+            animation: blink-row-azul 1.2s ease-in-out infinite;
+            border-radius: 6px;
+            border-bottom: none !important;
+            margin-bottom: 1px;
+        }
+        @keyframes blink-row-azul {
+            0%,100% { background: rgba(59,139,255,0.13); }
+            50%      { background: rgba(59,139,255,0.30); }
+        }
+
+        /* ATRASADA — vermelho piscando na linha INTEIRA */
+        .row-atrasada {
+            animation: blink-row-vermelho 0.8s ease-in-out infinite;
+            border-radius: 6px;
+            border-bottom: none !important;
+            margin-bottom: 1px;
+        }
+        @keyframes blink-row-vermelho {
+            0%,100% { background: rgba(255,68,68,0.13); }
+            50%      { background: rgba(255,68,68,0.30); }
+        }
+
+        /* PENDENTE */
+        .row-pendente { background: transparent; }
+
+        /* CÉLULAS */
+        .cell-seq { font-family:'Oswald',sans-serif; font-size:1rem; font-weight:700; color:var(--texto-fraco); width:44px; text-align:center; }
+        .cell-horario { font-family:'Oswald',sans-serif; font-size:0.95rem; font-weight:600; color:var(--ouro); width:80px; white-space:nowrap; }
+        .cell-horario.h-ao-vivo { color:var(--verde); animation:blink-txt 0.8s infinite; }
+        .cell-horario.h-proximo { color:var(--azul); animation:blink-txt 0.8s infinite; }
+        .cell-horario.h-atrasada { color:var(--vermelho); animation:blink-txt 0.7s infinite; }
+        .cell-horario.h-finalizada { color:var(--texto-fraco); }
+        @keyframes blink-txt { 0%,100%{opacity:1} 50%{opacity:0.45} }
+
+        .atleta-bloco { min-width: 110px; }
+        .atleta-nome { font-weight:600; font-size:0.85rem; margin-bottom:2px; }
+        .atleta-acad { font-size:0.6rem; color:var(--texto-fraco); }
+        .cell-vs { text-align:center; font-family:'Oswald',sans-serif; font-weight:700; font-size:0.8rem; color:var(--ouro-escuro); width:44px; }
+
+        /* BADGES */
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 9px; border-radius: 20px;
+            font-size: 0.6rem; font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:0.5px; white-space:nowrap;
+        }
+        .badge-pendente { background:rgba(245,158,11,0.12); color:var(--laranja); border:1px solid rgba(245,158,11,0.25); }
+        .badge-proximo  { background:rgba(59,139,255,0.12); color:var(--azul); border:1px solid rgba(59,139,255,0.35); animation:blink-badge 0.9s infinite; }
+        .badge-ao-vivo  { background:rgba(0,230,138,0.12); color:var(--verde); border:1px solid rgba(0,230,138,0.35); animation:blink-badge 0.8s infinite; }
+        .badge-atrasada { background:rgba(255,68,68,0.12); color:var(--vermelho); border:1px solid rgba(255,68,68,0.35); animation:blink-badge 0.7s infinite; }
+        .badge-finalizada { background:rgba(255,255,255,0.04); color:#444; border:1px solid rgba(255,255,255,0.07); }
+        @keyframes blink-badge { 0%,100%{opacity:1} 50%{opacity:0.55} }
+
+        /* LEGENDA */
+        .legenda {
+            display:flex; flex-wrap:wrap; gap:18px; justify-content:center;
+            padding:12px 18px; background:var(--bg2); border:1px solid var(--borda);
+            border-radius:10px; margin-top:18px;
+        }
+        .leg-item { display:flex; align-items:center; gap:7px; font-size:0.68rem; color:var(--texto-fraco); }
+        .leg-dot { width:9px; height:9px; border-radius:50%; }
+        .leg-dot.verde { background:var(--verde); animation:blink-badge 0.9s infinite; }
+        .leg-dot.azul { background:var(--azul); animation:blink-badge 1s infinite; }
+        .leg-dot.vermelho { background:var(--vermelho); animation:blink-badge 0.8s infinite; }
+        .leg-dot.amarelo { background:var(--laranja); }
+        .leg-dot.cinza { background:#2A2A2A; }
+
+        /* MODAL */
+
+
+        /* EMPTY */
+        .empty-state { text-align:center; padding:70px 20px; color:var(--texto-fraco); }
+        .empty-state .icon { font-size:2.8rem; margin-bottom:14px; opacity:0.45; }
+        .empty-state h3 { font-family:'Oswald',sans-serif; font-size:1.1rem; margin-bottom:7px; letter-spacing:1px; }
+        .empty-state p { font-size:0.78rem; }
+
+        .footer { text-align:center; margin-top:26px; font-size:0.62rem; color:var(--texto-fraco); letter-spacing:1px; text-transform:uppercase; }
+
+        /* MODAL DURAÇÃO */
+        .modal-dur-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-dur-overlay.open { display: flex; }
+        .modal-dur {
+            background: var(--bg3); border: 1px solid var(--borda);
+            border-radius: 16px; padding: 26px;
+            max-width: 340px; width: 90%;
+        }
+        .modal-dur h3 {
+            font-family: 'Oswald', sans-serif; font-size: 1rem;
+            color: var(--ouro); margin-bottom: 4px; letter-spacing: 1px;
+        }
+        .modal-dur p { font-size: 0.72rem; color: var(--texto-fraco); margin-bottom: 18px; }
+        .dur-lista { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .dur-item {
+            display: flex; align-items: center;
+            justify-content: space-between; gap: 12px;
+        }
+        .dur-label {
+            font-family: 'Oswald', sans-serif; font-size: 0.9rem;
+            font-weight: 600; color: var(--texto); letter-spacing: 1px;
+            min-width: 80px;
+        }
+        .dur-controles { display: flex; align-items: center; gap: 8px; }
+        .dur-btn {
+            background: var(--bg2); border: 1px solid var(--borda);
+            color: var(--texto); width: 32px; height: 32px;
+            border-radius: 8px; font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s; font-family: 'Barlow', sans-serif;
+        }
+        .dur-btn:hover { border-color: var(--ouro); color: var(--ouro); }
+        .dur-valor {
+            font-family: 'Oswald', sans-serif; font-size: 1.1rem;
+            font-weight: 700; color: var(--ouro);
+            min-width: 36px; text-align: center;
+        }
+        .dur-unidade { font-size: 0.68rem; color: var(--texto-fraco); }
+        .btn-dur-salvar {
+            width: 100%; background: linear-gradient(135deg, var(--ouro), var(--ouro-escuro));
+            border: none; color: #000; padding: 11px;
+            border-radius: 10px; font-family: 'Barlow', sans-serif;
+            font-size: 0.85rem; font-weight: 700; cursor: pointer;
+            margin-bottom: 8px; transition: opacity 0.2s;
+        }
+        .btn-dur-salvar:hover { opacity: 0.85; }
+        .btn-dur-cancelar {
+            width: 100%; background: transparent;
+            border: 1px solid var(--borda); color: var(--texto-fraco);
+            padding: 9px; border-radius: 10px;
+            font-family: 'Barlow', sans-serif; font-size: 0.78rem;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-dur-cancelar:hover { border-color: var(--texto-fraco); color: var(--texto); }
+
+        /* DESTAQUE TOPO */
+        .destaque-topo {
+            margin-bottom: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .destaque-titulo {
+            background: var(--bg3);
+            padding: 8px 14px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--texto-fraco);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--borda);
+        }
+        .destaque-card {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .destaque-card:last-child { border-bottom: none; }
+        .destaque-cat {
+            font-size: 0.62rem;
+            color: var(--texto-fraco);
+            margin-bottom: 6px;
+            font-family: 'Barlow Condensed', sans-serif;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .destaque-luta {
+            display: grid;
+            grid-template-columns: 70px 1fr 36px 1fr 110px;
+            align-items: center;
+            gap: 8px;
+        }
+        .destaque-horario {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        @media (max-width:600px) {
+            .destaque-luta { grid-template-columns: 55px 1fr 28px 1fr 90px; }
+            .relogio { font-size:1.3rem; }
+            thead th:first-child, tbody td:first-child { display:none; }
+            .atleta-bloco { min-width:80px; }
+            .atleta-nome { font-size:0.78rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-icon">⏰</div>
+            <div class="logo-text">
+                <h1>Agenda de Lutas</h1>
+                <p>Gaditas Torneios · CBJJ/IBJJF</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="relogio" id="relogio">--:--:--</div>
+            <button class="btn-cfg" onclick="configurarHorario()">⚙️ Horário</button>
+            <button class="btn-cfg" onclick="abrirConfigDuracao()">⏱️ Duração</button>
+            <button class="btn-cfg" onclick="window.location.href='index.html'">← Voltar</button>
+        </div>
+    </div>
+
+    <div class="status-comp">
+        <span class="comp-nome" id="comp-nome">📅 Carregando...</span>
+        <div class="comp-info">
+            <span><span class="update-dot"></span><span id="ultima-atualizacao">--</span></span>
+            <span>Início: <strong id="horario-inicio-label">--:--</strong></span>
+        </div>
+    </div>
+
+    <div class="areas-tabs" id="areas-tabs"></div>
+    <div id="areas-panels"></div>
+
+    <div class="legenda">
+        <div class="leg-item"><span class="leg-dot verde"></span> Acontecendo agora</div>
+        <div class="leg-item"><span class="leg-dot azul"></span> Faltam ≤ 5 min</div>
+        <div class="leg-item"><span class="leg-dot vermelho"></span> Atrasada</div>
+        <div class="leg-item"><span class="leg-dot amarelo"></span> Aguardando</div>
+        <div class="leg-item"><span class="leg-dot cinza"></span> Finalizada</div>
+    </div>
+
+    <div class="footer">Atualização automática a cada 5 segundos</div>
+</div>
+
+
+
+<script>
+var horarioInicio = localStorage.getItem('gaditas_horario_inicio') || '09:00';
+
+// Se horário salvo for no passado, usar horário atual
+function corrigirHorarioInicio(horario) {
+    var agora = new Date();
+    var agoraMin = agora.getHours()*60 + agora.getMinutes();
+    var p = (horario||'09:00').split(':').map(Number);
+    var savedMin = (p[0]||0)*60 + (p[1]||0);
+    // Se mais de 30 min no passado, usar agora
+    if (agoraMin - savedMin > 30) {
+        var hh = String(agora.getHours()).padStart(2,'0');
+        var mm = String(agora.getMinutes()).padStart(2,'0');
+        return hh+':'+mm;
+    }
+    return horario;
+}
+
+horarioInicio = corrigirHorarioInicio(horarioInicio);
+var duracaoPorFaixa = { Branca:5, Azul:6, Roxa:7, Marrom:8, Preta:10, Cinza:3, Amarela:3, Laranja:3, Verde:4 };
+var duracaoPorIdade = { 'Pre-Mirim':2,'Mirim 1':2,'Mirim 2':2,'Infantil 1':3,'Infantil 2':3,'Infanto-Juvenil':4,'Juvenil':4 };
+// atraso calculado automaticamente pelas durações reais
+var areaAtiva = null;
+
+// ===== RELÓGIO =====
+function tickRelogio() {
+    var d = new Date();
+    document.getElementById('relogio').textContent =
+        pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+function pad(n) { return n.toString().padStart(2,'0'); }
+setInterval(tickRelogio, 1000);
+tickRelogio();
+
+// ===== UTILS =====
+function hhmm2min(str) { var p=str.split(':').map(Number); return p[0]*60+p[1]; }
+function min2hhmm(m) { return pad(Math.floor(m/60))+':'+pad(m%60); }
+function agoraMin() { var d=new Date(); return d.getHours()*60+d.getMinutes(); }
+
+function getDuracao(luta) {
+    if (!luta || !luta.atletaA) return 5;
+    var fA = luta.atletaA.faixa || 'Branca';
+    var fB = (luta.atletaB && luta.atletaB.faixa) || 'Branca';
+    var faixasInfantis = ['Cinza','Amarela','Laranja','Verde'];
+    // Verificar pelo nome da categoria se disponível
+    if (luta.categoriaNome) {
+        var nome = luta.categoriaNome.toUpperCase();
+        if (nome.indexOf('PRÉ-MIRIM')>=0||nome.indexOf('PRE-MIRIM')>=0) return duracaoPorIdade['Pre-Mirim']||2;
+        if (nome.indexOf('MIRIM 1')>=0) return duracaoPorIdade['Mirim 1']||2;
+        if (nome.indexOf('MIRIM 2')>=0) return duracaoPorIdade['Mirim 2']||2;
+        if (nome.indexOf('INFANTIL 1')>=0) return duracaoPorIdade['Infantil 1']||3;
+        if (nome.indexOf('INFANTIL 2')>=0) return duracaoPorIdade['Infantil 2']||3;
+        if (nome.indexOf('INFANTO')>=0) return duracaoPorIdade['Infanto-Juvenil']||4;
+        if (nome.indexOf('JUVENIL')>=0) return duracaoPorIdade['Juvenil']||4;
+    }
+    // Faixa infantil
+    if (faixasInfantis.indexOf(fA)>=0 || faixasInfantis.indexOf(fB)>=0) return 3;
+    return Math.max(duracaoPorFaixa[fA]||5, duracaoPorFaixa[fB]||5);
+}
+
+// ===== CRONOGRAMA DA ÁREA =====
+// Retorna array com { luta, horarioMin, horario, duracao } na sequência da área
+// Cronograma com propagação inteligente de atraso em cascata.
+// Regra: horário de cada luta = max(horario_original, fim_real_da_anterior)
+// Ou seja: o atraso só propaga se ultrapassar o horário original da próxima.
+// Se a anterior terminou antes, a próxima volta ao horário original — sem prejudicar.
+function cronogramaArea(lutas, area, cursorMin) {
+    var baseArea = (cursorMin !== undefined) ? cursorMin : hhmm2min(horarioInicio);
+
+    // Passo 1: calcular os horários ORIGINAIS de cada luta (sem atrasos)
+    // Lutas de nova rodada (novaRodada:true) são posicionadas no fim da fila da área
+    var originais = [];
+    var t = baseArea;
+    for (var i=0; i<lutas.length; i++) {
+        var luta = lutas[i];
+        if (luta.atletaA && luta.atletaA.isWO) continue;
+        var isWO = !!(luta.atletaB && luta.atletaB.isWO) || !!luta.isWO;
+        var durEstimada = isWO ? 0 : getDuracao(luta);
+        originais.push({
+            luta: luta,
+            horarioOriginal: luta.novaRodada ? 0 : t,
+            durEstimada: durEstimada,
+            isWO: isWO,
+            novaRodada: !!luta.novaRodada
+        });
+        if (!luta.novaRodada) t += durEstimada;
+    }
+
+    // Passo 2: recalcular horários com propagação inteligente
+    // Regra: cursor avança com duração REAL para lutas finalizadas/ao vivo
+    // Lutas pendentes: horário = max(horário original, cursor)
+    // Se ao vivo atrasou → lutas pendentes recebem novo horário remarcado (não ficam vermelhas)
+    // Só a PRÓXIMA após a ao vivo fica vermelha se passar do horário original
+    var cursor = baseArea;
+    var result = [];
+    for (var i=0; i<originais.length; i++) {
+        var item = originais[i];
+        var luta = item.luta;
+
+        // WO: duração zero, não avança cursor
+        if (item.isWO) {
+            result.push({
+                luta: luta,
+                horarioMin: cursor,
+                horario: min2hhmm(cursor),
+                horarioOriginal: item.horarioOriginal,
+                duracao: 0, durEstimada: 0,
+                emAtraso: false, isWO: true
+            });
+            continue;
+        }
+
+        // Duração desta luta:
+        // - finalizada: usa duração real
+        // - ao vivo: usa tempo já decorrido + estimativa do restante
+        // - pendente: usa estimativa
+        var durReal;
+        if (luta.finalizada && luta.duracaoRealMin != null) {
+            durReal = luta.duracaoRealMin;
+        } else if (luta.inicioMs && !luta.fimMs) {
+            // Ao vivo: quanto já decorreu (mas não menos que estimado)
+            var decorridoMin = Math.ceil((Date.now() - Number(luta.inicioMs)) / 60000);
+            durReal = Math.max(decorridoMin, item.durEstimada);
+        } else {
+            durReal = item.durEstimada;
+        }
+
+        // Horário efetivo: nova rodada → cursor; demais → max(original, cursor)
+        var horarioEfetivo = item.novaRodada ? cursor : Math.max(item.horarioOriginal, cursor);
+
+        // emAtraso: verdadeiro se o horário foi empurrado além do original
+        var emAtraso = !item.novaRodada && (horarioEfetivo > item.horarioOriginal);
+
+        result.push({
+            luta: luta,
+            horarioMin: horarioEfetivo,
+            horario: min2hhmm(horarioEfetivo),
+            horarioOriginal: item.novaRodada ? horarioEfetivo : item.horarioOriginal,
+            duracao: durReal,
+            durEstimada: item.durEstimada,
+            emAtraso: emAtraso,
+            isWO: false,
+            novaRodada: !!item.novaRodada
+        });
+
+        cursor = horarioEfetivo + durReal;
+    }
+
+    result._cursorFinal = cursor;
+    return result;
+}
+
+// ===== STATUS DE CADA LUTA =====
+// Regras:
+// - finalizada → cinza
+// - inicioMs registrado e sem fimMs → AO VIVO (verde)
+// - passou do horário E luta anterior não finalizada → ATRASADA (vermelho)
+// - horário chegou (diff ≤ 5) E luta anterior finalizada → PRÓXIMA (azul)
+// - resto → PENDENTE (amarelo)
+function getStatus(item, idx, cronograma) {
+    var luta = item.luta;
+    // WO: atleta sozinho — sempre encerrado, não ocupa tempo
+    if (item.isWO || (luta.atletaB && luta.atletaB.isWO)) return 'finalizada';
+    if (luta.finalizada) return 'finalizada';
+
+    // AO VIVO: inicioMs registrado e sem fimMs
+    if (luta.inicioMs && !luta.fimMs) return 'aoVivo';
+
+    var agora = agoraMin();
+    var diff = item.horarioMin - agora;
+
+    // Verificar estado da luta anterior na fila
+    var anteriorFinalizada = true;
+    var anteriorAoVivo = false;
+    if (idx > 0) {
+        var lutaAnterior = cronograma[idx - 1].luta;
+        anteriorFinalizada = lutaAnterior.finalizada === true;
+        anteriorAoVivo = !!(lutaAnterior.inicioMs && !lutaAnterior.fimMs);
+    }
+
+    // Percorrer anteriores (ignorando WOs) para detectar estado
+    var aoVivoAnterior = null;
+    var algumAntNaoTerminou = false;
+    for (var a = 0; a < idx; a++) {
+        var entradaAnt = cronograma[a];
+        if (entradaAnt.isWO) continue;
+        var antLuta = entradaAnt.luta;
+        if (!antLuta.finalizada) {
+            algumAntNaoTerminou = true;
+            if (antLuta.inicioMs && !antLuta.fimMs) aoVivoAnterior = entradaAnt;
+        }
+    }
+
+    // Verificar se a luta ao vivo está além do tempo estimado (causando atraso)
+    var aoVivoEmAtraso = false;
+    if (aoVivoAnterior) {
+        var decorrido = Math.floor((Date.now() - Number(aoVivoAnterior.luta.inicioMs)) / 60000);
+        aoVivoEmAtraso = decorrido > (aoVivoAnterior.durEstimada || 6);
+    }
+
+    var horarioOriginalPassou = (item.horarioOriginal - agora) <= -1;
+
+    // Esta luta é a IMEDIATAMENTE SEGUINTE à ao vivo?
+    // (não há nenhuma luta não-finalizada entre a ao vivo e esta)
+    var ehProximaAposAoVivo = false;
+    if (aoVivoAnterior) {
+        var idxAV = aoVivoAnterior.idxArea !== undefined ? aoVivoAnterior.idxArea : -1;
+        ehProximaAposAoVivo = true;
+        for (var a = idxAV + 1; a < idx; a++) {
+            var ea = cronograma[a];
+            if (ea.isWO) continue;
+            if (!ea.luta.finalizada && !(ea.luta.inicioMs && !ea.luta.fimMs)) {
+                ehProximaAposAoVivo = false;
+                break;
+            }
+        }
+    }
+
+    // ATRASADA (vermelho): só a próxima imediata após a ao vivo em atraso
+    if (ehProximaAposAoVivo && (horarioOriginalPassou || aoVivoEmAtraso)) {
+        return 'atrasada';
+    }
+
+    // PRÓXIMA (azul): faltam 5min ou menos E anterior ok (finalizada ou ao vivo dentro do tempo)
+    // O horário aqui já é o remarcado — se falta ≤5min para o novo horário, fica azul
+    var anteriorOk = !algumAntNaoTerminou || (aoVivoAnterior && !aoVivoEmAtraso);
+    if (diff <= 5 && anteriorOk) {
+        return 'proximo';
+    }
+
+    // PENDENTE: horário remarcado no futuro — mostra novo horário em amarelo
+    return 'pendente';
+}
+
+// Retorna quantos minutos esta luta está atrasada em relação ao horário original
+function minutosAtraso(item) {
+    if (!item.emAtraso || !item.horarioOriginal) return 0;
+    return item.horarioMin - item.horarioOriginal;
+}
+
+// ===== RENDERIZAR PAINEL =====
+function renderArea(area, cats) {
+    var html = '';
+
+
+    // PASSO 1: montar cronograma ÚNICO de toda a área (fila contínua)
+    // Primeiro todas as lutas NORMAIS (rodada 1), depois as de NOVA RODADA no fim
+    var cursorArea = hhmm2min(horarioInicio);
+    var cronoArea = [];
+
+    // Construir cronograma: lutas da rodada atual de cada categoria
+    for (var c=0; c<cats.length; c++) {
+        var cat = cats[c];
+        var rodAtual = Number(cat.rodadaAtual || 1);
+        var lutasRod = (cat.lutas||[]).filter(function(l){
+            return l.atletaA && !l.atletaA.isWO && Number(l.rodada) === rodAtual;
+        });
+        if (!lutasRod.length) continue;
+        var crono = cronogramaArea(lutasRod, hhmm2min(horarioInicio), cursorArea);
+        cursorArea = crono._cursorFinal !== undefined ? crono._cursorFinal : cursorArea;
+        for (var x=0; x<crono.length; x++) {
+            crono[x].cat = cat;
+            crono[x].idxArea = cronoArea.length;
+            cronoArea.push(crono[x]);
+        }
+    }
+
+        // PASSO 2: montar seção de DESTAQUE no topo (ao vivo, atrasadas, próximas)
+    var prioridade = { aoVivo: 1, atrasada: 2, proximo: 3, pendente: 99, finalizada: 99 };
+    var lutasDestaque = [];
+
+    for (var x=0; x<cronoArea.length; x++) {
+        var itemX = cronoArea[x];
+        if (itemX.isWO) continue;
+        var sX = getStatus(itemX, itemX.idxArea, cronoArea);
+        if (sX === 'aoVivo' || sX === 'atrasada' || sX === 'proximo') {
+            lutasDestaque.push({ item: itemX, status: sX });
+        }
+    }
+
+    // Ordenar: ao vivo → atrasada → próxima
+    lutasDestaque.sort(function(a, b) {
+        return (prioridade[a.status]||99) - (prioridade[b.status]||99);
+    });
+
+    if (lutasDestaque.length > 0) {
+        html += '<div class="destaque-topo">';
+        html += '<div class="destaque-titulo">📌 ATENÇÃO AGORA</div>';
+
+        for (var d=0; d<lutasDestaque.length; d++) {
+            var di = lutasDestaque[d].item;
+            var ds = lutasDestaque[d].status;
+            var dl = di.luta;
+            var dCat = di.cat ? di.cat.nome : '';
+            var dAtA = dl.atletaA || {};
+            var dAtB = dl.atletaB || {};
+            var dIsWO = dAtB.isWO === true;
+            var dVA = dl.vencedor && dAtA.id && dl.vencedor.id === dAtA.id;
+            var dVB = dl.vencedor && dAtB.id && dl.vencedor.id === dAtB.id;
+            var dBadge = ds === 'aoVivo'
+                ? '<span class="badge badge-ao-vivo">🔴 AO VIVO</span>'
+                : ds === 'atrasada'
+                ? '<span class="badge badge-atrasada">🔴 ATRASADA</span>'
+                : '<span class="badge badge-proximo">⚡ PRÓXIMA</span>';
+            var dRowClass = ds === 'aoVivo' ? 'row-ao-vivo'
+                : ds === 'atrasada' ? 'row-atrasada' : 'row-proximo';
+            var dAtBHtml = dIsWO
+                ? '<div class="atleta-nome" style="color:var(--texto-fraco)">✨ BYE</div>'
+                : '<div class="atleta-nome">' + (dAtB.nome||'?') + (dVB?' 🏆':'') + '</div><div class="atleta-acad">' + (dAtB.academia||'') + '</div>';
+
+            html +=
+                '<div class="destaque-card ' + dRowClass + '">' +
+                '<div class="destaque-cat">' + dCat + '</div>' +
+                '<div class="destaque-luta">' +
+                '<div class="destaque-horario cell-horario">' + di.horario + '</div>' +
+                '<div class="atleta-bloco"><div class="atleta-nome">' + (dAtA.nome||'?') + (dVA?' 🏆':'') + '</div><div class="atleta-acad">' + (dAtA.academia||'') + '</div></div>' +
+                '<div class="cell-vs">VS</div>' +
+                '<div class="atleta-bloco">' + dAtBHtml + '</div>' +
+                '<div>' + dBadge + '</div>' +
+                '</div>' +
+                '</div>';
+        }
+        html += '</div>';
+    }
+
+    // PASSO 3: renderizar categoria por categoria
+    var idxAreaGlobal = 0;
+
+    for (var c=0; c<cats.length; c++) {
+        var cat = cats[c];
+        // Mostrar apenas lutas da rodada atual (não todas as rodadas)
+        var rodAtualCat = Number(cat.rodadaAtual || 1);
+        var lutas = (cat.lutas||[]).filter(function(l){
+            return l.atletaA && !l.atletaA.isWO && Number(l.rodada) === rodAtualCat;
+        });
+        // filtrar itens do cronograma global que pertencem a esta categoria e rodada atual
+        var crono = cronoArea.filter(function(item){ return item.cat === cat && Number(item.luta.rodada) === rodAtualCat; });
+        var fin = lutas.filter(function(l){return l.finalizada;}).length;
+        var catFin = cat.campeao != null;
+
+        // Calcular fase pelo número de lutas na rodada atual (mais preciso)
+        var lutasRodAtualCat = lutas.filter(function(l){ return l.fase!=='3º Lugar'; });
+        var faseAtual = getNomeFase(lutasRodAtualCat.length, cat);
+        if (lutasRodAtualCat.length === 0) faseAtual = cat.campeao ? 'Finalizada' : '';
+
+        html +=
+            '<div class="lutas-table-wrap">' +
+            '<div class="table-cat-header">' +
+            '<span class="cat-nome">🏅 ' + cat.nome + '</span>' +
+            '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
+            (faseAtual?'<span style="background:rgba(201,160,61,0.15);color:var(--ouro);border:1px solid rgba(201,160,61,0.3);padding:2px 8px;border-radius:10px;font-size:0.58rem;font-weight:700;letter-spacing:1px">'+faseAtual+'</span>':'')+
+            '<span class="cat-info">' + fin + '/' + lutas.length + ' lutas' + (catFin?' · ✅ FINALIZADA':'') + '</span>' +
+            '</div>' +
+            '</div>' +
+            '<div class="luta-row-header">' +
+            '<span>#</span><span>Horário</span><span>Atleta A</span><span style="text-align:center">VS</span><span>Atleta B</span><span>Status</span>' +
+            '</div><div class="lutas-rows">';
+
+        // Ordenar: ao vivo → atrasada → próxima → pendente → finalizada
+        var ordemStatus = { aoVivo:0, atrasada:1, proximo:2, pendente:3, finalizada:4 };
+        crono.sort(function(a, b) {
+            // Verificação direta e rápida — sem recalcular getStatus
+            var sa, sb;
+            if (a.luta.finalizada) sa = 'finalizada';
+            else if (a.luta.inicioMs && !a.luta.fimMs) sa = 'aoVivo';
+            else sa = getStatus(a, a.idxArea, cronoArea);
+
+            if (b.luta.finalizada) sb = 'finalizada';
+            else if (b.luta.inicioMs && !b.luta.fimMs) sb = 'aoVivo';
+            else sb = getStatus(b, b.idxArea, cronoArea);
+
+            var pa = ordemStatus[sa] !== undefined ? ordemStatus[sa] : 5;
+            var pb = ordemStatus[sb] !== undefined ? ordemStatus[sb] : 5;
+            if (pa === pb) return a.horarioMin - b.horarioMin;
+            return pa - pb;
+        });
+
+        for (var i=0; i<crono.length; i++) {
+            var item = crono[i];
+            var luta = item.luta;
+            // Usar índice GLOBAL na área para checar se anterior foi finalizada
+            var status = getStatus(item, item.idxArea, cronoArea);
+            var agora = agoraMin();
+            var diff = item.horarioMin - agora;
+
+            // Classes da linha
+            var rowClass = {
+                finalizada:'row-finalizada', aoVivo:'row-ao-vivo',
+                proximo:'row-proximo', atrasada:'row-atrasada', pendente:'row-pendente'
+            }[status];
+
+            // Classe do horário
+            var hClass = {
+                aoVivo:'h-ao-vivo', proximo:'h-proximo',
+                atrasada:'h-atrasada', finalizada:'h-finalizada'
+            }[status] || '';
+
+            // Atraso em relação ao horário original
+            var atrasoMin = minutosAtraso(item);
+
+            // Badge
+            var badge = '';
+            if (item.isWO || (luta.atletaB && luta.atletaB.isWO)) {
+                badge='<span class="badge badge-finalizada">✓ W.O.</span>';
+            } else if (status==='finalizada') {
+                var durStr = item.luta.duracaoRealMin ? ' · '+item.luta.duracaoRealMin+'min' : '';
+                badge='<span class="badge badge-finalizada">✓ FIM'+durStr+'</span>';
+            } else if (status==='aoVivo') {
+                badge='<span class="badge badge-ao-vivo">🔴 AO VIVO</span>';
+            } else if (status==='proximo') {
+                var labelProx = Math.max(0,diff) === 0 ? 'AGORA' : Math.max(0,diff)+'MIN';
+                badge='<span class="badge badge-proximo">⚡ ' + labelProx + '</span>';
+                if (atrasoMin > 0) badge += ' <span class="badge badge-atrasada" style="font-size:0.55rem">+'+atrasoMin+'min</span>';
+            } else if (status==='atrasada') {
+                // Calcular minutos de atraso em tempo real (quanto tempo a luta anterior
+                // está ao vivo além do previsto)
+                var minAtrasando = 0;
+                if (item.idxArea > 0) {
+                    var lutaAnt = cronoArea[item.idxArea - 1];
+                    if (lutaAnt && lutaAnt.luta.inicioMs && !lutaAnt.luta.fimMs) {
+                        var tempoDecorrido = Math.floor((Date.now() - lutaAnt.luta.inicioMs) / 60000);
+                        minAtrasando = Math.max(0, tempoDecorrido - lutaAnt.durEstimada);
+                    }
+                }
+                badge = '<span class="badge badge-atrasada">🔴 ' +
+                    (minAtrasando > 0 ? '+' + minAtrasando + 'min em atraso' : 'ATRASADA') +
+                    '</span>';
+            } else {
+                var durEst = getDuracao(item.luta);
+                badge='<span class="badge badge-pendente">⏳ ~'+durEst+'min</span>';
+            }
+
+            var atletaA = luta.atletaA||{};
+            var atletaB = luta.atletaB||{};
+            var isWO = atletaB.isWO===true;
+            var vA = luta.vencedor && atletaA.id && luta.vencedor.id===atletaA.id;
+            var vB = luta.vencedor && atletaB.id && luta.vencedor.id===atletaB.id;
+
+            var atletaBHtml = isWO
+                ? '<div class="atleta-nome" style="color:var(--texto-fraco)">✨ BYE</div>'
+                : '<div class="atleta-nome">' + (atletaB.nome||'Aguardando') + (vB?' 🏆':'') + '</div><div class="atleta-acad">' + (atletaB.academia||'') + '</div>';
+
+            html +=
+                '<div class="luta-row ' + rowClass + '">' +
+                '<div class="cell-seq">' + (i+1) + '</div>' +
+                '<div class="cell-horario ' + hClass + '">' +
+                (item.isWO ? '<span style="color:var(--texto-fraco);font-size:0.75rem;">W.O.</span>' : item.horario) +
+                (atrasoMin > 0 && status !== 'finalizada' && status !== 'aoVivo'
+                    ? '<div style="font-size:0.55rem;color:var(--texto-fraco);text-decoration:line-through;margin-top:1px;">' + min2hhmm(item.horarioOriginal) + '</div>'
+                    : '') +
+                '</div>' +
+                '<div class="atleta-bloco"><div class="atleta-nome">' + (atletaA.nome||'?') + (vA?' 🏆':'') + '</div><div class="atleta-acad">' + (atletaA.academia||'') + '</div></div>' +
+                '<div class="cell-vs">VS</div>' +
+                '<div class="atleta-bloco">' + atletaBHtml + '</div>' +
+                '<div>' + badge + '</div>' +
+                '</div>';
+        }
+
+        html += '</div></div>'; // fecha .lutas-rows e .lutas-table-wrap
+    }
+    return html;
+}
+
+// ===== CARREGAR AGENDA =====
+
+function getNomeFase(numLutas, cat) {
+    if (cat) {
+        var rodAtual = Number(cat.rodadaAtual || 1);
+        var lutasRod = (cat.lutas || []).filter(function(l){ return Number(l.rodada) === rodAtual; });
+        var temTerceiro = lutasRod.some(function(l){ return l.fase === '3º Lugar'; });
+        var lutasNormais = lutasRod.filter(function(l){ return l.fase !== '3º Lugar'; });
+        if (temTerceiro && lutasNormais.length === 0) return 'Disputa do 3º Lugar';
+        if (rodAtual === 1 && Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0)
+            return 'Repescagem';
+        if (lutasNormais.length === 1) {
+            if (Array.isArray(cat.diretosProximaRodada) && cat.diretosProximaRodada.length > 0)
+                return 'Repescagem';
+            return 'Final';
+        }
+    }
+    if (numLutas >= 16) return 'Dezesseis Avos';
+    if (numLutas >= 8)  return 'Oitavas de Final';
+    if (numLutas >= 4)  return 'Quartas de Final';
+    if (numLutas >= 2)  return 'Semifinal';
+    return 'Final';
+}
+
+function carregarAgenda() {
+    var raw = localStorage.getItem('gaditas_torneio_atual');
+    var _torneioCheck; try { _torneioCheck = JSON.parse(raw||'{}'); } catch(e) { _torneioCheck = {}; }
+    var nomeComp = _torneioCheck.nomeCompeticao || localStorage.getItem('gaditas_competicao_nome') || 'Competição';
+    var ativa = !!_torneioCheck.competicaoAtiva || localStorage.getItem('gaditas_competicao_ativa') === 'true';
+
+    document.getElementById('ultima-atualizacao').textContent = 'às ' + pad(new Date().getHours()) + ':' + pad(new Date().getMinutes()) + ':' + pad(new Date().getSeconds());
+    document.getElementById('horario-inicio-label').textContent = horarioInicio;
+
+    if (!raw || !ativa) {
+        document.getElementById('comp-nome').textContent = '⏸️ Nenhuma competição ativa';
+        document.getElementById('areas-tabs').innerHTML = '';
+        document.getElementById('areas-panels').innerHTML =
+            '<div class="empty-state"><div class="icon">⏰</div><h3>Nenhuma Competição Ativa</h3><p>Inicie uma competição e gere o chaveamento.</p></div>';
+        return;
+    }
+
+    var dados; try { dados=JSON.parse(raw); } catch(e){ return; }
+    var cats = dados.categorias||[];
+    // Normalizar inicioMs/fimMs para número (podem vir como string do JSON)
+    cats.forEach(function(cat) {
+        (cat.lutas||[]).forEach(function(luta) {
+            if (luta.inicioMs) luta.inicioMs = Number(luta.inicioMs);
+            if (luta.fimMs) luta.fimMs = Number(luta.fimMs);
+        });
+    });
+    if (!cats.length) {
+        document.getElementById('comp-nome').textContent = '🏆 ' + nomeComp;
+        document.getElementById('areas-panels').innerHTML =
+            '<div class="empty-state"><div class="icon">🥋</div><h3>Chaveamento não gerado</h3><p>Gere o chaveamento no sistema principal.</p></div>';
+        return;
+    }
+
+    document.getElementById('comp-nome').textContent = '🏆 ' + nomeComp;
+
+    // Agrupar por área
+    var porArea = {};
+    cats.forEach(function(cat) {
+        var a = cat.area||'Tatame 1';
+        if (!porArea[a]) porArea[a] = [];
+        porArea[a].push(cat);
+    });
+    var areas = Object.keys(porArea);
+    if (!areaAtiva || areas.indexOf(areaAtiva)===-1) areaAtiva = areas[0];
+
+    // Lutas ativas (para detectar ao vivo)
+    var lutasAtivas = JSON.parse(localStorage.getItem('gaditas_lutas_ativas')||'{}');
+
+    // Tabs
+    var tabsHtml = areas.map(function(area) {
+        var aCats = porArea[area];
+        var total = aCats.reduce(function(s,c){ return s+(c.lutas||[]).length; },0);
+        var fin = aCats.reduce(function(s,c){ return s+(c.lutas||[]).filter(function(l){return l.finalizada;}).length; },0);
+        var temAtivo = lutasAtivas[area] && lutasAtivas[area].ativo;
+
+        // Verificar se alguma luta está atrasada — cursor contínuo por área
+        var temAtrasada = false;
+        var cursorTab = hhmm2min(horarioInicio);
+        aCats.forEach(function(cat) {
+            var lutas = (cat.lutas||[]).filter(function(l){ return l.atletaA&&!l.atletaA.isWO; });
+            var crono = cronogramaArea(lutas, area, cursorTab);
+            cursorTab = crono._cursorFinal !== undefined ? crono._cursorFinal : cursorTab;
+            crono.forEach(function(item, idx) {
+                if (getStatus(item, idx, crono)==='atrasada') temAtrasada=true;
+            });
+        });
+
+        var cls = 'area-tab' + (area===areaAtiva?' active':'') +
+            (temAtivo?' tem-ao-vivo':'') +
+            (!temAtivo&&temAtrasada?' tem-atraso':'');
+
+        return '<button class="' + cls + '" onclick="selecionarArea(\'' + area + '\')">' +
+            area + (temAtivo?' 🔴':'') +
+            '<span class="tab-badge">' + fin + '/' + total + '</span>' +
+            '</button>';
+    }).join('');
+    document.getElementById('areas-tabs').innerHTML = tabsHtml;
+
+    // Painel ativo
+    document.getElementById('areas-panels').innerHTML = renderArea(areaAtiva, porArea[areaAtiva]||[]);
+}
+
+// ===== ÁREA =====
+function selecionarArea(a) { areaAtiva=a; carregarAgenda(); }
+
+// ===== HORÁRIO =====
+function configurarHorario() {
+    var novo = prompt('Horário de início (HH:MM):', horarioInicio);
+    if (novo && /^\d{2}:\d{2}$/.test(novo)) {
+        horarioInicio = novo;
+        localStorage.setItem('gaditas_horario_inicio', horarioInicio);
+        carregarAgenda();
+    }
+}
+
+// ===== CONFIGURAÇÃO DE DURAÇÃO DAS FAIXAS =====
+var faixasConfig = ['Branca','Azul','Roxa','Marrom','Preta'];
+
+function abrirConfigDuracao() {
+    var lista = document.getElementById('dur-lista');
+    lista.innerHTML = faixasConfig.map(function(faixa) {
+        var min = duracaoPorFaixa[faixa] || 5;
+        return '<div class="dur-item">' +
+            '<span class="dur-label">' + faixa + '</span>' +
+            '<div class="dur-controles">' +
+            '<button class="dur-btn" onclick="alterarDuracao(\'' + faixa + '\',-1)">−</button>' +
+            '<span class="dur-valor" id="dur-val-' + faixa + '">' + min + '</span>' +
+            '<button class="dur-btn" onclick="alterarDuracao(\'' + faixa + '\',1)">+</button>' +
+            '<span class="dur-unidade">min</span>' +
+            '</div>' +
+            '</div>';
+    }).join('');
+    document.getElementById('modal-duracao').classList.add('open');
+}
+
+function alterarDuracao(faixa, delta) {
+    var atual = duracaoPorFaixa[faixa] || 5;
+    var novo = Math.max(1, Math.min(30, atual + delta));
+    duracaoPorFaixa[faixa] = novo;
+    var el = document.getElementById('dur-val-' + faixa);
+    if (el) el.textContent = novo;
+}
+
+function salvarDuracoes() {
+    // Salvar no localStorage para persistir
+    faixasConfig.forEach(function(faixa) {
+        localStorage.setItem('gaditas_duracao_' + faixa.toLowerCase(), duracaoPorFaixa[faixa]);
+    });
+    // Sincronizar com o index.html (torneio.js também lê essas chaves)
+    localStorage.setItem('gaditas_duracao_branca', duracaoPorFaixa['Branca']);
+    localStorage.setItem('gaditas_duracao_azul',   duracaoPorFaixa['Azul']);
+    localStorage.setItem('gaditas_duracao_roxa',   duracaoPorFaixa['Roxa']);
+    localStorage.setItem('gaditas_duracao_marrom', duracaoPorFaixa['Marrom']);
+    localStorage.setItem('gaditas_duracao_preta',  duracaoPorFaixa['Preta']);
+    fecharConfigDuracao();
+    carregarAgenda();
+}
+
+function fecharConfigDuracao() {
+    document.getElementById('modal-duracao').classList.remove('open');
+}
+
+// Carregar durações salvas ao iniciar
+// Carregar TODAS as durações salvas (adulto + infantil)
+function carregarTodasDuracoes() {
+    var mapa = {
+        Branca:'branca', Azul:'azul', Roxa:'roxa', Marrom:'marrom', Preta:'preta',
+        Cinza:'cinza', Amarela:'amarela', Laranja:'laranja', Verde:'verde'
+    };
+    Object.keys(mapa).forEach(function(faixa) {
+        var s = localStorage.getItem('gaditas_duracao_' + mapa[faixa]);
+        if (s) duracaoPorFaixa[faixa] = parseInt(s);
+    });
+    // Duração por categoria de idade (infantil)
+    var mapaIdade = {
+        'Pre-Mirim':'pre-mirim','Mirim 1':'mirim1','Mirim 2':'mirim2',
+        'Infantil 1':'infantil1','Infantil 2':'infantil2',
+        'Infanto-Juvenil':'infanto-juvenil','Juvenil':'juvenil'
+    };
+    Object.keys(mapaIdade).forEach(function(cat) {
+        var s = localStorage.getItem('gaditas_duracao_' + mapaIdade[cat]);
+        if (s) duracaoPorIdade[cat] = parseInt(s);
+    });
+}
+var carregarDuracoesConfig = carregarTodasDuracoes;
+
+// ===== INICIAR =====
+carregarDuracoesConfig();
+carregarAgenda();
+setInterval(carregarAgenda, 5000);
+
+// Fechar modal de duração clicando fora
+document.addEventListener('click', function(e) {
+    var overlay = document.getElementById('modal-duracao');
+    if (e.target === overlay) fecharConfigDuracao();
+});
+
+window.addEventListener('storage', function(e) {
+    if (['gaditas_torneio_atual','gaditas_lutas_ativas','gaditas_horario_inicio'].indexOf(e.key)!==-1) {
+        if (e.key==='gaditas_horario_inicio') horarioInicio=e.newValue||horarioInicio;
+        carregarAgenda();
+    }
+});
+
+
+</script>
+<!-- MODAL DURAÇÃO DAS FAIXAS -->
+<div class="modal-dur-overlay" id="modal-duracao">
+    <div class="modal-dur">
+        <h3>⏱️ Duração por Faixa</h3>
+        <p>Tempo estimado de cada luta (minutos)</p>
+        <div class="dur-lista" id="dur-lista"></div>
+        <button class="btn-dur-salvar" onclick="salvarDuracoes()">✅ Salvar</button>
+        <button class="btn-dur-cancelar" onclick="fecharConfigDuracao()">Cancelar</button>
+    </div>
+</div>
+
+</body>
+</html>
