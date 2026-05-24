@@ -433,6 +433,26 @@
     </style>
 </head>
 <body>
+<script src="js/auth.js"></script>
+<script>verificarAuth();</script>
+
+<!-- Modal alterar senha -->
+<div id="modal-senha" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;display:none;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:32px;width:100%;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,0.12);">
+        <h3 style="font-size:1rem;color:#1A2C3E;margin-bottom:20px;">🔒 Alterar Senha</h3>
+        <label style="font-size:0.78rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px;">Senha atual</label>
+        <input type="password" id="ms-atual" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:9px 12px;font-size:0.85rem;margin-bottom:12px;outline:none;">
+        <label style="font-size:0.78rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px;">Nova senha</label>
+        <input type="password" id="ms-nova" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:9px 12px;font-size:0.85rem;margin-bottom:12px;outline:none;">
+        <label style="font-size:0.78rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px;">Confirmar nova senha</label>
+        <input type="password" id="ms-confirma" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:9px 12px;font-size:0.85rem;margin-bottom:16px;outline:none;">
+        <div id="ms-erro" style="display:none;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;border-radius:8px;padding:9px 12px;font-size:0.78rem;margin-bottom:12px;"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button onclick="fecharModalSenha()" style="background:transparent;border:1px solid #E2E8F0;padding:8px 18px;border-radius:40px;font-size:0.8rem;cursor:pointer;">Cancelar</button>
+            <button onclick="confirmarAlterarSenha()" style="background:#C9A03D;border:none;padding:8px 18px;border-radius:40px;font-size:0.8rem;font-weight:600;color:#fff;cursor:pointer;">Salvar</button>
+        </div>
+    </div>
+</div>
     <div class="app">
         <header class="top-bar">
             <div class="logo-area">
@@ -452,6 +472,8 @@
                 <button onclick="forcarSalvamentoTV()" class="icon-btn">🔄 Sincronizar</button>
                 <button onclick="exportarDados()" class="icon-btn">📤 Exportar</button>
                 <button onclick="importarDados()" class="icon-btn">📥 Importar</button>
+                <button onclick="abrirModalSenha()" class="icon-btn">🔒 Senha</button>
+                <button onclick="fazerLogout()" class="icon-btn" style="border-color:#EF4444;color:#EF4444;">↩ Sair</button>
             </div>
         </header>
 
@@ -1290,5 +1312,37 @@
 <script src="js/app.js"></script>
 <script src="js/lutas.js"></script>
 <script src="js/sincronizacao.js"></script>
+<script>
+function abrirModalSenha() {
+    document.getElementById('ms-atual').value = '';
+    document.getElementById('ms-nova').value = '';
+    document.getElementById('ms-confirma').value = '';
+    document.getElementById('ms-erro').style.display = 'none';
+    document.getElementById('modal-senha').style.display = 'flex';
+}
+function fecharModalSenha() {
+    document.getElementById('modal-senha').style.display = 'none';
+}
+function confirmarAlterarSenha() {
+    const atual = document.getElementById('ms-atual').value;
+    const nova = document.getElementById('ms-nova').value;
+    const confirma = document.getElementById('ms-confirma').value;
+    const erro = document.getElementById('ms-erro');
+    if (!nova || nova.length < 4) {
+        erro.textContent = 'A nova senha deve ter pelo menos 4 caracteres.';
+        erro.style.display = 'block'; return;
+    }
+    if (nova !== confirma) {
+        erro.textContent = 'As senhas não coincidem.';
+        erro.style.display = 'block'; return;
+    }
+    if (!alterarSenha(atual, nova)) {
+        erro.textContent = 'Senha atual incorreta.';
+        erro.style.display = 'block'; return;
+    }
+    fecharModalSenha();
+    alert('Senha alterada com sucesso!');
+}
+</script>
 </body>
 </html>
