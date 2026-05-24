@@ -417,7 +417,6 @@
     popularEquipes();
     atualizarFaixas();
     atualizarPreview();
-    renderizarPagamento();
   </script>
 
   <script>
@@ -478,6 +477,8 @@
     navigator.clipboard.writeText(cfg.pix?.chave || '');
     alert('Chave PIX copiada!');
   }
+
+  renderizarPagamento();
   </script>
 </body>
 </html>
