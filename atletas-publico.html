@@ -119,6 +119,21 @@
 
   let viewAtual = 'categoria';
 
+  const ORDEM_CATEGORIA = ["Pré-Mirim","Mirim 1","Mirim 2","Infantil 1","Infantil 2","Infanto-Juvenil","Juvenil","Adulto","Master 1","Master 2","Master 3","Master 4","Master 5","Master 6"];
+  const ORDEM_FAIXA = ["Branca","Cinza","Amarela","Laranja","Verde","Azul","Roxa","Marrom","Preta"];
+  const ORDEM_PESO = ["Pluma","Leve","Médio","Meio-Pesado","Pesado","Super Pesado","Pesadíssimo","Super Pesadíssimo","Absoluto"];
+
+  const PESO_MASC = [{n:"Pluma",max:57.5},{n:"Leve",max:64},{n:"Médio",max:70},{n:"Meio-Pesado",max:76},{n:"Pesado",max:82.3},{n:"Super Pesado",max:88.3},{n:"Pesadíssimo",max:94.3},{n:"Super Pesadíssimo",max:100.5},{n:"Absoluto",max:999}];
+  const PESO_FEM  = [{n:"Pluma",max:48.5},{n:"Leve",max:53.5},{n:"Médio",max:58.5},{n:"Meio-Pesado",max:64},{n:"Pesado",max:69},{n:"Super Pesado",max:74},{n:"Pesadíssimo",max:79.3},{n:"Absoluto",max:999}];
+
+  function categoriaPeso(peso, sexo) {
+    if (!peso) return '—';
+    const p = parseFloat(peso);
+    if (isNaN(p)) return '—';
+    const tabela = (sexo === 'Feminino' || sexo === 'F') ? PESO_FEM : PESO_MASC;
+    return (tabela.find(c => p <= c.max) || {n:'Absoluto'}).n;
+  }
+
   function getJSON(k, fb){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):fb; }catch{return fb;} }
 
   function carregarTodos() {
@@ -126,6 +141,7 @@
       nome: a.nome,
       faixa: a.faixa || '—',
       peso: a.peso,
+      catPeso: categoriaPeso(a.peso, a.sexo),
       sexo: a.sexo || '—',
       academia: a.academia || a.equipeNome || '—',
       categoria: a.categoria || calcularCategoria(a),
@@ -138,6 +154,7 @@
         nome: i.nome,
         faixa: i.faixa || '—',
         peso: i.peso,
+        catPeso: categoriaPeso(i.peso, i.sexo),
         sexo: i.sexo || '—',
         academia: i.equipeNome || i.equipe || '—',
         categoria: i.categoria || '—',
@@ -256,12 +273,19 @@
     if (viewAtual === 'categoria') {
       const grupos = {};
       visiveis.forEach(a => {
-        const chave = `${a.categoria} — ${a.faixa} (${a.sexo})`;
+        const chave = `${a.sexo} | ${a.categoria} | ${a.faixa} | ${a.catPeso}`;
         if (!grupos[chave]) grupos[chave] = [];
         grupos[chave].push(a);
       });
       conteudo.innerHTML = Object.entries(grupos)
-        .sort(([a],[b]) => a.localeCompare(b))
+        .sort(([a],[b]) => {
+          const [sa,ca,fa,pa] = a.split(' | ');
+          const [sb,cb,fb,pb] = b.split(' | ');
+          return sa.localeCompare(sb)
+            || (ORDEM_CATEGORIA.indexOf(ca) - ORDEM_CATEGORIA.indexOf(cb))
+            || (ORDEM_FAIXA.indexOf(fa) - ORDEM_FAIXA.indexOf(fb))
+            || (ORDEM_PESO.indexOf(pa) - ORDEM_PESO.indexOf(pb));
+        })
         .map(([titulo, atletas], i) => grupoHTML(titulo, atletas, 'cat'+i))
         .join('');
     } else {
