@@ -486,6 +486,7 @@
 
         <div class="tabs">
             <button class="tab active" data-tab="dashboard">📊 Dashboard</button>
+            <a href="admin-equipes.html" target="_blank" class="tab" style="text-decoration:none;">🏫 Equipes</a>
             <button class="tab" data-tab="atletas">👥 Atletas <span class="tab-badge" id="tab-badge-atletas">0</span></button>
             <button class="tab" data-tab="torneio">🥋 Chaveamento</button>
             <button class="tab" data-tab="categorias">📋 Categorias</button>
@@ -726,6 +727,44 @@
                             <div class="config-buttons">
                                 <button onclick="resetarAno()" class="btn-danger">🔄 Resetar Ranking Anual</button>
                             </div>
+                        </div>
+
+                        <div class="config-section">
+                            <h4>💰 Configurações de Pagamento</h4>
+                            <p style="font-size:0.75rem;color:#8A9CB0;margin-bottom:16px">Configure os métodos de pagamento exibidos na página de inscrição.</p>
+
+                            <div style="margin-bottom:14px">
+                                <label style="font-size:0.82rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px">Valor da inscrição (R$)</label>
+                                <input type="text" id="pag-valor" class="input" placeholder="120,00" style="max-width:160px">
+                            </div>
+
+                            <div style="border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:10px">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                                    <input type="checkbox" id="pag-pix-ativo" style="width:16px;height:16px;cursor:pointer">
+                                    <label for="pag-pix-ativo" style="font-size:0.85rem;font-weight:600;cursor:pointer">📱 PIX</label>
+                                </div>
+                                <label style="font-size:0.78rem;color:#1A2C3E;display:block;margin-bottom:6px">Chave PIX</label>
+                                <input type="text" id="pag-pix-chave" class="input" placeholder="CPF, e-mail, telefone ou chave aleatória">
+                            </div>
+
+                            <div style="border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:10px">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                                    <input type="checkbox" id="pag-link-ativo" style="width:16px;height:16px;cursor:pointer">
+                                    <label for="pag-link-ativo" style="font-size:0.85rem;font-weight:600;cursor:pointer">🔗 Link de Pagamento</label>
+                                </div>
+                                <label style="font-size:0.78rem;color:#1A2C3E;display:block;margin-bottom:6px">URL (ex: loja InfinityPay)</label>
+                                <input type="text" id="pag-link-url" class="input" placeholder="https://...">
+                            </div>
+
+                            <div style="border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:16px;opacity:0.6">
+                                <div style="display:flex;align-items:center;gap:10px">
+                                    <input type="checkbox" disabled style="width:16px;height:16px">
+                                    <label style="font-size:0.85rem;font-weight:600;">⚙️ API de Pagamento</label>
+                                    <span style="background:#E2E8F0;color:#8A9CB0;border-radius:20px;padding:2px 10px;font-size:0.68rem;font-weight:600;">Em breve</span>
+                                </div>
+                            </div>
+
+                            <button class="btn-primary" onclick="salvarConfigPagamento()">💾 Salvar configurações</button>
                         </div>
 
                         <div class="config-section">
@@ -1313,6 +1352,32 @@
 <script src="js/lutas.js"></script>
 <script src="js/sincronizacao.js"></script>
 <script>
+// ---- Configurações de Pagamento ----
+function carregarConfigPagamento() {
+    const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
+    document.getElementById('pag-valor').value = cfg.valor || '120,00';
+    document.getElementById('pag-pix-ativo').checked = cfg.pix?.ativo ?? true;
+    document.getElementById('pag-pix-chave').value = cfg.pix?.chave || '';
+    document.getElementById('pag-link-ativo').checked = cfg.link?.ativo ?? false;
+    document.getElementById('pag-link-url').value = cfg.link?.url || '';
+}
+function salvarConfigPagamento() {
+    const cfg = {
+        valor: document.getElementById('pag-valor').value.trim() || '120,00',
+        pix: {
+            ativo: document.getElementById('pag-pix-ativo').checked,
+            chave: document.getElementById('pag-pix-chave').value.trim()
+        },
+        link: {
+            ativo: document.getElementById('pag-link-ativo').checked,
+            url: document.getElementById('pag-link-url').value.trim()
+        }
+    };
+    localStorage.setItem('gaditas_pagamento', JSON.stringify(cfg));
+    mostrarToast('Configurações de pagamento salvas!', 'success');
+}
+document.addEventListener('DOMContentLoaded', carregarConfigPagamento);
+
 function abrirModalSenha() {
     document.getElementById('ms-atual').value = '';
     document.getElementById('ms-nova').value = '';

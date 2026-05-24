@@ -129,12 +129,9 @@
 
       <section class="card">
         <h2>💰 Pagamento</h2>
-        <div class="pagamento">
-          <label class="pay-option active"><input type="radio" name="pagamento" value="PIX" checked />📱 PIX</label>
-          <label class="pay-option"><input type="radio" name="pagamento" value="Cartão" />💳 Cartão</label>
-          <label class="pay-option"><input type="radio" name="pagamento" value="Boleto" />📄 Boleto</label>
-        </div>
-        <div class="valor">Valor: R$ 120,00</div>
+        <div class="pagamento" id="pagamento-opcoes"></div>
+        <div id="pag-info" style="margin-top:12px;padding:12px;background:#F5F7FA;border-radius:8px;font-size:0.85rem;display:none;"></div>
+        <div class="valor" id="pag-valor-display">Valor: R$ 120,00</div>
         <div class="erro" id="erroForm"></div>
         <button class="btn" type="submit">✅ FINALIZAR INSCRIÇÃO</button>
       </section>
@@ -407,6 +404,67 @@
     popularEquipes();
     atualizarFaixas();
     atualizarPreview();
+    renderizarPagamento();
+  </script>
+
+  <script>
+  function renderizarPagamento() {
+    const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
+    const valor = cfg.valor || '120,00';
+    const container = document.getElementById('pagamento-opcoes');
+    const info = document.getElementById('pag-info');
+
+    document.getElementById('pag-valor-display').textContent = 'Valor: R$ ' + valor;
+
+    let opcoes = '';
+    let primeiro = true;
+
+    if (cfg.pix?.ativo ?? true) {
+      opcoes += `<label class="pay-option${primeiro ? ' active' : ''}">
+        <input type="radio" name="pagamento" value="PIX"${primeiro ? ' checked' : ''} onchange="mostrarInfoPagamento()"/>📱 PIX
+      </label>`;
+      primeiro = false;
+    }
+    if (cfg.link?.ativo && cfg.link?.url) {
+      opcoes += `<label class="pay-option${primeiro ? ' active' : ''}">
+        <input type="radio" name="pagamento" value="Link"${primeiro ? ' checked' : ''} onchange="mostrarInfoPagamento()"/>🔗 Link de Pagamento
+      </label>`;
+      primeiro = false;
+    }
+    if (!opcoes) {
+      opcoes = '<p style="font-size:0.82rem;color:#8A9CB0">Nenhum método de pagamento configurado.</p>';
+    }
+
+    container.innerHTML = opcoes;
+    mostrarInfoPagamento();
+  }
+
+  function mostrarInfoPagamento() {
+    const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
+    const selecionado = document.querySelector('input[name="pagamento"]:checked')?.value;
+    const info = document.getElementById('pag-info');
+
+    if (selecionado === 'PIX' && cfg.pix?.chave) {
+      info.style.display = 'block';
+      info.innerHTML = `<strong>Chave PIX:</strong><br>
+        <span style="font-size:1rem;font-weight:700;color:#1A2C3E">${cfg.pix.chave}</span>
+        <button type="button" onclick="copiarPix()" style="margin-left:10px;background:#C9A03D;border:none;color:#fff;padding:4px 12px;border-radius:20px;font-size:0.75rem;cursor:pointer;">📋 Copiar</button>`;
+    } else if (selecionado === 'Link' && cfg.link?.url) {
+      info.style.display = 'block';
+      info.innerHTML = `<a href="${cfg.link.url}" target="_blank"
+        style="display:inline-block;background:#C9A03D;color:#fff;padding:9px 20px;border-radius:40px;font-weight:600;font-size:0.85rem;text-decoration:none;">
+        💳 Ir para o link de pagamento
+      </a>`;
+    } else {
+      info.style.display = 'none';
+    }
+  }
+
+  function copiarPix() {
+    const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
+    navigator.clipboard.writeText(cfg.pix?.chave || '');
+    alert('Chave PIX copiada!');
+  }
   </script>
 </body>
 </html>
