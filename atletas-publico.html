@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atletas Inscritos - Gaditas Torneios</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:#F5F7FA; color:#1A2C3E; min-height:100vh; }
+
+    header { background:#fff; border-bottom:1px solid #E2E8F0; padding:16px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:space-between; }
+    .header-logo { display:flex; align-items:center; gap:10px; }
+    .header-logo h1 { font-size:1.05rem; font-weight:700; }
+    .header-logo p { font-size:0.68rem; color:#8A9CB0; }
+
+    .app { max-width:1100px; margin:0 auto; padding:20px; }
+
+    .busca-box { background:#fff; border:1px solid #E2E8F0; border-radius:12px; padding:16px 18px; margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .busca-box input { flex:1; min-width:180px; border:1px solid #E2E8F0; border-radius:8px; padding:9px 12px; font-size:0.85rem; outline:none; }
+    .busca-box input:focus { border-color:#C9A03D; }
+    .busca-box select { border:1px solid #E2E8F0; border-radius:8px; padding:9px 10px; font-size:0.82rem; outline:none; background:#fff; cursor:pointer; }
+    .busca-box select:focus { border-color:#C9A03D; }
+    .btn-limpar { background:transparent; border:1px solid #E2E8F0; border-radius:8px; padding:9px 14px; font-size:0.8rem; cursor:pointer; color:#8A9CB0; }
+    .btn-limpar:hover { border-color:#C9A03D; color:#C9A03D; }
+
+    .views { display:flex; gap:8px; margin-bottom:16px; }
+    .view-btn { background:#fff; border:1px solid #E2E8F0; padding:8px 18px; border-radius:40px; font-size:0.82rem; cursor:pointer; transition:all 0.2s; font-weight:500; }
+    .view-btn.active { background:#C9A03D; color:#fff; border-color:#C9A03D; }
+
+    .resumo { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+    .resumo-card { background:#fff; border:1px solid #E2E8F0; border-radius:10px; padding:12px 18px; display:flex; flex-direction:column; gap:2px; }
+    .resumo-card .num { font-size:1.6rem; font-weight:700; color:#C9A03D; }
+    .resumo-card .lbl { font-size:0.68rem; color:#8A9CB0; text-transform:uppercase; font-weight:600; }
+
+    .grupo { background:#fff; border:1px solid #E2E8F0; border-radius:14px; margin-bottom:14px; overflow:hidden; }
+    .grupo-header { display:flex; justify-content:space-between; align-items:center; padding:13px 18px; background:#FAFBFC; border-bottom:1px solid #E2E8F0; flex-wrap:wrap; gap:8px; cursor:pointer; }
+    .grupo-titulo { font-weight:700; font-size:0.92rem; }
+    .grupo-meta { display:flex; align-items:center; gap:10px; }
+    .grupo-count { background:#E2E8F0; color:#1A2C3E; border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:700; }
+    .btn-print { background:transparent; border:1px solid #E2E8F0; border-radius:6px; padding:5px 12px; font-size:0.75rem; cursor:pointer; transition:all 0.2s; }
+    .btn-print:hover { border-color:#C9A03D; color:#C9A03D; }
+
+    .grupo-body { padding:0; }
+    .atleta-row { display:flex; align-items:center; justify-content:space-between; padding:10px 18px; border-bottom:1px solid #F1F5F9; gap:10px; flex-wrap:wrap; }
+    .atleta-row:last-child { border-bottom:none; }
+    .atleta-nome { font-size:0.88rem; font-weight:600; }
+    .atleta-sub { font-size:0.72rem; color:#8A9CB0; margin-top:1px; }
+    .atleta-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .status-badge { padding:3px 10px; border-radius:20px; font-size:0.68rem; font-weight:700; white-space:nowrap; }
+    .status-confirmado { background:#DCFCE7; color:#166534; }
+    .status-pendente { background:#FEF9C3; color:#92400E; }
+
+    .faixa-dot { width:10px; height:10px; border-radius:50%; display:inline-block; flex-shrink:0; }
+
+    .vazio { text-align:center; padding:50px 20px; color:#8A9CB0; }
+    .vazio span { font-size:2.5rem; display:block; margin-bottom:10px; opacity:0.4; }
+
+    /* Print */
+    @media print {
+      header, .busca-box, .views, .resumo, .grupo-header .btn-print, .btn-print { display:none !important; }
+      .grupo { break-inside:avoid; border:1px solid #ccc; margin-bottom:10px; }
+      body { background:#fff; }
+      .grupo.print-oculto { display:none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">
+    <span style="font-size:1.8rem">🏆</span>
+    <div>
+      <h1>GADITAS TORNEIOS</h1>
+      <p>Atletas Inscritos</p>
+    </div>
+  </div>
+  <div id="ultima-atualizacao" style="font-size:0.72rem;color:#8A9CB0;"></div>
+</header>
+
+<div class="app">
+
+  <div class="busca-box">
+    <input type="text" id="busca" placeholder="🔍 Buscar atleta ou equipe..." oninput="renderizar()">
+    <select id="filtro-faixa" onchange="renderizar()">
+      <option value="">Todas as faixas</option>
+      <option>Branca</option><option>Cinza</option><option>Amarela</option>
+      <option>Laranja</option><option>Verde</option><option>Azul</option>
+      <option>Roxa</option><option>Marrom</option><option>Preta</option>
+    </select>
+    <select id="filtro-categoria" onchange="renderizar()">
+      <option value="">Todas as categorias</option>
+    </select>
+    <select id="filtro-status" onchange="renderizar()">
+      <option value="">Todos</option>
+      <option value="confirmado">✅ Confirmados</option>
+      <option value="pendente">⏳ Pendentes</option>
+    </select>
+    <button class="btn-limpar" onclick="limparFiltros()">✕ Limpar</button>
+  </div>
+
+  <div class="views">
+    <button class="view-btn active" id="btn-categoria" onclick="setView('categoria')">📋 Por Categoria</button>
+    <button class="view-btn" id="btn-equipe" onclick="setView('equipe')">🏫 Por Equipe</button>
+  </div>
+
+  <div class="resumo" id="resumo"></div>
+  <div id="conteudo"></div>
+</div>
+
+<script>
+  const FAIXA_COR = {
+    'Branca':'#FFFFFF','Cinza':'#9CA3AF','Amarela':'#FCD34D','Laranja':'#FB923C',
+    'Verde':'#4ADE80','Azul':'#60A5FA','Roxa':'#A78BFA','Marrom':'#92400E','Preta':'#1F2937'
+  };
+  const FAIXA_BORDA = {
+    'Branca':'#CBD5E1','Cinza':'#6B7280','Amarela':'#D97706','Laranja':'#EA580C',
+    'Verde':'#16A34A','Azul':'#2563EB','Roxa':'#7C3AED','Marrom':'#78350F','Preta':'#111827'
+  };
+
+  let viewAtual = 'categoria';
+
+  function getJSON(k, fb){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):fb; }catch{return fb;} }
+
+  function carregarTodos() {
+    const confirmados = getJSON('gaditas_atletas', []).map(a => ({
+      nome: a.nome,
+      faixa: a.faixa || '—',
+      peso: a.peso,
+      sexo: a.sexo || '—',
+      academia: a.academia || a.equipeNome || '—',
+      categoria: a.categoria || calcularCategoria(a),
+      status: 'confirmado'
+    }));
+
+    const pendentes = getJSON('inscricoes', [])
+      .filter(i => i.status === 'pendente')
+      .map(i => ({
+        nome: i.nome,
+        faixa: i.faixa || '—',
+        peso: i.peso,
+        sexo: i.sexo || '—',
+        academia: i.equipeNome || i.equipe || '—',
+        categoria: i.categoria || '—',
+        status: 'pendente'
+      }));
+
+    return [...confirmados, ...pendentes];
+  }
+
+  function calcularCategoria(a) {
+    if (!a.dataNascimento) return 'Sem categoria';
+    const hoje = new Date();
+    const nasc = new Date(a.dataNascimento);
+    let idade = hoje.getFullYear() - nasc.getFullYear();
+    if (hoje.getMonth() < nasc.getMonth() || (hoje.getMonth() === nasc.getMonth() && hoje.getDate() < nasc.getDate())) idade--;
+    const cats = [{nome:"Pré-Mirim",min:4,max:5},{nome:"Mirim 1",min:6,max:7},{nome:"Mirim 2",min:8,max:9},
+      {nome:"Infantil 1",min:10,max:11},{nome:"Infantil 2",min:12,max:13},{nome:"Infanto-Juvenil",min:14,max:15},
+      {nome:"Juvenil",min:16,max:17},{nome:"Adulto",min:18,max:29},{nome:"Master 1",min:30,max:35},
+      {nome:"Master 2",min:36,max:40},{nome:"Master 3",min:41,max:45},{nome:"Master 4",min:46,max:50},
+      {nome:"Master 5",min:51,max:55},{nome:"Master 6",min:56,max:99}];
+    return (cats.find(c => idade >= c.min && idade <= c.max) || {nome:'—'}).nome;
+  }
+
+  function popularFiltros(atletas) {
+    const cats = [...new Set(atletas.map(a => a.categoria).filter(Boolean).sort())];
+    const sel = document.getElementById('filtro-categoria');
+    const atual = sel.value;
+    sel.innerHTML = '<option value="">Todas as categorias</option>' +
+      cats.map(c => `<option${atual===c?' selected':''}>${c}</option>`).join('');
+  }
+
+  function filtrar(atletas) {
+    const busca = document.getElementById('busca').value.toLowerCase();
+    const faixa = document.getElementById('filtro-faixa').value;
+    const cat = document.getElementById('filtro-categoria').value;
+    const status = document.getElementById('filtro-status').value;
+    return atletas.filter(a =>
+      (!busca || a.nome.toLowerCase().includes(busca) || a.academia.toLowerCase().includes(busca)) &&
+      (!faixa || a.faixa === faixa) &&
+      (!cat || a.categoria === cat) &&
+      (!status || a.status === status)
+    );
+  }
+
+  function limparFiltros() {
+    document.getElementById('busca').value = '';
+    document.getElementById('filtro-faixa').value = '';
+    document.getElementById('filtro-categoria').value = '';
+    document.getElementById('filtro-status').value = '';
+    renderizar();
+  }
+
+  function setView(v) {
+    viewAtual = v;
+    document.getElementById('btn-categoria').classList.toggle('active', v === 'categoria');
+    document.getElementById('btn-equipe').classList.toggle('active', v === 'equipe');
+    renderizar();
+  }
+
+  function rowHTML(a) {
+    const cor = FAIXA_COR[a.faixa] || '#E2E8F0';
+    const borda = FAIXA_BORDA[a.faixa] || '#CBD5E1';
+    const badge = a.status === 'confirmado'
+      ? '<span class="status-badge status-confirmado">✅ Confirmado</span>'
+      : '<span class="status-badge status-pendente">⏳ Pendente</span>';
+    return `<div class="atleta-row">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="faixa-dot" style="background:${cor};border:1.5px solid ${borda}"></span>
+        <div>
+          <div class="atleta-nome">${a.nome}</div>
+          <div class="atleta-sub">${a.academia}${a.peso ? ' · ' + a.peso + ' kg' : ''}</div>
+        </div>
+      </div>
+      <div class="atleta-right">${badge}</div>
+    </div>`;
+  }
+
+  function grupoHTML(titulo, atletas, idGrupo) {
+    const conf = atletas.filter(a=>a.status==='confirmado').length;
+    const pend = atletas.filter(a=>a.status==='pendente').length;
+    return `<div class="grupo" id="grupo-${idGrupo}">
+      <div class="grupo-header" onclick="toggleGrupo('${idGrupo}')">
+        <div class="grupo-titulo">${titulo}</div>
+        <div class="grupo-meta">
+          <span class="grupo-count">${atletas.length} atleta${atletas.length!==1?'s':''}</span>
+          ${conf ? `<span style="font-size:0.72rem;color:#166534">✅ ${conf}</span>` : ''}
+          ${pend ? `<span style="font-size:0.72rem;color:#92400E">⏳ ${pend}</span>` : ''}
+          <button class="btn-print" onclick="event.stopPropagation();imprimirGrupo('${idGrupo}')">🖨️ Imprimir</button>
+        </div>
+      </div>
+      <div class="grupo-body" id="body-${idGrupo}">
+        ${atletas.map(rowHTML).join('')}
+      </div>
+    </div>`;
+  }
+
+  function renderizar() {
+    const todos = carregarTodos();
+    popularFiltros(todos);
+    const visiveis = filtrar(todos);
+
+    const conf = visiveis.filter(a=>a.status==='confirmado').length;
+    const pend = visiveis.filter(a=>a.status==='pendente').length;
+    document.getElementById('resumo').innerHTML = `
+      <div class="resumo-card"><div class="num">${visiveis.length}</div><div class="lbl">Total</div></div>
+      <div class="resumo-card"><div class="num" style="color:#166534">${conf}</div><div class="lbl">Confirmados</div></div>
+      <div class="resumo-card"><div class="num" style="color:#92400E">${pend}</div><div class="lbl">Pendentes</div></div>
+    `;
+
+    const conteudo = document.getElementById('conteudo');
+    if (!visiveis.length) {
+      conteudo.innerHTML = `<div class="vazio"><span>🔍</span>Nenhum atleta encontrado.</div>`;
+      return;
+    }
+
+    if (viewAtual === 'categoria') {
+      const grupos = {};
+      visiveis.forEach(a => {
+        const chave = `${a.categoria} — ${a.faixa} (${a.sexo})`;
+        if (!grupos[chave]) grupos[chave] = [];
+        grupos[chave].push(a);
+      });
+      conteudo.innerHTML = Object.entries(grupos)
+        .sort(([a],[b]) => a.localeCompare(b))
+        .map(([titulo, atletas], i) => grupoHTML(titulo, atletas, 'cat'+i))
+        .join('');
+    } else {
+      const grupos = {};
+      visiveis.forEach(a => {
+        const chave = a.academia || 'Sem equipe';
+        if (!grupos[chave]) grupos[chave] = [];
+        grupos[chave].push(a);
+      });
+      conteudo.innerHTML = Object.entries(grupos)
+        .sort(([,a],[,b]) => b.length - a.length)
+        .map(([titulo, atletas], i) => grupoHTML(titulo, atletas, 'eq'+i))
+        .join('');
+    }
+
+    document.getElementById('ultima-atualizacao').textContent =
+      'Atualizado: ' + new Date().toLocaleString('pt-BR');
+  }
+
+  function toggleGrupo(id) {
+    const body = document.getElementById('body-'+id);
+    body.style.display = body.style.display === 'none' ? '' : 'none';
+  }
+
+  function imprimirGrupo(id) {
+    document.querySelectorAll('.grupo').forEach(g => {
+      g.classList.toggle('print-oculto', g.id !== 'grupo-'+id);
+    });
+    window.print();
+    document.querySelectorAll('.grupo').forEach(g => g.classList.remove('print-oculto'));
+  }
+
+  renderizar();
+  setInterval(renderizar, 30000);
+</script>
+</body>
+</html>
