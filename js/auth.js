@@ -2,7 +2,7 @@ const _AUTH_KEY = 'gaditas_logado';
 const _PASS_KEY = 'gaditas_senha_adm';
 
 function verificarAuth() {
-    if (sessionStorage.getItem(_AUTH_KEY) !== '1') {
+    if (localStorage.getItem(_AUTH_KEY) !== '1') {
         window.location.replace('login.html');
     }
 }
@@ -10,14 +10,14 @@ function verificarAuth() {
 function fazerLogin(usuario, senha) {
     const senhaCorreta = localStorage.getItem(_PASS_KEY) || 'admin';
     if (usuario === 'admin' && senha === senhaCorreta) {
-        sessionStorage.setItem(_AUTH_KEY, '1');
+        localStorage.setItem(_AUTH_KEY, '1');
         return true;
     }
     return false;
 }
 
 function fazerLogout() {
-    sessionStorage.removeItem(_AUTH_KEY);
+    localStorage.removeItem(_AUTH_KEY);
     window.location.replace('login.html');
 }
 
