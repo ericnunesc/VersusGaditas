@@ -844,10 +844,9 @@ function gerarChaveamento() {
     const areas = window.areasLuta || ['Tatame 1', 'Tatame 2', 'Tatame 3'];
     let areaIdx = 0;
 
+    // --- Categorias normais ---
     const atletasPorCategoria = {};
-    grupos.forEach((grupo) => {
-        atletasPorCategoria[grupo.nome] = grupo.atletas;
-    });
+    grupos.forEach((grupo) => { atletasPorCategoria[grupo.nome] = grupo.atletas; });
 
     for (const [nomeCategoria, atletasCat] of Object.entries(atletasPorCategoria)) {
         if (!atletasCat || atletasCat.length === 0) continue;
@@ -859,10 +858,82 @@ function gerarChaveamento() {
         }
     }
 
+    // --- Categorias Absoluto (agrupadas por Sexo + Faixa, ignorando peso) ---
+    const gruposAbs = new Map();
+    for (const atleta of atletas) {
+        if (!atleta.absoluto) continue;
+        const chaveAbs = `ABS_${atleta.sexo}_${atleta.faixa}`;
+        const nomeAbs  = `🏆 ABSOLUTO | ${atleta.sexo === 'M' ? 'Masculino' : 'Feminino'} | ${atleta.faixa}`;
+        if (!gruposAbs.has(chaveAbs)) gruposAbs.set(chaveAbs, { atletas: [], nome: nomeAbs });
+        gruposAbs.get(chaveAbs).atletas.push(atleta);
+    }
+    let absGerados = 0;
+    gruposAbs.forEach((grupo) => {
+        if (grupo.atletas.length < 2) return;
+        const cat = gerarChaveamentoCategoria(grupo.nome, grupo.atletas, 'eliminatoria');
+        if (cat) {
+            cat.area = areas[areaIdx % areas.length];
+            cat.isAbsoluto = true;
+            areaIdx++;
+            torneio.categorias.push(cat);
+            absGerados++;
+        }
+    });
+
     salvarEstadoTorneio();
     renderizarChaveamento();
-    toast(`✅ Chaveamento gerado com ${torneio.categorias.length} categoria(s)!`, 'sucesso');
+    const msgAbs = absGerados > 0 ? ` + ${absGerados} absoluto(s)` : '';
+    toast(`✅ Chaveamento gerado: ${torneio.categorias.length - absGerados} categoria(s)${msgAbs}!`, 'sucesso');
 }
+
+// ==================== GERAR SÓ O ABSOLUTO (após competição iniciada) ====================
+
+function gerarAbsoluto() {
+    const torneio = window.torneioAtual;
+    if (!torneio.competicaoAtiva) { toast('Inicie uma competição primeiro!', 'erro'); return; }
+
+    const atletas = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
+    const areas   = window.areasLuta || ['Tatame 1', 'Tatame 2', 'Tatame 3'];
+
+    // Remove absolutos anteriores para re-gerar sem duplicar
+    torneio.categorias = torneio.categorias.filter(c => !c.isAbsoluto);
+    let areaIdx = torneio.categorias.length;
+
+    const gruposAbs = new Map();
+    for (const atleta of atletas) {
+        if (!atleta.absoluto) continue;
+        const chave = `ABS_${atleta.sexo}_${atleta.faixa}`;
+        const nome  = `🏆 ABSOLUTO | ${atleta.sexo === 'M' ? 'Masculino' : 'Feminino'} | ${atleta.faixa}`;
+        if (!gruposAbs.has(chave)) gruposAbs.set(chave, { atletas: [], nome });
+        gruposAbs.get(chave).atletas.push(atleta);
+    }
+
+    if (gruposAbs.size === 0) { toast('Nenhum atleta inscrito no Absoluto!', 'erro'); return; }
+
+    let gerados = 0;
+    let ignorados = 0;
+    gruposAbs.forEach((grupo) => {
+        if (grupo.atletas.length < 2) { ignorados++; return; }
+        const cat = gerarChaveamentoCategoria(grupo.nome, grupo.atletas, 'eliminatoria');
+        if (cat) {
+            cat.area = areas[areaIdx % areas.length];
+            cat.isAbsoluto = true;
+            areaIdx++;
+            torneio.categorias.push(cat);
+            gerados++;
+        }
+    });
+
+    salvarEstadoTorneio();
+    renderizarChaveamento();
+    if (gerados === 0) {
+        toast(`⚠️ Nenhum Absoluto gerado — é preciso mínimo 2 atletas por faixa/sexo.`, 'aviso');
+    } else {
+        const aviso = ignorados > 0 ? ` (${ignorados} grupo(s) com < 2 atletas ignorado(s))` : '';
+        toast(`🏆 ${gerados} chave(s) do Absoluto gerada(s)!${aviso}`, 'sucesso');
+    }
+}
+window.gerarAbsoluto = gerarAbsoluto;
 
 // ==================== EXPORTAR ====================
 
