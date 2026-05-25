@@ -144,9 +144,15 @@
     lista.innerHTML = visiveis.slice().reverse().map(i => `
       <div class="card" id="card-${i.id}">
         <div class="card-header">
-          <div>
-            <div class="atleta-nome">${i.nome}</div>
-            <div style="font-size:0.72rem;color:#8A9CB0;margin-top:2px">${new Date(i.criadoEm).toLocaleString('pt-BR')}</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            ${i.foto
+              ? `<img src="${i.foto}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #C9A03D;flex-shrink:0;">`
+              : `<div style="width:52px;height:52px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">👤</div>`
+            }
+            <div>
+              <div class="atleta-nome">${i.nome}</div>
+              <div style="font-size:0.72rem;color:#8A9CB0;margin-top:2px">${new Date(i.criadoEm).toLocaleString('pt-BR')}</div>
+            </div>
           </div>
           <span class="status-badge status-${i.status}">${i.status.toUpperCase()}</span>
         </div>
