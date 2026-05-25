@@ -101,9 +101,14 @@
     </select>
     <label>Ícone</label>
     <div class="emoji-grid" id="emoji-grid">
-      ${['🥋','🏆','⚔️','🎖️','🥇','🏅','👊','💪'].map(e =>
-        `<span class="emoji-opt" onclick="selecionarEmoji('${e}')">${e}</span>`
-      ).join('')}
+      <span class="emoji-opt" onclick="selecionarEmoji('🥋')">🥋</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('🏆')">🏆</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('⚔️')">⚔️</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('🎖️')">🎖️</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('🥇')">🥇</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('🏅')">🏅</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('👊')">👊</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('💪')">💪</span>
     </div>
     <input type="hidden" id="f-emoji" value="🥋">
     <input type="hidden" id="f-id" value="">
