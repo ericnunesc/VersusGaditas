@@ -176,24 +176,42 @@
   }
 
   window.aprovar = async function(id) {
-    if (!campeonatoId) return;
+    if (!campeonatoId) {
+      alert('Campeonato não identificado. Acesse pelo Painel Admin → Gerenciar → Aprovações.');
+      return;
+    }
     const i = todasInscricoes.find(x => x.id === id);
     if (!i) return;
+
+    const atletaData = {
+      nome: i.nome,
+      sexo: i.sexo,
+      faixa: i.faixa,
+      peso: i.peso,
+      categoria: i.categoria || '',
+      academia: i.equipeNome || i.equipe || '',
+      dataNascimento: i.dataNascimento || '',
+      dataCadastro: new Date().toISOString(),
+      foto: i.foto || null,
+      origem: 'inscricao'
+    };
+
     try {
       await atualizarInscricao(campeonatoId, id, { status: 'aprovado' });
-      await salvarAtleta(campeonatoId, {
-        nome: i.nome,
-        sexo: i.sexo,
-        faixa: i.faixa,
-        peso: i.peso,
-        academia: i.equipeNome || i.equipe || '',
-        dataNascimento: i.dataNascimento || '',
-        dataCadastro: new Date().toISOString(),
-        foto: i.foto || null,
-        origem: 'inscricao'
-      });
+      await salvarAtleta(campeonatoId, atletaData);
+
+      // Ponte para index.html: também salva no localStorage do mesmo browser
+      try {
+        const local = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
+        local.push({ id: Date.now(), ...atletaData });
+        localStorage.setItem('gaditas_atletas', JSON.stringify(local));
+        window.dispatchEvent(new Event('gdt:update'));
+      } catch(_) {}
+
       i.status = 'aprovado';
       renderizar();
+      // Notifica outras abas (index.html)
+      localStorage.setItem('gaditas_last_update', Date.now().toString());
     } catch(e) {
       alert('Erro ao aprovar: ' + e.message);
     }

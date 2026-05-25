@@ -1394,7 +1394,17 @@ function atualizarBadgePendentes() {
     if (badge) badge.textContent = pendentes;
 }
 document.addEventListener('DOMContentLoaded', atualizarBadgePendentes);
-window.addEventListener('storage', atualizarBadgePendentes);
+window.addEventListener('storage', function(e) {
+    atualizarBadgePendentes();
+    // Recarrega atletas quando aprovados em outra aba (adm-inscricoes.html)
+    if (e.key === 'gaditas_atletas' || e.key === 'gaditas_last_update') {
+        if (typeof carregarDados === 'function') {
+            carregarDados();
+            if (typeof renderizarAtletas === 'function') renderizarAtletas();
+            if (typeof atualizarDashboard === 'function') atualizarDashboard();
+        }
+    }
+});
 
 // ---- Configurações de Pagamento ----
 function carregarConfigPagamento() {
