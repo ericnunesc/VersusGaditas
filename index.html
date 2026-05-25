@@ -437,9 +437,11 @@
 <script>verificarAuth();</script>
 
 <script type="module">
-  import { buscarCampeonato } from './js/firebase.js';
+  import { buscarCampeonato, salvarConfig } from './js/firebase.js';
 
   const campeonatoId = new URLSearchParams(location.search).get('id');
+  window._campeonatoId = campeonatoId;
+  window._fbSalvarConfig = salvarConfig;
 
   document.addEventListener('DOMContentLoaded', async () => {
     if (!campeonatoId) return;
@@ -771,9 +773,16 @@
                             <h4>💰 Configurações de Pagamento</h4>
                             <p style="font-size:0.75rem;color:#8A9CB0;margin-bottom:16px">Configure os métodos de pagamento exibidos na página de inscrição.</p>
 
-                            <div style="margin-bottom:14px">
-                                <label style="font-size:0.82rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px">Valor da inscrição (R$)</label>
-                                <input type="text" id="pag-valor" class="input" placeholder="120,00" style="max-width:160px">
+                            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px">
+                                <div>
+                                    <label style="font-size:0.82rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px">💰 Valor da inscrição (R$)</label>
+                                    <input type="text" id="pag-valor" class="input" placeholder="120,00" style="max-width:140px">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.82rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px">🏆 Valor adicional Absoluto (R$)</label>
+                                    <input type="text" id="pag-valor-absoluto" class="input" placeholder="30,00" style="max-width:140px">
+                                    <div style="font-size:0.7rem;color:#8A9CB0;margin-top:4px">Cobrado além do valor base</div>
+                                </div>
                             </div>
 
                             <div style="border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:10px">
@@ -1474,14 +1483,16 @@ window.addEventListener('storage', function(e) {
 function carregarConfigPagamento() {
     const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
     document.getElementById('pag-valor').value = cfg.valor || '120,00';
+    document.getElementById('pag-valor-absoluto').value = cfg.valorAbsoluto || '30,00';
     document.getElementById('pag-pix-ativo').checked = cfg.pix?.ativo ?? true;
     document.getElementById('pag-pix-chave').value = cfg.pix?.chave || '';
     document.getElementById('pag-link-ativo').checked = cfg.link?.ativo ?? false;
     document.getElementById('pag-link-url').value = cfg.link?.url || '';
 }
-function salvarConfigPagamento() {
+async function salvarConfigPagamento() {
     const cfg = {
         valor: document.getElementById('pag-valor').value.trim() || '120,00',
+        valorAbsoluto: document.getElementById('pag-valor-absoluto').value.trim() || '30,00',
         pix: {
             ativo: document.getElementById('pag-pix-ativo').checked,
             chave: document.getElementById('pag-pix-chave').value.trim()
@@ -1492,7 +1503,18 @@ function salvarConfigPagamento() {
         }
     };
     localStorage.setItem('gaditas_pagamento', JSON.stringify(cfg));
-    mostrarToast('Configurações de pagamento salvas!', 'success');
+    // Salva também no Firebase para que a página de inscrição leia o valor correto
+    const id = window._campeonatoId;
+    if (id && window._fbSalvarConfig) {
+        try {
+            await window._fbSalvarConfig(id, { pagamento: cfg });
+            mostrarToast('Configurações de pagamento salvas!', 'sucesso');
+        } catch(e) {
+            mostrarToast('Salvo localmente. Erro Firebase: ' + e.message, 'info');
+        }
+    } else {
+        mostrarToast('Configurações de pagamento salvas!', 'sucesso');
+    }
 }
 document.addEventListener('DOMContentLoaded', carregarConfigPagamento);
 

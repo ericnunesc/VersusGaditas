@@ -148,6 +148,7 @@
         <div class="pagamento" id="pagamento-opcoes"></div>
         <div id="pag-info" style="margin-top:12px;padding:12px;background:#F5F7FA;border-radius:8px;font-size:0.85rem;display:none;"></div>
         <div class="valor" id="pag-valor-display">Valor: R$ 120,00</div>
+        <div id="pag-absoluto-display" style="display:none;margin-top:6px;font-size:0.82rem;color:#aab3d1;background:#0f1e35;border:1px solid #C9A03D;border-radius:8px;padding:10px 12px;line-height:1.8"></div>
 
         <div style="margin-top:14px">
           <label style="display:block;font-size:0.82rem;font-weight:600;color:#333;margin-bottom:6px">📎 Comprovante de pagamento <span style="color:#8A9CB0;font-weight:400">(opcional)</span></label>
@@ -399,6 +400,7 @@
     });
 
     $("cpf").addEventListener("input", () => $("cpf").value = formatarCPF($("cpf").value));
+    $("absoluto").addEventListener("change", atualizarValorTotal);
     $("telefone").addEventListener("input", ()=> $("telefone").value = formatarTelefoneBR($("telefone").value));
     $("dataNascimento").addEventListener("change", atualizarFaixas);
     $("faixa").addEventListener("change", atualizarPreview);
@@ -471,6 +473,29 @@
   </script>
 
   <script>
+  window.atualizarValorTotal = function atualizarValorTotal() {
+    const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
+    const valorBase = cfg.valor || '120,00';
+    const valorAbs  = cfg.valorAbsoluto || '30,00';
+    const absoluto  = document.getElementById('absoluto')?.checked;
+    const display   = document.getElementById('pag-valor-display');
+    const absDisplay = document.getElementById('pag-absoluto-display');
+
+    if (absoluto) {
+      const base = parseFloat(valorBase.replace(',','.')) || 0;
+      const abs  = parseFloat(valorAbs.replace(',','.')) || 0;
+      const total = (base + abs).toFixed(2).replace('.',',');
+      display.textContent = 'Total: R$ ' + total;
+      absDisplay.style.display = 'block';
+      absDisplay.innerHTML =
+        `Categoria: <strong style="color:#fff">R$ ${valorBase}</strong> + Absoluto: <strong style="color:#C9A03D">R$ ${valorAbs}</strong><br>` +
+        `<strong style="color:#C9A03D;font-size:1rem">Total: R$ ${total}</strong>`;
+    } else {
+      display.textContent = 'Valor: R$ ' + valorBase;
+      absDisplay.style.display = 'none';
+    }
+  }
+
   function renderizarPagamento() {
     const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
     const valor = cfg.valor || '120,00';
@@ -530,6 +555,7 @@
   }
 
   renderizarPagamento();
+  atualizarValorTotal();
   </script>
 
   <!-- Firebase: expõe função de salvar inscrição para o código legado -->
@@ -562,6 +588,7 @@
         if (cfg?.pagamento) {
           localStorage.setItem('gaditas_pagamento', JSON.stringify(cfg.pagamento));
           if (window.renderizarPagamento) renderizarPagamento();
+          if (window.atualizarValorTotal) atualizarValorTotal();
         }
       });
 
