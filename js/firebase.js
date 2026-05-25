@@ -41,6 +41,10 @@ export async function atualizarCampeonato(id, dados) {
   await updateDoc(doc(db, "campeonatos", id), dados);
 }
 
+export async function deletarCampeonato(id) {
+  await deleteDoc(doc(db, "campeonatos", id));
+}
+
 // ── Atletas ──────────────────────────────────────────────────
 export async function salvarAtleta(campeonatoId, atleta) {
   return await addDoc(collection(db, "campeonatos", campeonatoId, "atletas"), {

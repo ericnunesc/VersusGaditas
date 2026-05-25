@@ -158,7 +158,7 @@
 </div>
 
 <script type="module">
-  import { onLogin, logout, listarCampeonatos, criarCampeonato, atualizarCampeonato } from './js/firebase.js';
+  import { onLogin, logout, listarCampeonatos, criarCampeonato, atualizarCampeonato, deletarCampeonato } from './js/firebase.js';
 
   let campsData = [];
   let cartazBase64 = null;
@@ -199,6 +199,7 @@
               <a href="adm-inscricoes.html?id=${c.id}" class="btn-sm">📋 Inscrições</a>
               <a href="atletas-publico.html?id=${c.id}" target="_blank" class="btn-sm">👥 Atletas cadastrados</a>
               <button class="btn-sm" onclick="editar('${c.id}')">✏️ Editar</button>
+              <button class="btn-sm danger" onclick="excluir('${c.id}', '${c.nome.replace(/'/g, "\\'")}')">🗑️ Excluir</button>
             </div>
           </div>
         </div>`;
@@ -252,6 +253,17 @@
   window.editar = function(id) {
     const c = campsData.find(x => x.id === id);
     if (c) abrirModal(c);
+  };
+
+  window.excluir = async function(id, nome) {
+    if (!confirm(`⚠️ Excluir o campeonato "${nome}"?\n\nEsta ação é permanente e irá remover o campeonato do sistema.\nAtletas, inscrições e equipes vinculados também serão perdidos.\n\nTem certeza?`)) return;
+    try {
+      await deletarCampeonato(id);
+      campsData = campsData.filter(c => c.id !== id);
+      carregar();
+    } catch(e) {
+      alert('Erro ao excluir: ' + e.message);
+    }
   };
 
   window.selecionarCartaz = function(input) {
