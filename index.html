@@ -1245,19 +1245,46 @@
             const avatar = a.foto
                 ? `<img src="${a.foto}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid ${avatarBorder};flex-shrink:0;">`
                 : `<div style="width:46px;height:46px;border-radius:50%;background:${avatarBg};border:2px solid ${avatarBorder};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${svgPessoa}</div>`;
+            const badgeAbs = a.absoluto
+                ? `<span style="background:#FEF9C3;color:#92400E;border-radius:20px;padding:2px 8px;font-size:0.65rem;font-weight:700;">🏆 ABS</span>`
+                : '';
+            const btnAbsLabel = a.absoluto ? '🏆 Remover Absoluto' : '🏆 Add Absoluto';
+            const btnAbsStyle = a.absoluto
+                ? 'background:#FEF9C3;border:1px solid #92400E;color:#92400E;'
+                : 'background:transparent;border:1px solid #CBD5E0;color:#8A9CB0;';
             return `
             <div class="atleta-card">
-                <div style="display:flex;align-items:center;gap:10px;">
+                <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
                     ${avatar}
-                    <div class="atleta-info">
-                        <h4>${a.nome}</h4>
+                    <div class="atleta-info" style="min-width:0;">
+                        <h4 style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">${a.nome} ${badgeAbs}</h4>
                         <p>${a.academia || ''}</p>
                         <p>${a.sexo || ''} • ${a.faixa || ''} • ${a.peso || 0}kg</p>
                     </div>
                 </div>
+                <button onclick="toggleAbsolutoAtleta('${a.id}')"
+                    style="flex-shrink:0;border-radius:20px;padding:5px 10px;font-size:0.7rem;font-weight:600;cursor:pointer;white-space:nowrap;${btnAbsStyle}">
+                    ${btnAbsLabel}
+                </button>
             </div>`;
         }).join('');
     }
+
+    function toggleAbsolutoAtleta(id) {
+        const atleta = appState.atletas.find(a => String(a.id) === String(id));
+        if (!atleta) return;
+        atleta.absoluto = !atleta.absoluto;
+        // Persiste no localStorage
+        const todos = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
+        const idx = todos.findIndex(a => String(a.id) === String(id));
+        if (idx !== -1) {
+            todos[idx].absoluto = atleta.absoluto;
+            localStorage.setItem('gaditas_atletas', JSON.stringify(todos));
+        }
+        atualizarListaAtletas();
+        mostrarToast(atleta.absoluto ? '🏆 Inscrito no Absoluto!' : 'Removido do Absoluto', 'sucesso');
+    }
+    window.toggleAbsolutoAtleta = toggleAbsolutoAtleta;
 
     function abrirModalAtleta() { mostrarToast('Cadastro de atleta simplificado não implementado aqui', 'info'); }
     function fecharModalAtleta() {}
