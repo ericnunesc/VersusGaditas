@@ -58,12 +58,16 @@
 
     .card-banner {
       background:linear-gradient(135deg,#1A2C3E,#2A4060);
-      height:90px;
+      height:160px;
       display:flex;
       align-items:center;
       justify-content:center;
       font-size:2.5rem;
+      overflow:hidden;
+      position:relative;
     }
+    .card-banner img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+    .card-banner .emoji-sobre { position:relative; z-index:1; }
     .card-body { padding:18px; }
     .card-nome { font-weight:700; font-size:1rem; margin-bottom:6px; }
     .card-info { font-size:0.78rem; color:#8A9CB0; display:flex; flex-direction:column; gap:3px; margin-bottom:12px; }
@@ -155,7 +159,9 @@
       const podeInscrever = c.status === 'ativo';
       return `
         <div class="card-camp">
-          <div class="card-banner">${c.emoji || '🥋'}</div>
+          <div class="card-banner">
+            ${c.cartaz ? `<img src="${c.cartaz}" alt="Cartaz ${c.nome}">` : `<span class="emoji-sobre">${c.emoji || '🥋'}</span>`}
+          </div>
           <div class="card-body">
             <div class="card-nome">${c.nome}</div>
             <div class="card-info">

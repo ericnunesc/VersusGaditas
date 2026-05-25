@@ -24,7 +24,15 @@
 
     .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
     .card { background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden; }
-    .card-banner { background:linear-gradient(135deg,#1A2C3E,#2A4060); height:70px; display:flex; align-items:center; justify-content:center; font-size:2rem; }
+    .card-banner {
+      height:140px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:3rem;
+      background:linear-gradient(135deg,#1A2C3E,#2A4060);
+      overflow:hidden; position:relative;
+    }
+    .card-banner img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+    .card-banner .emoji-sobre { position:relative; z-index:1; }
     .card-body { padding:16px; }
     .card-nome { font-weight:700; font-size:0.95rem; margin-bottom:4px; }
     .card-info { font-size:0.75rem; color:#8A9CB0; margin-bottom:12px; }
@@ -44,9 +52,9 @@
     .vazio span { font-size:3rem; display:block; margin-bottom:12px; opacity:0.3; }
 
     /* Modal */
-    .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center; }
+    .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center; padding:16px; }
     .modal-bg.open { display:flex; }
-    .modal { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:480px; box-shadow:0 8px 40px rgba(0,0,0,0.15); }
+    .modal { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:480px; box-shadow:0 8px 40px rgba(0,0,0,0.15); max-height:90vh; overflow-y:auto; }
     .modal h3 { font-size:1rem; font-weight:700; margin-bottom:20px; }
     .modal label { display:block; font-size:0.78rem; font-weight:600; margin-bottom:5px; color:#1A2C3E; }
     .modal input, .modal select, .modal textarea { width:100%; border:1px solid #E2E8F0; border-radius:8px; padding:9px 12px; font-size:0.85rem; outline:none; margin-bottom:12px; }
@@ -58,6 +66,15 @@
     .emoji-grid { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
     .emoji-opt { font-size:1.5rem; cursor:pointer; padding:4px 8px; border-radius:8px; border:2px solid transparent; }
     .emoji-opt.sel { border-color:#C9A03D; background:#FFF8EC; }
+
+    /* Cartaz */
+    .cartaz-upload { border:2px dashed #E2E8F0; border-radius:10px; padding:16px; text-align:center; cursor:pointer; margin-bottom:12px; transition:border-color 0.2s; }
+    .cartaz-upload:hover { border-color:#C9A03D; }
+    .cartaz-upload input { display:none; }
+    .cartaz-upload p { font-size:0.78rem; color:#8A9CB0; margin-top:6px; }
+    .cartaz-preview { position:relative; margin-bottom:12px; }
+    .cartaz-preview img { width:100%; max-height:200px; object-fit:cover; border-radius:8px; border:1px solid #E2E8F0; }
+    .cartaz-preview .btn-remover { position:absolute; top:6px; right:6px; background:rgba(239,68,68,0.9); color:#fff; border:none; border-radius:20px; padding:4px 10px; font-size:0.72rem; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -85,21 +102,38 @@
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
     <h3 id="modal-titulo">Novo Campeonato</h3>
+
     <label>Nome do campeonato *</label>
     <input type="text" id="f-nome" placeholder="Ex: Copa Gaditas 2025">
+
     <label>Data do evento *</label>
     <input type="date" id="f-data">
+
     <label>Local</label>
     <input type="text" id="f-local" placeholder="Ex: Ginásio Municipal - São Paulo">
+
     <label>Descrição</label>
     <textarea id="f-descricao" placeholder="Informações gerais sobre o campeonato..."></textarea>
+
     <label>Status</label>
     <select id="f-status">
       <option value="breve">🕐 Em breve</option>
       <option value="ativo">✅ Inscrições abertas</option>
       <option value="encerrado">🔒 Encerrado</option>
     </select>
-    <label>Ícone</label>
+
+    <label>Cartaz do evento</label>
+    <div id="cartaz-preview-box" class="cartaz-preview" style="display:none">
+      <img id="cartaz-preview-img" src="">
+      <button class="btn-remover" onclick="removerCartaz()">✕ Remover</button>
+    </div>
+    <label class="cartaz-upload" id="cartaz-upload-area" for="f-cartaz">
+      🖼️ Clique para selecionar o cartaz
+      <p>JPG ou PNG · Recomendado: 800×600px</p>
+      <input type="file" id="f-cartaz" accept="image/*" onchange="selecionarCartaz(this)">
+    </label>
+
+    <label>Ícone (quando não há cartaz)</label>
     <div class="emoji-grid" id="emoji-grid">
       <span class="emoji-opt" onclick="selecionarEmoji('🥋')">🥋</span>
       <span class="emoji-opt" onclick="selecionarEmoji('🏆')">🏆</span>
@@ -112,15 +146,19 @@
     </div>
     <input type="hidden" id="f-emoji" value="🥋">
     <input type="hidden" id="f-id" value="">
+
     <div class="modal-footer">
       <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-salvar" onclick="salvar()">Salvar</button>
+      <button class="btn-salvar" id="btn-salvar" onclick="salvar()">Salvar</button>
     </div>
   </div>
 </div>
 
 <script type="module">
   import { onLogin, logout, listarCampeonatos, criarCampeonato, atualizarCampeonato } from './js/firebase.js';
+
+  let campsData = [];
+  let cartazBase64 = null;
 
   onLogin(user => {
     if (!user) { window.location.replace('login-admin.html'); return; }
@@ -137,14 +175,18 @@
     const grid = document.getElementById('grid');
     try {
       const camps = await listarCampeonatos();
+      campsData = camps;
       if (!camps.length) {
         grid.innerHTML = `<div class="vazio"><span>🏆</span>Nenhum campeonato ainda.<br>Crie o primeiro!</div>`;
         return;
       }
       grid.innerHTML = camps.map(c => {
         const data = c.data ? new Date(c.data+'T12:00').toLocaleDateString('pt-BR') : '—';
+        const banner = c.cartaz
+          ? `<div class="card-banner"><img src="${c.cartaz}" alt="Cartaz"></div>`
+          : `<div class="card-banner"><span class="emoji-sobre">${c.emoji || '🥋'}</span></div>`;
         return `<div class="card">
-          <div class="card-banner">${c.emoji || '🥋'}</div>
+          ${banner}
           <div class="card-body">
             <span class="status-pill status-${c.status||'ativo'}">${{ativo:'✅ Aberto',breve:'🕐 Em breve',encerrado:'🔒 Encerrado'}[c.status||'ativo']}</span>
             <div class="card-nome">${c.nome}</div>
@@ -153,7 +195,7 @@
               <a href="index.html?id=${c.id}" class="btn-sm primary">⚙️ Gerenciar</a>
               <a href="adm-inscricoes.html?id=${c.id}" class="btn-sm">📋 Inscrições</a>
               <a href="atletas-publico.html?id=${c.id}" target="_blank" class="btn-sm">👥 Atletas</a>
-              <button class="btn-sm" onclick="editar('${c.id}','${encodeURIComponent(JSON.stringify(c))}')">✏️ Editar</button>
+              <button class="btn-sm" onclick="editar('${c.id}')">✏️ Editar</button>
             </div>
           </div>
         </div>`;
@@ -164,6 +206,7 @@
   }
 
   window.abrirModal = function(dados) {
+    cartazBase64 = dados?.cartaz || null;
     document.getElementById('f-id').value = dados?.id || '';
     document.getElementById('f-nome').value = dados?.nome || '';
     document.getElementById('f-data').value = dados?.data || '';
@@ -171,12 +214,27 @@
     document.getElementById('f-descricao').value = dados?.descricao || '';
     document.getElementById('f-status').value = dados?.status || 'breve';
     document.getElementById('f-emoji').value = dados?.emoji || '🥋';
+    document.getElementById('f-cartaz').value = '';
     document.getElementById('modal-titulo').textContent = dados ? 'Editar Campeonato' : 'Novo Campeonato';
     selecionarEmoji(dados?.emoji || '🥋');
+
+    // Mostra preview do cartaz se existir
+    const preview = document.getElementById('cartaz-preview-box');
+    const uploadArea = document.getElementById('cartaz-upload-area');
+    if (cartazBase64) {
+      document.getElementById('cartaz-preview-img').src = cartazBase64;
+      preview.style.display = 'block';
+      uploadArea.style.display = 'none';
+    } else {
+      preview.style.display = 'none';
+      uploadArea.style.display = 'block';
+    }
+
     document.getElementById('modal-bg').classList.add('open');
   };
 
   window.fecharModal = function() {
+    cartazBase64 = null;
     document.getElementById('modal-bg').classList.remove('open');
   };
 
@@ -187,13 +245,52 @@
     });
   };
 
-  window.editar = function(id, dadosEnc) {
-    abrirModal({ id, ...JSON.parse(decodeURIComponent(dadosEnc)) });
+  window.editar = function(id) {
+    const c = campsData.find(x => x.id === id);
+    if (c) abrirModal(c);
   };
+
+  window.selecionarCartaz = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    redimensionarImagem(file, 900, base64 => {
+      cartazBase64 = base64;
+      document.getElementById('cartaz-preview-img').src = base64;
+      document.getElementById('cartaz-preview-box').style.display = 'block';
+      document.getElementById('cartaz-upload-area').style.display = 'none';
+    });
+  };
+
+  window.removerCartaz = function() {
+    cartazBase64 = null;
+    document.getElementById('f-cartaz').value = '';
+    document.getElementById('cartaz-preview-box').style.display = 'none';
+    document.getElementById('cartaz-upload-area').style.display = 'block';
+  };
+
+  function redimensionarImagem(file, maxSize, callback) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ratio = Math.min(maxSize / img.width, maxSize / img.height, 1);
+        canvas.width  = Math.round(img.width  * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        callback(canvas.toDataURL('image/jpeg', 0.78));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
 
   window.salvar = async function() {
     const nome = document.getElementById('f-nome').value.trim();
     if (!nome) { alert('Informe o nome do campeonato.'); return; }
+    const btn = document.getElementById('btn-salvar');
+    btn.textContent = 'Salvando...';
+    btn.disabled = true;
     const dados = {
       nome,
       data: document.getElementById('f-data').value,
@@ -201,6 +298,7 @@
       descricao: document.getElementById('f-descricao').value.trim(),
       status: document.getElementById('f-status').value,
       emoji: document.getElementById('f-emoji').value,
+      cartaz: cartazBase64 || null,
     };
     const id = document.getElementById('f-id').value;
     try {
@@ -210,6 +308,9 @@
       carregar();
     } catch(e) {
       alert('Erro ao salvar: ' + e.message);
+    } finally {
+      btn.textContent = 'Salvar';
+      btn.disabled = false;
     }
   };
 </script>
