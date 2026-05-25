@@ -107,7 +107,13 @@
   <div id="conteudo"></div>
 </div>
 
-<script>
+<script type="module">
+  import { listarAtletas, listarInscricoes, buscarCampeonato } from './js/firebase.js';
+
+  const campeonatoId = new URLSearchParams(location.search).get('id');
+  let todosAtletas = [];
+  let viewAtual = 'categoria';
+
   const FAIXA_COR = {
     'Branca':'#FFFFFF','Cinza':'#9CA3AF','Amarela':'#FCD34D','Laranja':'#FB923C',
     'Verde':'#4ADE80','Azul':'#60A5FA','Roxa':'#A78BFA','Marrom':'#92400E','Preta':'#1F2937'
@@ -116,8 +122,6 @@
     'Branca':'#CBD5E1','Cinza':'#6B7280','Amarela':'#D97706','Laranja':'#EA580C',
     'Verde':'#16A34A','Azul':'#2563EB','Roxa':'#7C3AED','Marrom':'#78350F','Preta':'#111827'
   };
-
-  let viewAtual = 'categoria';
 
   const ORDEM_CATEGORIA = ["Pré-Mirim","Mirim 1","Mirim 2","Infantil 1","Infantil 2","Infanto-Juvenil","Juvenil","Adulto","Master 1","Master 2","Master 3","Master 4","Master 5","Master 6"];
   const ORDEM_FAIXA = ["Branca","Cinza","Amarela","Laranja","Verde","Azul","Roxa","Marrom","Preta"];
@@ -134,36 +138,6 @@
     return (tabela.find(c => p <= c.max) || {n:'Absoluto'}).n;
   }
 
-  function getJSON(k, fb){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):fb; }catch{return fb;} }
-
-  function carregarTodos() {
-    const confirmados = getJSON('gaditas_atletas', []).map(a => ({
-      nome: a.nome,
-      faixa: a.faixa || '—',
-      peso: a.peso,
-      catPeso: categoriaPeso(a.peso, a.sexo),
-      sexo: a.sexo || '—',
-      academia: a.academia || a.equipeNome || '—',
-      categoria: a.categoria || calcularCategoria(a),
-      status: 'confirmado'
-    }));
-
-    const pendentes = getJSON('inscricoes', [])
-      .filter(i => i.status === 'pendente')
-      .map(i => ({
-        nome: i.nome,
-        faixa: i.faixa || '—',
-        peso: i.peso,
-        catPeso: categoriaPeso(i.peso, i.sexo),
-        sexo: i.sexo || '—',
-        academia: i.equipeNome || i.equipe || '—',
-        categoria: i.categoria || '—',
-        status: 'pendente'
-      }));
-
-    return [...confirmados, ...pendentes];
-  }
-
   function calcularCategoria(a) {
     if (!a.dataNascimento) return 'Sem categoria';
     const hoje = new Date();
@@ -178,20 +152,51 @@
     return (cats.find(c => idade >= c.min && idade <= c.max) || {nome:'—'}).nome;
   }
 
-  function popularFiltros(atletas) {
-    const cats = [...new Set(atletas.map(a => a.categoria).filter(Boolean).sort())];
+  async function carregarDados() {
+    if (!campeonatoId) return;
+    const [atletas, inscricoes] = await Promise.all([
+      listarAtletas(campeonatoId),
+      listarInscricoes(campeonatoId)
+    ]);
+    const confirmados = atletas.map(a => ({
+      nome: a.nome,
+      faixa: a.faixa || '—',
+      peso: a.peso,
+      catPeso: categoriaPeso(a.peso, a.sexo),
+      sexo: a.sexo || '—',
+      academia: a.academia || '—',
+      categoria: a.categoria || calcularCategoria(a),
+      status: 'confirmado'
+    }));
+    const pendentes = inscricoes
+      .filter(i => i.status === 'pendente')
+      .map(i => ({
+        nome: i.nome,
+        faixa: i.faixa || '—',
+        peso: i.peso,
+        catPeso: categoriaPeso(i.peso, i.sexo),
+        sexo: i.sexo || '—',
+        academia: i.equipeNome || i.equipe || '—',
+        categoria: i.categoria || '—',
+        status: 'pendente'
+      }));
+    todosAtletas = [...confirmados, ...pendentes];
+  }
+
+  function popularFiltros() {
+    const cats = [...new Set(todosAtletas.map(a => a.categoria).filter(Boolean).sort())];
     const sel = document.getElementById('filtro-categoria');
     const atual = sel.value;
     sel.innerHTML = '<option value="">Todas as categorias</option>' +
       cats.map(c => `<option${atual===c?' selected':''}>${c}</option>`).join('');
   }
 
-  function filtrar(atletas) {
+  function filtrarAtletas() {
     const busca = document.getElementById('busca').value.toLowerCase();
     const faixa = document.getElementById('filtro-faixa').value;
     const cat = document.getElementById('filtro-categoria').value;
     const status = document.getElementById('filtro-status').value;
-    return atletas.filter(a =>
+    return todosAtletas.filter(a =>
       (!busca || a.nome.toLowerCase().includes(busca) || a.academia.toLowerCase().includes(busca)) &&
       (!faixa || a.faixa === faixa) &&
       (!cat || a.categoria === cat) &&
@@ -199,20 +204,33 @@
     );
   }
 
-  function limparFiltros() {
+  window.limparFiltros = function() {
     document.getElementById('busca').value = '';
     document.getElementById('filtro-faixa').value = '';
     document.getElementById('filtro-categoria').value = '';
     document.getElementById('filtro-status').value = '';
-    renderizar();
-  }
+    window.renderizar();
+  };
 
-  function setView(v) {
+  window.setView = function(v) {
     viewAtual = v;
     document.getElementById('btn-categoria').classList.toggle('active', v === 'categoria');
     document.getElementById('btn-equipe').classList.toggle('active', v === 'equipe');
-    renderizar();
-  }
+    window.renderizar();
+  };
+
+  window.toggleGrupo = function(id) {
+    const body = document.getElementById('body-'+id);
+    body.style.display = body.style.display === 'none' ? '' : 'none';
+  };
+
+  window.imprimirGrupo = function(id) {
+    document.querySelectorAll('.grupo').forEach(g => {
+      g.classList.toggle('print-oculto', g.id !== 'grupo-'+id);
+    });
+    window.print();
+    document.querySelectorAll('.grupo').forEach(g => g.classList.remove('print-oculto'));
+  };
 
   function rowHTML(a) {
     const cor = FAIXA_COR[a.faixa] || '#E2E8F0';
@@ -251,10 +269,9 @@
     </div>`;
   }
 
-  function renderizar() {
-    const todos = carregarTodos();
-    popularFiltros(todos);
-    const visiveis = filtrar(todos);
+  window.renderizar = function() {
+    popularFiltros();
+    const visiveis = filtrarAtletas();
 
     const conf = visiveis.filter(a=>a.status==='confirmado').length;
     const pend = visiveis.filter(a=>a.status==='pendente').length;
@@ -303,23 +320,33 @@
 
     document.getElementById('ultima-atualizacao').textContent =
       'Atualizado: ' + new Date().toLocaleString('pt-BR');
-  }
+  };
 
-  function toggleGrupo(id) {
-    const body = document.getElementById('body-'+id);
-    body.style.display = body.style.display === 'none' ? '' : 'none';
-  }
-
-  function imprimirGrupo(id) {
-    document.querySelectorAll('.grupo').forEach(g => {
-      g.classList.toggle('print-oculto', g.id !== 'grupo-'+id);
+  async function iniciar() {
+    if (!campeonatoId) {
+      document.getElementById('conteudo').innerHTML = '<div style="padding:40px;text-align:center;color:red">Campeonato não especificado.</div>';
+      return;
+    }
+    buscarCampeonato(campeonatoId).then(c => {
+      if (c) {
+        document.title = `Atletas — ${c.nome}`;
+        document.querySelector('.header-logo p').textContent = c.nome;
+      }
     });
-    window.print();
-    document.querySelectorAll('.grupo').forEach(g => g.classList.remove('print-oculto'));
+    document.getElementById('conteudo').innerHTML = '<div style="padding:40px;text-align:center;color:#8A9CB0">Carregando atletas...</div>';
+    try {
+      await carregarDados();
+      window.renderizar();
+    } catch(e) {
+      document.getElementById('conteudo').innerHTML = `<div style="padding:40px;text-align:center;color:red">Erro ao carregar: ${e.message}</div>`;
+    }
+    setInterval(async () => {
+      await carregarDados();
+      window.renderizar();
+    }, 30000);
   }
 
-  renderizar();
-  setInterval(renderizar, 30000);
+  iniciar();
 </script>
 </body>
 </html>

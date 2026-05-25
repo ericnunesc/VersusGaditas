@@ -101,39 +101,45 @@
   <img id="lightbox-img" src="">
 </div>
 
-<script>
-  const K = { inscricoes:'inscricoes', atletas:'gaditas_atletas' };
-  function getJSON(k, fb){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):fb; }catch{return fb;} }
-  function setJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+<script type="module">
+  import { listarInscricoes, atualizarInscricao, salvarAtleta, buscarCampeonato } from './js/firebase.js';
 
+  const campeonatoId = new URLSearchParams(location.search).get('id');
+  if (!campeonatoId) {
+    document.getElementById('lista').innerHTML = '<div style="padding:40px;text-align:center;color:red">Campeonato não especificado. Acesse pelo painel admin.</div>';
+  } else {
+    buscarCampeonato(campeonatoId).then(c => {
+      if (c) document.title = `Inscrições — ${c.nome}`;
+    });
+  }
+
+  let todasInscricoes = [];
   let filtroAtual = 'pendente';
 
   function atualizarContadores() {
-    const ins = getJSON(K.inscricoes, []);
-    document.getElementById('cnt-pendente').textContent = ins.filter(i=>i.status==='pendente').length + ' pendentes';
-    document.getElementById('cnt-aprovado').textContent = ins.filter(i=>i.status==='aprovado').length + ' aprovados';
-    document.getElementById('cnt-rejeitado').textContent = ins.filter(i=>i.status==='rejeitado').length + ' rejeitados';
+    document.getElementById('cnt-pendente').textContent = todasInscricoes.filter(i => i.status === 'pendente').length + ' pendentes';
+    document.getElementById('cnt-aprovado').textContent = todasInscricoes.filter(i => i.status === 'aprovado').length + ' aprovados';
+    document.getElementById('cnt-rejeitado').textContent = todasInscricoes.filter(i => i.status === 'rejeitado').length + ' rejeitados';
   }
 
-  function filtrar(status, el) {
+  window.filtrar = function(status, el) {
     filtroAtual = status;
     document.querySelectorAll('.filtro').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
     renderizar();
-  }
+  };
 
   function renderizar() {
-    const ins = getJSON(K.inscricoes, []);
     const lista = document.getElementById('lista');
-    const visíveis = filtroAtual === 'todos' ? ins : ins.filter(i => i.status === filtroAtual);
+    const visiveis = filtroAtual === 'todos' ? todasInscricoes : todasInscricoes.filter(i => i.status === filtroAtual);
     atualizarContadores();
 
-    if (!visíveis.length) {
+    if (!visiveis.length) {
       lista.innerHTML = `<div class="vazio"><span>📭</span>Nenhuma inscrição ${filtroAtual === 'todos' ? '' : filtroAtual}.</div>`;
       return;
     }
 
-    lista.innerHTML = visíveis.slice().reverse().map(i => `
+    lista.innerHTML = visiveis.slice().reverse().map(i => `
       <div class="card" id="card-${i.id}">
         <div class="card-header">
           <div>
@@ -169,54 +175,66 @@
     `).join('');
   }
 
-  function aprovar(id) {
-    const ins = getJSON(K.inscricoes, []);
-    const idx = ins.findIndex(i => i.id === id);
-    if (idx === -1) return;
-    ins[idx].status = 'aprovado';
-    setJSON(K.inscricoes, ins);
+  window.aprovar = async function(id) {
+    if (!campeonatoId) return;
+    const i = todasInscricoes.find(x => x.id === id);
+    if (!i) return;
+    try {
+      await atualizarInscricao(campeonatoId, id, { status: 'aprovado' });
+      await salvarAtleta(campeonatoId, {
+        nome: i.nome,
+        sexo: i.sexo,
+        faixa: i.faixa,
+        peso: i.peso,
+        academia: i.equipeNome || i.equipe || '',
+        dataNascimento: i.dataNascimento || '',
+        dataCadastro: new Date().toISOString(),
+        foto: i.foto || null,
+        origem: 'inscricao'
+      });
+      i.status = 'aprovado';
+      renderizar();
+    } catch(e) {
+      alert('Erro ao aprovar: ' + e.message);
+    }
+  };
 
-    const atletas = getJSON(K.atletas, []);
-    const i = ins[idx];
-    atletas.push({
-      id: Date.now(),
-      nome: i.nome,
-      sexo: i.sexo,
-      faixa: i.faixa,
-      peso: i.peso,
-      academia: i.equipeNome || i.equipe,
-      dataNascimento: i.dataNascimento,
-      dataCadastro: new Date().toISOString(),
-      foto: i.foto || null,
-      origem: 'inscricao'
-    });
-    setJSON(K.atletas, atletas);
-    renderizar();
-  }
-
-  function rejeitar(id) {
+  window.rejeitar = async function(id) {
     if (!confirm('Rejeitar esta inscrição?')) return;
-    const ins = getJSON(K.inscricoes, []);
-    const idx = ins.findIndex(i => i.id === id);
-    if (idx === -1) return;
-    ins[idx].status = 'rejeitado';
-    setJSON(K.inscricoes, ins);
-    renderizar();
-  }
+    if (!campeonatoId) return;
+    try {
+      await atualizarInscricao(campeonatoId, id, { status: 'rejeitado' });
+      const i = todasInscricoes.find(x => x.id === id);
+      if (i) i.status = 'rejeitado';
+      renderizar();
+    } catch(e) {
+      alert('Erro ao rejeitar: ' + e.message);
+    }
+  };
 
-  function abrirLightbox(id) {
-    const ins = getJSON(K.inscricoes, []);
-    const i = ins.find(i => i.id === id);
+  window.abrirLightbox = function(id) {
+    const i = todasInscricoes.find(x => x.id === id);
     if (!i?.comprovante) return;
     document.getElementById('lightbox-img').src = i.comprovante;
     document.getElementById('lightbox').classList.add('open');
-  }
+  };
 
-  function fecharLightbox() {
+  window.fecharLightbox = function() {
     document.getElementById('lightbox').classList.remove('open');
+  };
+
+  async function iniciar() {
+    if (!campeonatoId) return;
+    document.getElementById('lista').innerHTML = '<div style="padding:40px;text-align:center;color:#8A9CB0">Carregando inscrições...</div>';
+    try {
+      todasInscricoes = await listarInscricoes(campeonatoId);
+      renderizar();
+    } catch(e) {
+      document.getElementById('lista').innerHTML = `<div style="padding:40px;text-align:center;color:red">Erro ao carregar: ${e.message}</div>`;
+    }
   }
 
-  renderizar();
+  iniciar();
 </script>
 </body>
 </html>

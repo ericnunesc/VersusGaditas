@@ -283,13 +283,15 @@
       return d.length>=10 && d.length<=11;
     }
 
-    function salvarInscricao(){
+    // campeonatoId vem da URL (?id=xxx) ou fallback local
+    const campeonatoId = new URLSearchParams(location.search).get('id') || null;
+
+    async function salvarInscricao(){
       const equipeEl = $("equipe");
       const option = equipeEl.options[equipeEl.selectedIndex];
       const equipeNome = option?.dataset?.nome || "";
 
       const payload = {
-        id: uid(),
         nome: $("nome").value.trim(),
         dataNascimento: $("dataNascimento").value,
         sexo: (document.querySelector('input[name="sexo"]:checked')||{}).value || "",
@@ -303,13 +305,19 @@
         categoria: categoriaPorIdade(idadeNaData($("dataNascimento").value, REF)).nome,
         foto: fotoAtletaBase64 || null,
         comprovante: comprovanteBase64 || null,
-        status: "pendente",
-        criadoEm: Date.now()
       };
 
-      const inscricoes = getJSON(K.inscricoes, []);
-      inscricoes.push(payload);
-      setJSON(K.inscricoes, inscricoes);
+      if (campeonatoId && window._fbSalvarInscricao) {
+        await window._fbSalvarInscricao(campeonatoId, payload);
+      } else {
+        // fallback localStorage (modo offline)
+        payload.id = uid();
+        payload.status = "pendente";
+        payload.criadoEm = Date.now();
+        const inscricoes = getJSON(K.inscricoes, []);
+        inscricoes.push(payload);
+        setJSON(K.inscricoes, inscricoes);
+      }
 
       fotoAtletaBase64 = null;
       comprovanteBase64 = null;
@@ -376,7 +384,7 @@
     window.addEventListener("storage", popularEquipes);
     window.addEventListener("gdt:update", popularEquipes);
 
-    $("formInscricao").addEventListener("submit", (e)=>{
+    $("formInscricao").addEventListener("submit", async (e)=>{
       e.preventDefault();
       $("erroForm").textContent = "";
       if(!$("formInscricao").reportValidity()) return;
@@ -388,20 +396,28 @@
         $("erroForm").textContent = "Faixa inválida para a idade informada.";
         return;
       }
-
       if(!$("equipe").value){
         $("erroForm").textContent = "Selecione uma equipe válida.";
         return;
       }
-
       if(!telefoneValido($("telefone").value)){
         $("erroForm").textContent = "Telefone inválido. Use DDD + número.";
         return;
       }
 
-      salvarInscricao();
-      $("successBox").style.display = "block";
-      $("successBox").scrollIntoView({behavior:"smooth", block:"center"});
+      const btn = $("formInscricao").querySelector("button[type=submit]");
+      btn.textContent = "Enviando...";
+      btn.disabled = true;
+      try {
+        await salvarInscricao();
+        $("successBox").style.display = "block";
+        $("successBox").scrollIntoView({behavior:"smooth", block:"center"});
+      } catch(err) {
+        $("erroForm").textContent = "Erro ao enviar inscrição. Tente novamente.";
+      } finally {
+        btn.textContent = "✅ FINALIZAR INSCRIÇÃO";
+        btn.disabled = false;
+      }
     });
 
     $("btnNovaInscricao").addEventListener("click", ()=>{
@@ -479,6 +495,35 @@
   }
 
   renderizarPagamento();
+  </script>
+
+  <!-- Firebase: expõe função de salvar inscrição para o código legado -->
+  <script type="module">
+    import { salvarInscricao as fbSalvar, buscarCampeonato, buscarConfig } from './js/firebase.js';
+
+    const id = new URLSearchParams(location.search).get('id');
+
+    // Disponibiliza para o script legado
+    window._fbSalvarInscricao = fbSalvar;
+
+    if (id) {
+      // Carrega nome do campeonato no título
+      buscarCampeonato(id).then(c => {
+        if (c) {
+          document.title = `Inscrição — ${c.nome}`;
+          const sub = document.querySelector('.subtitle');
+          if (sub) sub.textContent = c.nome;
+        }
+      });
+
+      // Carrega config de pagamento do Firebase
+      buscarConfig(id).then(cfg => {
+        if (cfg?.pagamento) {
+          localStorage.setItem('gaditas_pagamento', JSON.stringify(cfg.pagamento));
+          if (window.renderizarPagamento) renderizarPagamento();
+        }
+      });
+    }
   </script>
 </body>
 </html>

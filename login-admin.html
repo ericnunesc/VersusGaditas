@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Admin - Gaditas Torneios</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:#1A2C3E; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .box { background:#fff; border-radius:16px; padding:40px 36px; width:100%; max-width:360px; box-shadow:0 8px 40px rgba(0,0,0,0.2); }
+    .logo { text-align:center; margin-bottom:28px; }
+    .logo span { font-size:2.5rem; }
+    .logo h1 { font-size:1.1rem; font-weight:700; color:#1A2C3E; margin-top:8px; }
+    .logo p { font-size:0.7rem; color:#8A9CB0; }
+    label { display:block; font-size:0.78rem; font-weight:600; color:#1A2C3E; margin-bottom:5px; }
+    input { width:100%; border:1px solid #E2E8F0; border-radius:8px; padding:10px 12px; font-size:0.88rem; outline:none; margin-bottom:14px; }
+    input:focus { border-color:#C9A03D; }
+    button { width:100%; background:#C9A03D; border:none; border-radius:40px; padding:11px; font-size:0.88rem; font-weight:700; color:#fff; cursor:pointer; margin-top:4px; }
+    button:hover { background:#A0822E; }
+    .erro { background:#FEF2F2; border:1px solid #FECACA; color:#DC2626; border-radius:8px; padding:10px 12px; font-size:0.8rem; margin-bottom:14px; display:none; }
+    .voltar { display:block; text-align:center; margin-top:16px; font-size:0.78rem; color:#8A9CB0; text-decoration:none; }
+    .voltar:hover { color:#C9A03D; }
+  </style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <span>🏆</span>
+    <h1>GADITAS TORNEIOS</h1>
+    <p>Área administrativa</p>
+  </div>
+  <div class="erro" id="erro"></div>
+  <label>E-mail</label>
+  <input type="email" id="email" placeholder="admin@email.com" autocomplete="email">
+  <label>Senha</label>
+  <input type="password" id="senha" placeholder="••••••" autocomplete="current-password">
+  <button id="btn-entrar">Entrar</button>
+  <a href="home.html" class="voltar">← Voltar para os campeonatos</a>
+</div>
+
+<script type="module">
+  import { login, onLogin } from './js/firebase.js';
+
+  onLogin(user => {
+    if (user) window.location.replace('painel-admin.html');
+  });
+
+  document.getElementById('btn-entrar').addEventListener('click', async () => {
+    const email = document.getElementById('email').value.trim();
+    const senha = document.getElementById('senha').value;
+    const erro  = document.getElementById('erro');
+    const btn   = document.getElementById('btn-entrar');
+    erro.style.display = 'none';
+    btn.textContent = 'Entrando...';
+    try {
+      await login(email, senha);
+    } catch(e) {
+      erro.textContent = 'E-mail ou senha incorretos.';
+      erro.style.display = 'block';
+      btn.textContent = 'Entrar';
+    }
+  });
+
+  document.getElementById('senha').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-entrar').click();
+  });
+</script>
+</body>
+</html>

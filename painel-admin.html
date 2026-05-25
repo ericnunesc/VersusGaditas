@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin - Gaditas Torneios</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:#F5F7FA; color:#1A2C3E; }
+    header { background:#1A2C3E; color:#fff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+    .header-logo { display:flex; align-items:center; gap:10px; }
+    .header-logo h1 { font-size:1rem; font-weight:700; }
+    .header-logo p { font-size:0.68rem; color:#8A9CB0; }
+    .header-right { display:flex; align-items:center; gap:10px; }
+    .user-email { font-size:0.78rem; color:#8A9CB0; }
+    .btn-sair { background:transparent; border:1px solid #EF4444; color:#EF4444; padding:6px 14px; border-radius:40px; font-size:0.78rem; cursor:pointer; }
+    .btn-sair:hover { background:#EF4444; color:#fff; }
+
+    .app { max-width:1100px; margin:0 auto; padding:28px 20px; }
+    .topo { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .topo h2 { font-size:1.2rem; font-weight:700; }
+    .btn-novo { background:#C9A03D; border:none; color:#fff; padding:10px 22px; border-radius:40px; font-size:0.85rem; font-weight:600; cursor:pointer; }
+    .btn-novo:hover { background:#A0822E; }
+
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
+    .card { background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden; }
+    .card-banner { background:linear-gradient(135deg,#1A2C3E,#2A4060); height:70px; display:flex; align-items:center; justify-content:center; font-size:2rem; }
+    .card-body { padding:16px; }
+    .card-nome { font-weight:700; font-size:0.95rem; margin-bottom:4px; }
+    .card-info { font-size:0.75rem; color:#8A9CB0; margin-bottom:12px; }
+    .card-acoes { display:flex; gap:8px; flex-wrap:wrap; }
+    .btn-sm { padding:6px 14px; border-radius:40px; font-size:0.75rem; font-weight:600; cursor:pointer; border:1px solid #E2E8F0; background:transparent; text-decoration:none; display:inline-block; text-align:center; }
+    .btn-sm:hover { border-color:#C9A03D; color:#C9A03D; }
+    .btn-sm.primary { background:#C9A03D; border-color:#C9A03D; color:#fff; }
+    .btn-sm.primary:hover { background:#A0822E; }
+    .btn-sm.danger { border-color:#EF4444; color:#EF4444; }
+    .btn-sm.danger:hover { background:#EF4444; color:#fff; }
+    .status-pill { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.68rem; font-weight:700; margin-bottom:8px; }
+    .status-ativo { background:#DCFCE7; color:#166534; }
+    .status-encerrado { background:#F1F5F9; color:#64748B; }
+    .status-breve { background:#FEF9C3; color:#92400E; }
+
+    .vazio { text-align:center; padding:60px 20px; color:#8A9CB0; grid-column:1/-1; }
+    .vazio span { font-size:3rem; display:block; margin-bottom:12px; opacity:0.3; }
+
+    /* Modal */
+    .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center; }
+    .modal-bg.open { display:flex; }
+    .modal { background:#fff; border-radius:16px; padding:28px; width:100%; max-width:480px; box-shadow:0 8px 40px rgba(0,0,0,0.15); }
+    .modal h3 { font-size:1rem; font-weight:700; margin-bottom:20px; }
+    .modal label { display:block; font-size:0.78rem; font-weight:600; margin-bottom:5px; color:#1A2C3E; }
+    .modal input, .modal select, .modal textarea { width:100%; border:1px solid #E2E8F0; border-radius:8px; padding:9px 12px; font-size:0.85rem; outline:none; margin-bottom:12px; }
+    .modal input:focus, .modal select:focus, .modal textarea:focus { border-color:#C9A03D; }
+    .modal textarea { resize:vertical; min-height:70px; }
+    .modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+    .btn-cancelar { background:transparent; border:1px solid #E2E8F0; padding:9px 18px; border-radius:40px; font-size:0.82rem; cursor:pointer; }
+    .btn-salvar { background:#C9A03D; border:none; color:#fff; padding:9px 22px; border-radius:40px; font-size:0.82rem; font-weight:600; cursor:pointer; }
+    .emoji-grid { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+    .emoji-opt { font-size:1.5rem; cursor:pointer; padding:4px 8px; border-radius:8px; border:2px solid transparent; }
+    .emoji-opt.sel { border-color:#C9A03D; background:#FFF8EC; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">
+    <span style="font-size:1.6rem">🏆</span>
+    <div><h1>GADITAS TORNEIOS</h1><p>Painel Administrativo</p></div>
+  </div>
+  <div class="header-right">
+    <span class="user-email" id="user-email"></span>
+    <button class="btn-sair" id="btn-sair">↩ Sair</button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="topo">
+    <h2>Meus Campeonatos</h2>
+    <button class="btn-novo" onclick="abrirModal()">+ Novo Campeonato</button>
+  </div>
+  <div class="grid" id="grid"><div class="vazio"><span>⏳</span>Carregando...</div></div>
+</div>
+
+<!-- Modal novo/editar campeonato -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h3 id="modal-titulo">Novo Campeonato</h3>
+    <label>Nome do campeonato *</label>
+    <input type="text" id="f-nome" placeholder="Ex: Copa Gaditas 2025">
+    <label>Data do evento *</label>
+    <input type="date" id="f-data">
+    <label>Local</label>
+    <input type="text" id="f-local" placeholder="Ex: Ginásio Municipal - São Paulo">
+    <label>Descrição</label>
+    <textarea id="f-descricao" placeholder="Informações gerais sobre o campeonato..."></textarea>
+    <label>Status</label>
+    <select id="f-status">
+      <option value="breve">🕐 Em breve</option>
+      <option value="ativo">✅ Inscrições abertas</option>
+      <option value="encerrado">🔒 Encerrado</option>
+    </select>
+    <label>Ícone</label>
+    <div class="emoji-grid" id="emoji-grid">
+      ${['🥋','🏆','⚔️','🎖️','🥇','🏅','👊','💪'].map(e =>
+        `<span class="emoji-opt" onclick="selecionarEmoji('${e}')">${e}</span>`
+      ).join('')}
+    </div>
+    <input type="hidden" id="f-emoji" value="🥋">
+    <input type="hidden" id="f-id" value="">
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { onLogin, logout, listarCampeonatos, criarCampeonato, atualizarCampeonato } from './js/firebase.js';
+
+  onLogin(user => {
+    if (!user) { window.location.replace('login-admin.html'); return; }
+    document.getElementById('user-email').textContent = user.email;
+    carregar();
+  });
+
+  document.getElementById('btn-sair').addEventListener('click', async () => {
+    await logout();
+    window.location.replace('login-admin.html');
+  });
+
+  async function carregar() {
+    const grid = document.getElementById('grid');
+    try {
+      const camps = await listarCampeonatos();
+      if (!camps.length) {
+        grid.innerHTML = `<div class="vazio"><span>🏆</span>Nenhum campeonato ainda.<br>Crie o primeiro!</div>`;
+        return;
+      }
+      grid.innerHTML = camps.map(c => {
+        const data = c.data ? new Date(c.data+'T12:00').toLocaleDateString('pt-BR') : '—';
+        return `<div class="card">
+          <div class="card-banner">${c.emoji || '🥋'}</div>
+          <div class="card-body">
+            <span class="status-pill status-${c.status||'ativo'}">${{ativo:'✅ Aberto',breve:'🕐 Em breve',encerrado:'🔒 Encerrado'}[c.status||'ativo']}</span>
+            <div class="card-nome">${c.nome}</div>
+            <div class="card-info">📅 ${data}${c.local ? ' · 📍 '+c.local : ''}</div>
+            <div class="card-acoes">
+              <a href="index.html?id=${c.id}" class="btn-sm primary">⚙️ Gerenciar</a>
+              <a href="adm-inscricoes.html?id=${c.id}" class="btn-sm">📋 Inscrições</a>
+              <a href="atletas-publico.html?id=${c.id}" target="_blank" class="btn-sm">👥 Atletas</a>
+              <button class="btn-sm" onclick="editar('${c.id}','${encodeURIComponent(JSON.stringify(c))}')">✏️ Editar</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) {
+      grid.innerHTML = `<div class="vazio"><span>⚠️</span>Erro ao carregar campeonatos.</div>`;
+    }
+  }
+
+  window.abrirModal = function(dados) {
+    document.getElementById('f-id').value = dados?.id || '';
+    document.getElementById('f-nome').value = dados?.nome || '';
+    document.getElementById('f-data').value = dados?.data || '';
+    document.getElementById('f-local').value = dados?.local || '';
+    document.getElementById('f-descricao').value = dados?.descricao || '';
+    document.getElementById('f-status').value = dados?.status || 'breve';
+    document.getElementById('f-emoji').value = dados?.emoji || '🥋';
+    document.getElementById('modal-titulo').textContent = dados ? 'Editar Campeonato' : 'Novo Campeonato';
+    selecionarEmoji(dados?.emoji || '🥋');
+    document.getElementById('modal-bg').classList.add('open');
+  };
+
+  window.fecharModal = function() {
+    document.getElementById('modal-bg').classList.remove('open');
+  };
+
+  window.selecionarEmoji = function(e) {
+    document.getElementById('f-emoji').value = e;
+    document.querySelectorAll('.emoji-opt').forEach(el => {
+      el.classList.toggle('sel', el.textContent === e);
+    });
+  };
+
+  window.editar = function(id, dadosEnc) {
+    abrirModal({ id, ...JSON.parse(decodeURIComponent(dadosEnc)) });
+  };
+
+  window.salvar = async function() {
+    const nome = document.getElementById('f-nome').value.trim();
+    if (!nome) { alert('Informe o nome do campeonato.'); return; }
+    const dados = {
+      nome,
+      data: document.getElementById('f-data').value,
+      local: document.getElementById('f-local').value.trim(),
+      descricao: document.getElementById('f-descricao').value.trim(),
+      status: document.getElementById('f-status').value,
+      emoji: document.getElementById('f-emoji').value,
+    };
+    const id = document.getElementById('f-id').value;
+    try {
+      if (id) await atualizarCampeonato(id, dados);
+      else await criarCampeonato(dados);
+      fecharModal();
+      carregar();
+    } catch(e) {
+      alert('Erro ao salvar: ' + e.message);
+    }
+  };
+</script>
+</body>
+</html>
