@@ -206,16 +206,16 @@
 
     function popularEquipesSelect(equipes) {
       const sel = $("equipe");
+      if (!sel) return;
       if (!equipes.length) {
-        sel.innerHTML = '<option value="">Nenhuma equipe cadastrada</option>';
-        $("equipeInfo").textContent = "Nenhuma equipe cadastrada. Digite sua equipe abaixo.";
-        // fallback: troca por input texto
+        // Sem equipes cadastradas: usa campo texto livre
         const input = document.createElement('input');
         input.id = 'equipe'; input.name = 'equipe'; input.required = true;
+        input.type = 'text';
         input.placeholder = 'Nome da sua academia ou equipe';
-        input.style.cssText = sel.style.cssText;
-        input.className = sel.className;
+        input.style.cssText = 'width:100%;padding:11px 12px;border-radius:10px;border:1px solid #2b3358;background:#10162f;color:#f2f5ff;font-size:15px;';
         sel.parentNode.replaceChild(input, sel);
+        $("equipeInfo").textContent = "Digite o nome da sua academia ou equipe.";
         return;
       }
       sel.innerHTML = '<option value="">Selecione sua equipe</option>' +
@@ -423,6 +423,11 @@
 
     atualizarFaixas();
     atualizarPreview();
+
+    // Se não há campeonatoId na URL, troca select por campo texto imediatamente
+    if (!new URLSearchParams(location.search).get('id')) {
+      popularEquipesSelect([]);
+    }
   </script>
 
   <script>
