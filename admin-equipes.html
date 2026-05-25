@@ -81,7 +81,7 @@
 </div>
 
 <script type="module">
-  import { listarEquipes, salvarEquipe, atualizarEquipe, deletarEquipe, buscarCampeonato } from './js/firebase.js';
+  import { listarEquipes, salvarEquipe, atualizarEquipe, deletarEquipe, buscarCampeonato, onLogin } from './js/firebase.js';
 
   const campeonatoId = new URLSearchParams(location.search).get('id');
   const $ = id => document.getElementById(id);
@@ -90,15 +90,15 @@
     $('lista').innerHTML = '<div class="empty">⚠️ Campeonato não especificado.<br>Acesse via painel admin → Gerenciar.</div>';
     $('formEquipe').style.display = 'none';
   } else {
-    // Atualiza link voltar
     $('linkVoltar').href = `index.html?id=${campeonatoId}`;
-
-    // Carrega nome do campeonato
     buscarCampeonato(campeonatoId).then(c => {
       if (c) $('camp-nome').textContent = `🏆 ${c.nome}`;
     });
-
-    iniciar();
+    // Aguarda Firebase Auth antes de carregar dados protegidos
+    onLogin(user => {
+      if (user) iniciar();
+      else $('lista').innerHTML = '<div class="empty">Sessão expirada. <a href="login-admin.html">Login</a></div>';
+    });
   }
 
   let equipesData = [];

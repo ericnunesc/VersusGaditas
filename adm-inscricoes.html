@@ -104,7 +104,7 @@
 </div>
 
 <script type="module">
-  import { listarInscricoes, atualizarInscricao, salvarAtleta, deletarAtleta, buscarCampeonato } from './js/firebase.js';
+  import { listarInscricoes, atualizarInscricao, salvarAtleta, deletarAtleta, buscarCampeonato, onLogin } from './js/firebase.js';
 
   const campeonatoId = new URLSearchParams(location.search).get('id');
   if (!campeonatoId) {
@@ -291,7 +291,15 @@
     }
   }
 
-  iniciar();
+  // Aguarda Firebase Auth restaurar sessão antes de carregar dados protegidos
+  onLogin(user => {
+    if (user) {
+      iniciar();
+    } else {
+      document.getElementById('lista').innerHTML =
+        '<div style="padding:40px;text-align:center;color:red">Sessão expirada. <a href="login-admin.html">Fazer login novamente</a></div>';
+    }
+  });
 </script>
 </body>
 </html>
