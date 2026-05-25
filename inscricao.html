@@ -54,7 +54,7 @@
 </head>
 <body>
   <div class="container">
-    <a class="back" href="index.html">← Voltar para o Sistema</a>
+    <a class="back" id="linkVoltar" href="home.html">← Voltar</a>
     <div class="logo">🏆</div>
     <h1>GADITAS TORNEIOS</h1>
     <div class="subtitle">Faça sua inscrição agora</div>
@@ -105,10 +105,9 @@
 
         <div class="field">
           <label for="equipe">Equipe / Academia</label>
-          <select id="equipe" name="equipe" required>
-            <option value="">Selecione sua equipe</option>
-          </select>
-          <div class="hint" id="equipeInfo"></div>
+          <input id="equipe" name="equipe" type="text" list="equipe-list" required placeholder="Nome da sua academia ou equipe" autocomplete="off" />
+          <datalist id="equipe-list"></datalist>
+          <div class="hint" id="equipeInfo">Digite o nome da sua academia ou equipe.</div>
         </div>
 
         <div class="field">
@@ -152,7 +151,7 @@
       <p>Sua inscrição foi recebida e está <strong>aguardando aprovação</strong> do organizador após verificação do pagamento.</p>
       <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
         <button class="btn" id="btnNovaInscricao" type="button">+ Novo Atleta</button>
-        <a href="index.html" class="btn" style="background:#16a34a;text-decoration:none;text-align:center">← Voltar ao Sistema</a>
+        <a href="home.html" class="btn" style="background:#16a34a;text-decoration:none;text-align:center">← Ver Campeonatos</a>
       </div>
     </section>
 
@@ -204,31 +203,9 @@
       return categoriaPorIdade(idade).faixas;
     }
 
-    function normalizarEquipe(e){
-      if(typeof e==="string"){ const n=e.trim(); return n?{id:n,nome:n}:null; }
-      if(e && typeof e==="object"){
-        const nome=(e.nome||e.nomeEquipe||e.equipe||"").toString().trim();
-        if(!nome) return null;
-        return { id:(e.id||nome).toString(), nome };
-      }
-      return null;
-    }
-
-    function carregarEquipes(){
-      const arr = getJSON(K.equipes, []);
-      return Array.isArray(arr) ? arr.map(normalizarEquipe).filter(Boolean) : [];
-    }
-
-    function popularEquipes(){
-      const el = $("equipe");
-      const list = carregarEquipes();
-      el.innerHTML = '<option value="">Selecione sua equipe</option>';
-      list.sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR")).forEach(eq=>{
-        const op=document.createElement("option");
-        op.value=eq.id; op.textContent=eq.nome; op.dataset.nome=eq.nome;
-        el.appendChild(op);
-      });
-      $("equipeInfo").textContent = list.length ? `${list.length} equipe(s) disponível(is).` : "Nenhuma equipe cadastrada no admin-equipe.";
+    function popularEquipesDatalist(nomes) {
+      const dl = $("equipe-list");
+      dl.innerHTML = nomes.map(n => `<option value="${n}">`).join('');
     }
 
     function atualizarFaixas(){
@@ -287,9 +264,7 @@
     const campeonatoId = new URLSearchParams(location.search).get('id') || null;
 
     async function salvarInscricao(){
-      const equipeEl = $("equipe");
-      const option = equipeEl.options[equipeEl.selectedIndex];
-      const equipeNome = option?.dataset?.nome || "";
+      const equipeNome = $("equipe").value.trim();
 
       const payload = {
         nome: $("nome").value.trim(),
@@ -297,7 +272,7 @@
         sexo: (document.querySelector('input[name="sexo"]:checked')||{}).value || "",
         faixa: $("faixa").value,
         peso: $("peso").value,
-        equipe: equipeEl.value,
+        equipe: equipeNome,
         equipeNome,
         telefone: $("telefone").value,
         email: $("email").value.trim(),
@@ -381,8 +356,7 @@
     $("peso").addEventListener("input", atualizarPreview);
     document.querySelectorAll('input[name="sexo"]').forEach(r=>r.addEventListener("change", atualizarPreview));
 
-    window.addEventListener("storage", popularEquipes);
-    window.addEventListener("gdt:update", popularEquipes);
+    // Sugestões de equipes carregadas pelo módulo Firebase abaixo
 
     $("formInscricao").addEventListener("submit", async (e)=>{
       e.preventDefault();
@@ -396,8 +370,8 @@
         $("erroForm").textContent = "Faixa inválida para a idade informada.";
         return;
       }
-      if(!$("equipe").value){
-        $("erroForm").textContent = "Selecione uma equipe válida.";
+      if(!$("equipe").value.trim()){
+        $("erroForm").textContent = "Informe o nome da sua equipe ou academia.";
         return;
       }
       if(!telefoneValido($("telefone").value)){
@@ -426,11 +400,9 @@
       $("successBox").style.display = "none";
       atualizarFaixas();
       atualizarPreview();
-      popularEquipes();
       window.scrollTo({top:0,behavior:"smooth"});
     });
 
-    popularEquipes();
     atualizarFaixas();
     atualizarPreview();
   </script>
@@ -499,12 +471,18 @@
 
   <!-- Firebase: expõe função de salvar inscrição para o código legado -->
   <script type="module">
-    import { salvarInscricao as fbSalvar, buscarCampeonato, buscarConfig } from './js/firebase.js';
+    import { salvarInscricao as fbSalvar, buscarCampeonato, buscarConfig, listarAtletas } from './js/firebase.js';
 
     const id = new URLSearchParams(location.search).get('id');
 
     // Disponibiliza para o script legado
     window._fbSalvarInscricao = fbSalvar;
+
+    // Ajusta link "Voltar" com id do campeonato se disponível
+    const linkVoltar = document.getElementById('linkVoltar');
+    if (id && linkVoltar) {
+      linkVoltar.href = `home.html`;
+    }
 
     if (id) {
       // Carrega nome do campeonato no título
@@ -512,7 +490,7 @@
         if (c) {
           document.title = `Inscrição — ${c.nome}`;
           const sub = document.querySelector('.subtitle');
-          if (sub) sub.textContent = c.nome;
+          if (sub) sub.textContent = `Inscrição — ${c.nome}`;
         }
       });
 
@@ -523,7 +501,17 @@
           if (window.renderizarPagamento) renderizarPagamento();
         }
       });
+
+      // Carrega nomes de equipes já inscritas como sugestão no datalist
+      listarAtletas(id).then(atletas => {
+        const nomes = [...new Set(atletas.map(a => a.academia).filter(Boolean))].sort();
+        if (window.popularEquipesDatalist) popularEquipesDatalist(nomes);
+      }).catch(() => {});
     }
+
+    // "Voltar ao Sistema" no sucesso aponta para home
+    const btnVoltar = document.querySelector('#successBox a[href="index.html"]');
+    if (btnVoltar) btnVoltar.href = 'home.html';
   </script>
 </body>
 </html>
