@@ -886,54 +886,73 @@ function gerarChaveamento() {
     toast(`✅ Chaveamento gerado: ${torneio.categorias.length - absGerados} categoria(s)${msgAbs}!`, 'sucesso');
 }
 
-// ==================== GERAR SÓ O ABSOLUTO (após competição iniciada) ====================
+// ==================== GERAR ABSOLUTO DE UMA FAIXA ESPECÍFICA ====================
 
-function gerarAbsoluto() {
+/**
+ * Gera (ou re-gera) o Absoluto de um único grupo: sexo + faixa.
+ * Chamado pelo modal de seleção em index.html.
+ */
+function gerarAbsolutoFaixa(sexo, faixa) {
     const torneio = window.torneioAtual;
-    if (!torneio.competicaoAtiva) { toast('Inicie uma competição primeiro!', 'erro'); return; }
+    if (!torneio.competicaoAtiva) { toast('Inicie uma competição primeiro!', 'erro'); return false; }
 
-    const atletas = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
-    const areas   = window.areasLuta || ['Tatame 1', 'Tatame 2', 'Tatame 3'];
+    const atletas  = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
+    const areas    = window.areasLuta || ['Tatame 1', 'Tatame 2', 'Tatame 3'];
+    const chaveId  = `ABS_${sexo}_${faixa}`;
+    const nome     = `🏆 ABSOLUTO | ${sexo === 'M' ? 'Masculino' : 'Feminino'} | ${faixa}`;
 
-    // Remove absolutos anteriores para re-gerar sem duplicar
-    torneio.categorias = torneio.categorias.filter(c => !c.isAbsoluto);
-    let areaIdx = torneio.categorias.length;
-
-    const gruposAbs = new Map();
-    for (const atleta of atletas) {
-        if (!atleta.absoluto) continue;
-        const chave = `ABS_${atleta.sexo}_${atleta.faixa}`;
-        const nome  = `🏆 ABSOLUTO | ${atleta.sexo === 'M' ? 'Masculino' : 'Feminino'} | ${atleta.faixa}`;
-        if (!gruposAbs.has(chave)) gruposAbs.set(chave, { atletas: [], nome });
-        gruposAbs.get(chave).atletas.push(atleta);
+    // Filtra atletas do grupo
+    const grupo = atletas.filter(a => a.absoluto && a.sexo === sexo && a.faixa === faixa);
+    if (grupo.length < 2) {
+        toast(`⚠️ ${nome}: mínimo 2 atletas necessário (${grupo.length} inscrito(s)).`, 'aviso');
+        return false;
     }
 
-    if (gruposAbs.size === 0) { toast('Nenhum atleta inscrito no Absoluto!', 'erro'); return; }
+    // Remove bracket anterior deste grupo se já existia
+    torneio.categorias = torneio.categorias.filter(c => !(c.isAbsoluto && c.chaveId === chaveId));
 
-    let gerados = 0;
-    let ignorados = 0;
-    gruposAbs.forEach((grupo) => {
-        if (grupo.atletas.length < 2) { ignorados++; return; }
-        const cat = gerarChaveamentoCategoria(grupo.nome, grupo.atletas, 'eliminatoria');
-        if (cat) {
-            cat.area = areas[areaIdx % areas.length];
-            cat.isAbsoluto = true;
-            areaIdx++;
-            torneio.categorias.push(cat);
-            gerados++;
-        }
-    });
+    const areaIdx = torneio.categorias.length;
+    const cat = gerarChaveamentoCategoria(nome, grupo, 'eliminatoria');
+    if (!cat) return false;
+
+    cat.area      = areas[areaIdx % areas.length];
+    cat.isAbsoluto = true;
+    cat.chaveId    = chaveId;   // para re-gerar sem duplicar
+    torneio.categorias.push(cat);
 
     salvarEstadoTorneio();
     renderizarChaveamento();
-    if (gerados === 0) {
-        toast(`⚠️ Nenhum Absoluto gerado — é preciso mínimo 2 atletas por faixa/sexo.`, 'aviso');
-    } else {
-        const aviso = ignorados > 0 ? ` (${ignorados} grupo(s) com < 2 atletas ignorado(s))` : '';
-        toast(`🏆 ${gerados} chave(s) do Absoluto gerada(s)!${aviso}`, 'sucesso');
-    }
+    toast(`🏆 Absoluto gerado: ${nome} (${grupo.length} atletas)`, 'sucesso');
+    return true;
 }
-window.gerarAbsoluto = gerarAbsoluto;
+
+/** Retorna todos os grupos de Absoluto possíveis com contagem de atletas */
+function listarGruposAbsoluto() {
+    const atletas = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
+    const torneio = window.torneioAtual;
+    const mapa = new Map();
+    for (const a of atletas) {
+        if (!a.absoluto) continue;
+        const key = `${a.sexo}_${a.faixa}`;
+        if (!mapa.has(key)) mapa.set(key, { sexo: a.sexo, faixa: a.faixa, count: 0, gerado: false });
+        mapa.get(key).count++;
+    }
+    // Marca quais já foram gerados
+    (torneio?.categorias || []).forEach(c => {
+        if (c.isAbsoluto && c.chaveId && mapa.has(c.chaveId.replace('ABS_',''))) {
+            const key = c.chaveId.replace('ABS_','');
+            if (mapa.has(key)) mapa.get(key).gerado = true;
+        }
+        if (c.isAbsoluto && c.chaveId) {
+            const key = c.chaveId.replace('ABS_','');
+            if (mapa.has(key)) mapa.get(key).gerado = true;
+        }
+    });
+    return Array.from(mapa.values());
+}
+
+window.gerarAbsolutoFaixa = gerarAbsolutoFaixa;
+window.listarGruposAbsoluto = listarGruposAbsoluto;
 
 // ==================== EXPORTAR ====================
 

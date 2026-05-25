@@ -604,7 +604,7 @@
                         <h3>🥋 Chaveamento</h3>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
                             <button onclick="removerChaveamento()" class="btn-danger" id="btn-remover-chave" style="display:none;">🗑️ Remover</button>
-                            <button onclick="gerarAbsoluto()" class="btn-secondary" id="btn-gerar-absoluto" title="Gera/atualiza apenas as chaves do Absoluto sem apagar as categorias normais">🏆 Gerar Absoluto</button>
+                            <button onclick="abrirModalAbsoluto()" class="btn-secondary" id="btn-gerar-absoluto" title="Escolha qual faixa do Absoluto gerar">🏆 Gerar Absoluto</button>
                             <button onclick="gerarChaveamento()" class="btn-primary">🎯 Gerar Chaveamento</button>
                         </div>
                     </div>
@@ -823,6 +823,21 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Modal Gerar Absoluto -->
+    <div id="modal-absoluto" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.2);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h3 style="font-size:1rem;font-weight:700;">🏆 Gerar Absoluto por Faixa</h3>
+          <button onclick="fecharModalAbsoluto()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8A9CB0;">✕</button>
+        </div>
+        <p style="font-size:0.78rem;color:#8A9CB0;margin-bottom:16px;">Selecione qual grupo do Absoluto deseja gerar. Grupos já gerados podem ser re-gerados.</p>
+        <div id="lista-absoluto-grupos"></div>
+        <div style="margin-top:16px;text-align:right;">
+          <button onclick="fecharModalAbsoluto()" style="background:transparent;border:1px solid #E2E8F0;padding:8px 18px;border-radius:40px;font-size:0.82rem;cursor:pointer;">Fechar</button>
+        </div>
+      </div>
     </div>
 
     <!-- Modal Nova Competição -->
@@ -1270,6 +1285,70 @@
             </div>`;
         }).join('');
     }
+
+    // ===== MODAL ABSOLUTO =====
+    const ORDEM_FAIXA_ABS = ['Branca','Cinza','Amarela','Laranja','Verde','Azul','Roxa','Marrom','Preta'];
+
+    function abrirModalAbsoluto() {
+        const modal = document.getElementById('modal-absoluto');
+        modal.style.display = 'flex';
+        renderizarGruposAbsoluto();
+    }
+    function fecharModalAbsoluto() {
+        document.getElementById('modal-absoluto').style.display = 'none';
+    }
+    function renderizarGruposAbsoluto() {
+        const lista = document.getElementById('lista-absoluto-grupos');
+        const grupos = typeof listarGruposAbsoluto === 'function' ? listarGruposAbsoluto() : [];
+
+        if (!grupos.length) {
+            lista.innerHTML = '<div style="text-align:center;padding:24px;color:#8A9CB0;">Nenhum atleta inscrito no Absoluto ainda.<br><small>Use o botão 🏆 nas fichas dos atletas para inscrever.</small></div>';
+            return;
+        }
+
+        // Ordena: Masculino primeiro, depois por ordem de faixa
+        grupos.sort((a, b) => {
+            if (a.sexo !== b.sexo) return a.sexo === 'M' ? -1 : 1;
+            return ORDEM_FAIXA_ABS.indexOf(a.faixa) - ORDEM_FAIXA_ABS.indexOf(b.faixa);
+        });
+
+        lista.innerHTML = grupos.map(g => {
+            const sexoLabel = g.sexo === 'M' ? '👨 Masculino' : '👩 Feminino';
+            const suficiente = g.count >= 2;
+            const corStatus = g.gerado ? '#166534' : (suficiente ? '#1A2C3E' : '#92400E');
+            const bgStatus  = g.gerado ? '#DCFCE7'  : (suficiente ? '#F1F5F9'  : '#FEF9C3');
+            const labelBtn  = g.gerado ? '🔄 Re-gerar' : '🎯 Gerar';
+            const styleBtn  = g.gerado
+                ? 'background:#16a34a;color:#fff;border:none;'
+                : (suficiente ? 'background:#1A2C3E;color:#fff;border:none;' : 'background:#E2E8F0;color:#8A9CB0;border:none;cursor:not-allowed;');
+            return `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:8px;gap:10px;">
+                <div>
+                    <div style="font-weight:700;font-size:0.88rem;">🏆 ${sexoLabel} | Faixa ${g.faixa}</div>
+                    <div style="font-size:0.72rem;margin-top:3px;">
+                        <span style="background:${bgStatus};color:${corStatus};border-radius:20px;padding:2px 8px;font-weight:600;">
+                            ${g.count} atleta${g.count !== 1 ? 's' : ''}${!suficiente ? ' — mín. 2' : ''}
+                        </span>
+                        ${g.gerado ? '<span style="margin-left:6px;font-size:0.68rem;color:#166534;">✅ Já gerado</span>' : ''}
+                    </div>
+                </div>
+                <button onclick="gerarAbsolutoFaixaModal('${g.sexo}','${g.faixa}')"
+                    style="flex-shrink:0;${styleBtn}padding:7px 14px;border-radius:20px;font-size:0.78rem;font-weight:700;cursor:pointer;"
+                    ${!suficiente ? 'disabled' : ''}>
+                    ${labelBtn}
+                </button>
+            </div>`;
+        }).join('');
+    }
+
+    window.abrirModalAbsoluto  = abrirModalAbsoluto;
+    window.fecharModalAbsoluto = fecharModalAbsoluto;
+    window.gerarAbsolutoFaixaModal = function(sexo, faixa) {
+        if (typeof gerarAbsolutoFaixa === 'function') {
+            gerarAbsolutoFaixa(sexo, faixa);
+            renderizarGruposAbsoluto(); // atualiza estado "Já gerado"
+        }
+    };
 
     function toggleAbsolutoAtleta(id) {
         const atleta = appState.atletas.find(a => String(a.id) === String(id));
