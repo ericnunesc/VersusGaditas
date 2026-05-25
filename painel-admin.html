@@ -122,6 +122,9 @@
       <option value="encerrado">🔒 Encerrado</option>
     </select>
 
+    <label>Equipes participantes <span style="font-weight:400;color:#8A9CB0">(uma por linha)</span></label>
+    <textarea id="f-equipes" placeholder="Ex:&#10;Alliance&#10;Gracie Barra&#10;Checkmat" style="min-height:90px"></textarea>
+
     <label>Cartaz do evento</label>
     <div id="cartaz-preview-box" class="cartaz-preview" style="display:none">
       <img id="cartaz-preview-img" src="">
@@ -215,6 +218,7 @@
     document.getElementById('f-status').value = dados?.status || 'breve';
     document.getElementById('f-emoji').value = dados?.emoji || '🥋';
     document.getElementById('f-cartaz').value = '';
+    document.getElementById('f-equipes').value = Array.isArray(dados?.equipes) ? dados.equipes.join('\n') : '';
     document.getElementById('modal-titulo').textContent = dados ? 'Editar Campeonato' : 'Novo Campeonato';
     selecionarEmoji(dados?.emoji || '🥋');
 
@@ -291,6 +295,8 @@
     const btn = document.getElementById('btn-salvar');
     btn.textContent = 'Salvando...';
     btn.disabled = true;
+    const equipesTxt = document.getElementById('f-equipes').value;
+    const equipes = equipesTxt.split('\n').map(e => e.trim()).filter(Boolean);
     const dados = {
       nome,
       data: document.getElementById('f-data').value,
@@ -299,6 +305,7 @@
       status: document.getElementById('f-status').value,
       emoji: document.getElementById('f-emoji').value,
       cartaz: cartazBase64 || null,
+      equipes,
     };
     const id = document.getElementById('f-id').value;
     try {

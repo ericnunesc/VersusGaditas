@@ -502,10 +502,19 @@
         }
       });
 
-      // Carrega nomes de equipes já inscritas como sugestão no datalist
-      listarAtletas(id).then(atletas => {
-        const nomes = [...new Set(atletas.map(a => a.academia).filter(Boolean))].sort();
+      // Carrega equipes do campeonato + atletas já confirmados como sugestões
+      Promise.all([
+        buscarCampeonato(id),
+        listarAtletas(id).catch(() => [])
+      ]).then(([camp, atletas]) => {
+        const doAdmin = Array.isArray(camp?.equipes) ? camp.equipes : [];
+        const doAtletas = atletas.map(a => a.academia).filter(Boolean);
+        const nomes = [...new Set([...doAdmin, ...doAtletas])].sort();
         if (window.popularEquipesDatalist) popularEquipesDatalist(nomes);
+        if (nomes.length) {
+          document.getElementById('equipeInfo').textContent =
+            `${nomes.length} equipe(s) disponível(is). Comece a digitar para sugestões.`;
+        }
       }).catch(() => {});
     }
 
