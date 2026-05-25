@@ -145,10 +145,16 @@
       <div class="card" id="card-${i.id}">
         <div class="card-header">
           <div style="display:flex;align-items:center;gap:12px">
-            ${i.foto
-              ? `<img src="${i.foto}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #C9A03D;flex-shrink:0;">`
-              : `<div style="width:52px;height:52px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">👤</div>`
-            }
+            ${(function(){
+              const fem = i.sexo === 'F' || i.sexo === 'Feminino';
+              const bg  = fem ? '#FCE7F3' : '#DBEAFE';
+              const brd = fem ? '#EC4899' : '#2563EB';
+              const clr = fem ? '#EC4899' : '#2563EB';
+              const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='${clr}' width='28' height='28'><path d='M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.34 0-10 1.68-10 5v2h20v-2c0-3.32-6.66-5-10-5z'/></svg>`;
+              return i.foto
+                ? `<img src="${i.foto}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid ${brd};flex-shrink:0;">`
+                : `<div style="width:52px;height:52px;border-radius:50%;background:${bg};border:2px solid ${brd};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${svg}</div>`;
+            })()}
             <div>
               <div class="atleta-nome">${i.nome}</div>
               <div style="font-size:0.72rem;color:#8A9CB0;margin-top:2px">${new Date(i.criadoEm).toLocaleString('pt-BR')}</div>

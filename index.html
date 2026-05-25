@@ -1176,15 +1176,27 @@
             return;
         }
 
-        container.innerHTML = atletas.map(a => `
+        container.innerHTML = atletas.map(a => {
+            const isFem = a.sexo === 'F' || a.sexo === 'Feminino';
+            const avatarBg     = isFem ? '#FCE7F3' : '#DBEAFE';
+            const avatarBorder = isFem ? '#EC4899' : '#2563EB';
+            const avatarColor  = isFem ? '#EC4899' : '#2563EB';
+            const svgPessoa = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='${avatarColor}' width='26' height='26'><path d='M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.34 0-10 1.68-10 5v2h20v-2c0-3.32-6.66-5-10-5z'/></svg>`;
+            const avatar = a.foto
+                ? `<img src="${a.foto}" style="width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid ${avatarBorder};flex-shrink:0;">`
+                : `<div style="width:46px;height:46px;border-radius:50%;background:${avatarBg};border:2px solid ${avatarBorder};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${svgPessoa}</div>`;
+            return `
             <div class="atleta-card">
-                <div class="atleta-info">
-                    <h4>${a.nome}</h4>
-                    <p>${a.academia || ''}</p>
-                    <p>${a.sexo || ''} • ${a.faixa || ''} • ${a.peso || 0}kg</p>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    ${avatar}
+                    <div class="atleta-info">
+                        <h4>${a.nome}</h4>
+                        <p>${a.academia || ''}</p>
+                        <p>${a.sexo || ''} • ${a.faixa || ''} • ${a.peso || 0}kg</p>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
     }
 
     function abrirModalAtleta() { mostrarToast('Cadastro de atleta simplificado não implementado aqui', 'info'); }
