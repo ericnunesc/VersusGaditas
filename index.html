@@ -600,7 +600,10 @@
                 <div class="card">
                     <div class="card-header">
                         <h3>🥋 Chaveamento</h3>
-                        <button onclick="gerarChaveamento()" class="btn-primary">🎯 Gerar Chaveamento</button>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button onclick="removerChaveamento()" class="btn-danger" id="btn-remover-chave" style="display:none;">🗑️ Remover Chaveamento</button>
+                            <button onclick="gerarChaveamento()" class="btn-primary">🎯 Gerar Chaveamento</button>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div id="categorias-container" class="categorias-resumo"></div>
@@ -1161,6 +1164,54 @@
     function forcarSalvamentoTV() {
         if (typeof salvarEstadoTorneio === 'function') salvarEstadoTorneio();
         mostrarToast('✅ Sincronizado!', 'sucesso');
+    }
+
+    function removerChaveamento() {
+        if (!confirm('Remover o chaveamento atual?\n\nTodas as chaves e resultados serão apagados. Os atletas permanecem cadastrados.\n\nVocê poderá gerar um novo chaveamento quando quiser.')) return;
+
+        // Reseta estado em memória
+        if (window.torneioAtual) {
+            window.torneioAtual.categorias = [];
+            window.torneioAtual.pontuacaoEquipes = new Map();
+            window.torneioAtual.rodadaAtual = 1;
+            window.torneioAtual.competicaoAtiva = false;
+        }
+
+        // Limpa localStorage
+        localStorage.removeItem('gaditas_torneio_atual');
+
+        // Limpa containers visuais
+        const cc   = document.getElementById('chaveamento-container');
+        const cats = document.getElementById('categorias-container');
+        if (cc)   cc.innerHTML   = '<div class="empty-state" style="padding:40px;text-align:center;color:#8A9CB0;">Nenhum chaveamento gerado. Clique em "Gerar Chaveamento" para começar.</div>';
+        if (cats) cats.innerHTML = '';
+
+        // Esconde botão remover
+        const btnRemover = document.getElementById('btn-remover-chave');
+        if (btnRemover) btnRemover.style.display = 'none';
+
+        if (typeof atualizarDashboard === 'function') atualizarDashboard();
+        mostrarToast('🗑️ Chaveamento removido com sucesso!', 'sucesso');
+    }
+    window.removerChaveamento = removerChaveamento;
+
+    // Mostra botão "Remover" sempre que houver chaveamento salvo
+    function verificarBotaoRemover() {
+        const btn = document.getElementById('btn-remover-chave');
+        if (!btn) return;
+        const temChave = window.torneioAtual?.categorias?.length > 0
+            || !!localStorage.getItem('gaditas_torneio_atual');
+        btn.style.display = temChave ? 'inline-block' : 'none';
+    }
+    // Checa ao carregar e após gerar chaveamento
+    document.addEventListener('DOMContentLoaded', () => setTimeout(verificarBotaoRemover, 800));
+    // Sobrescreve gerarChaveamento para exibir o botão após geração
+    const _origGerarChave = window.gerarChaveamento;
+    if (typeof _origGerarChave === 'function') {
+        window.gerarChaveamento = function() {
+            _origGerarChave();
+            setTimeout(verificarBotaoRemover, 500);
+        };
     }
 
     function atualizarListaAtletas() {
