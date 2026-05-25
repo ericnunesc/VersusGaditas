@@ -69,6 +69,11 @@
         </div>
 
         <div class="field">
+          <label for="cpf">CPF <span style="color:#e53e3e">*</span></label>
+          <input id="cpf" name="cpf" required placeholder="000.000.000-00" maxlength="14" inputmode="numeric" />
+        </div>
+
+        <div class="field">
           <label for="fotoAtleta">📷 Foto do Atleta <span style="font-size:0.75rem;color:#888">(opcional — reduzida automaticamente)</span></label>
           <input type="file" id="fotoAtleta" accept="image/*" capture="user" style="font-size:0.85rem" />
           <div id="fotoAtletaPreview" style="margin-top:8px;display:none">
@@ -109,6 +114,17 @@
             <option value="">⏳ Carregando equipes...</option>
           </select>
           <div class="hint" id="equipeInfo">Selecione sua equipe.</div>
+        </div>
+
+        <div class="field" style="background:#0f1e35;border:1px solid #C9A03D;border-radius:10px;padding:14px;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:0">
+            <input type="checkbox" id="absoluto" name="absoluto"
+              style="width:20px;height:20px;accent-color:#C9A03D;cursor:pointer;flex-shrink:0">
+            <span style="font-size:0.95rem;font-weight:700;color:#C9A03D">🏆 Inscrever-se no Absoluto</span>
+          </label>
+          <p style="font-size:0.75rem;color:#aab3d1;margin-top:8px;margin-left:30px;line-height:1.4">
+            O Absoluto reúne todos os pesos da sua faixa e sexo. Acontece após as lutas por categoria de peso. Inscrição opcional.
+          </p>
         </div>
 
         <div class="field">
@@ -264,6 +280,18 @@
       $("categoriaPreview").textContent = `${cat.nome} | Sexo: ${sexo} | ${cat.idadeMin}–${cat.idadeMax} anos | Faixa: ${faixa} | Peso: ${peso} kg`;
     }
 
+    function formatarCPF(v) {
+      const d = (v||'').replace(/\D/g,'').slice(0,11);
+      if (d.length <= 3) return d;
+      if (d.length <= 6) return d.replace(/^(\d{3})(\d+)/,'$1.$2');
+      if (d.length <= 9) return d.replace(/^(\d{3})(\d{3})(\d+)/,'$1.$2.$3');
+      return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
+    }
+
+    function cpfValido(v) {
+      return (v||'').replace(/\D/g,'').length === 11;
+    }
+
     function formatarTelefoneBR(v){
       const d=(v||"").replace(/\D/g,"").slice(0,11);
       if(d.length<=10) return d.replace(/^(\d{0,2})(\d{0,4})(\d{0,4}).*$/, (_,a,b,c)=>[a&&`(${a}`,a.length===2&&") ",b,b&&c&&"-",c].filter(Boolean).join(""));
@@ -286,6 +314,7 @@
 
       const payload = {
         nome: $("nome").value.trim(),
+        cpf: $("cpf").value.trim(),
         dataNascimento: $("dataNascimento").value,
         sexo: (document.querySelector('input[name="sexo"]:checked')||{}).value || "",
         faixa: $("faixa").value,
@@ -296,6 +325,7 @@
         email: $("email").value.trim(),
         pagamento: (document.querySelector('input[name="pagamento"]:checked')||{}).value || "PIX",
         categoria: categoriaPorIdade(idadeNaData($("dataNascimento").value, REF)).nome,
+        absoluto: $("absoluto").checked,
         foto: fotoAtletaBase64 || null,
         comprovante: comprovanteBase64 || null,
       };
@@ -368,6 +398,7 @@
       });
     });
 
+    $("cpf").addEventListener("input", () => $("cpf").value = formatarCPF($("cpf").value));
     $("telefone").addEventListener("input", ()=> $("telefone").value = formatarTelefoneBR($("telefone").value));
     $("dataNascimento").addEventListener("change", atualizarFaixas);
     $("faixa").addEventListener("change", atualizarPreview);
@@ -390,6 +421,10 @@
       }
       if(!$("equipe").value.trim()){
         $("erroForm").textContent = "Informe o nome da sua equipe ou academia.";
+        return;
+      }
+      if(!cpfValido($("cpf").value)){
+        $("erroForm").textContent = "CPF inválido. Informe os 11 dígitos.";
         return;
       }
       if(!telefoneValido($("telefone").value)){
@@ -416,6 +451,11 @@
       $("formInscricao").reset();
       $("erroForm").textContent = "";
       $("successBox").style.display = "none";
+      $("absoluto").checked = false;
+      fotoAtletaBase64 = null;
+      comprovanteBase64 = null;
+      $("fotoAtletaPreview").style.display = "none";
+      $("comprovantePreview").style.display = "none";
       atualizarFaixas();
       atualizarPreview();
       window.scrollTo({top:0,behavior:"smooth"});

@@ -54,6 +54,8 @@
     .btn-rejeitar:hover { background:#EF4444; color:#fff; }
     .btn-pendente { background:transparent; border:1px solid #C9A03D; color:#C9A03D; }
     .btn-pendente:hover { background:#C9A03D; color:#fff; }
+    .btn-absoluto { background:transparent; border:1px solid #92400E; color:#92400E; }
+    .btn-absoluto:hover { background:#92400E; color:#fff; }
 
     .vazio { text-align:center; padding:60px 20px; color:#8A9CB0; }
     .vazio span { font-size:3rem; display:block; margin-bottom:12px; opacity:0.4; }
@@ -160,7 +162,10 @@
               <div style="font-size:0.72rem;color:#8A9CB0;margin-top:2px">${new Date(i.criadoEm).toLocaleString('pt-BR')}</div>
             </div>
           </div>
-          <span class="status-badge status-${i.status}">${i.status.toUpperCase()}</span>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${i.absoluto ? `<span style="background:#FEF9C3;color:#92400E;padding:4px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;">🏆 ABSOLUTO</span>` : ''}
+            <span class="status-badge status-${i.status}">${i.status.toUpperCase()}</span>
+          </div>
         </div>
         <div class="card-body">
           <div class="info-grid">
@@ -172,6 +177,8 @@
             <div class="info-item"><label>Pagamento</label><span>${i.pagamento || '—'}</span></div>
             <div class="info-item"><label>Telefone</label><span>${i.telefone || '—'}</span></div>
             <div class="info-item"><label>E-mail</label><span style="font-size:0.78rem">${i.email || '—'}</span></div>
+            <div class="info-item"><label>CPF</label><span>${i.cpf || '—'}</span></div>
+            <div class="info-item"><label>Absoluto</label><span>${i.absoluto ? '🏆 Sim' : 'Não'}</span></div>
           </div>
           <div class="comprovante-box">
             <label>Comprovante de pagamento</label>
@@ -181,6 +188,9 @@
           </div>
         </div>
         <div class="card-footer">
+          <button class="btn btn-absoluto" onclick="toggleAbsoluto('${i.id}')" title="${i.absoluto ? 'Remover do Absoluto' : 'Inscrever no Absoluto'}">
+            🏆 ${i.absoluto ? 'Remover Absoluto' : 'Add Absoluto'}
+          </button>
           ${i.status === 'pendente' ? `
             <button class="btn btn-rejeitar" onclick="rejeitar('${i.id}')">❌ Rejeitar</button>
             <button class="btn btn-aprovar" onclick="aprovar('${i.id}')">✅ Aprovar</button>
@@ -203,6 +213,7 @@
 
     const atletaData = {
       nome: i.nome,
+      cpf: i.cpf || '',
       sexo: i.sexo,
       faixa: i.faixa,
       peso: i.peso,
@@ -211,6 +222,7 @@
       dataNascimento: i.dataNascimento || '',
       dataCadastro: new Date().toISOString(),
       foto: i.foto || null,
+      absoluto: i.absoluto || false,
       origem: 'inscricao'
     };
 
@@ -246,6 +258,20 @@
       renderizar();
     } catch(e) {
       alert('Erro ao rejeitar: ' + e.message);
+    }
+  };
+
+  window.toggleAbsoluto = async function(id) {
+    if (!campeonatoId) return;
+    const i = todasInscricoes.find(x => x.id === id);
+    if (!i) return;
+    const novoValor = !i.absoluto;
+    try {
+      await atualizarInscricao(campeonatoId, id, { absoluto: novoValor });
+      i.absoluto = novoValor;
+      renderizar();
+    } catch(e) {
+      alert('Erro ao atualizar absoluto: ' + e.message);
     }
   };
 
