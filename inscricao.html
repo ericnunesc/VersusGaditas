@@ -400,7 +400,7 @@
     });
 
     $("cpf").addEventListener("input", () => $("cpf").value = formatarCPF($("cpf").value));
-    $("absoluto").addEventListener("change", atualizarValorTotal);
+    $("absoluto").addEventListener("change", () => { if (window.atualizarValorTotal) window.atualizarValorTotal(); });
     $("telefone").addEventListener("input", ()=> $("telefone").value = formatarTelefoneBR($("telefone").value));
     $("dataNascimento").addEventListener("change", atualizarFaixas);
     $("faixa").addEventListener("change", atualizarPreview);
