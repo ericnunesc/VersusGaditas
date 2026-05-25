@@ -436,6 +436,37 @@
 <script src="js/auth.js"></script>
 <script>verificarAuth();</script>
 
+<script type="module">
+  import { buscarCampeonato } from './js/firebase.js';
+
+  const campeonatoId = new URLSearchParams(location.search).get('id');
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!campeonatoId) return;
+
+    // Atualiza links internos com ?id=campeonatoId
+    const linkMap = {
+      'atletas-publico.html': `atletas-publico.html?id=${campeonatoId}`,
+      'adm-inscricoes.html':  `adm-inscricoes.html?id=${campeonatoId}`,
+      'inscricao.html':       `inscricao.html?id=${campeonatoId}`
+    };
+    document.querySelectorAll('a[href]').forEach(a => {
+      const base = a.getAttribute('href').split('?')[0];
+      if (linkMap[base]) a.href = linkMap[base];
+    });
+
+    // Carrega nome do campeonato e exibe no cabeçalho
+    try {
+      const camp = await buscarCampeonato(campeonatoId);
+      if (camp) {
+        document.title = `${camp.nome} — Gaditas Torneios`;
+        const sub = document.querySelector('.logo-area p');
+        if (sub) sub.textContent = camp.nome;
+      }
+    } catch(_) {}
+  });
+</script>
+
 <!-- Modal alterar senha -->
 <div id="modal-senha" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;display:none;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:16px;padding:32px;width:100%;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,0.12);">
