@@ -1400,7 +1400,7 @@ window.addEventListener('storage', function(e) {
     if (e.key === 'gaditas_atletas' || e.key === 'gaditas_last_update') {
         if (typeof carregarDados === 'function') {
             carregarDados();
-            if (typeof renderizarAtletas === 'function') renderizarAtletas();
+            if (typeof atualizarListaAtletas === 'function') atualizarListaAtletas();
             if (typeof atualizarDashboard === 'function') atualizarDashboard();
         }
     }
