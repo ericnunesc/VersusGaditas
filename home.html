@@ -72,20 +72,24 @@
     .card-nome { font-weight:700; font-size:1rem; margin-bottom:6px; }
     .card-info { font-size:0.78rem; color:#8A9CB0; display:flex; flex-direction:column; gap:3px; margin-bottom:12px; }
     .card-info span { display:flex; align-items:center; gap:6px; }
-    .card-footer { display:flex; justify-content:space-between; align-items:center; padding:12px 18px; border-top:1px solid #F1F5F9; }
+    .card-footer { display:flex; flex-direction:column; gap:10px; padding:14px 18px; border-top:1px solid #F1F5F9; }
+    .card-footer-top { display:flex; justify-content:space-between; align-items:center; }
     .status-pill { padding:4px 12px; border-radius:20px; font-size:0.7rem; font-weight:700; }
     .status-ativo { background:#DCFCE7; color:#166534; }
     .status-encerrado { background:#F1F5F9; color:#64748B; }
     .status-breve { background:#FEF9C3; color:#92400E; }
-    .btn-inscricao { background:#C9A03D; color:#fff; border:none; padding:7px 16px; border-radius:40px; font-size:0.78rem; font-weight:600; cursor:pointer; text-decoration:none; }
+    .btn-inscricao { background:#C9A03D; color:#fff; border:none; padding:8px 18px; border-radius:40px; font-size:0.8rem; font-weight:700; cursor:pointer; text-decoration:none; }
     .btn-inscricao:hover { background:#A0822E; }
+    .links-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
+    .btn-link-card { display:block; text-align:center; padding:7px 6px; border:1px solid #E2E8F0; border-radius:8px; font-size:0.75rem; font-weight:600; color:#1A2C3E; text-decoration:none; transition:all 0.2s; background:#fff; }
+    .btn-link-card:hover { border-color:#C9A03D; color:#C9A03D; background:#FFFDF5; }
 
     .vazio { text-align:center; padding:60px 20px; color:#8A9CB0; }
     .vazio span { font-size:3rem; display:block; margin-bottom:12px; opacity:0.3; }
 
     .loading { text-align:center; padding:60px; color:#8A9CB0; }
 
-    @media(max-width:600px){ .hero h2 { font-size:1.4rem; } }
+    @media(max-width:600px){ .hero h2 { font-size:1.4rem; } .links-grid { grid-template-columns:repeat(2,1fr); } }
   </style>
 </head>
 <body>
@@ -171,10 +175,15 @@
             </div>
           </div>
           <div class="card-footer">
-            <span class="status-pill ${statusClass}">${statusLabel}</span>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <a href="atletas-publico.html?id=${c.id}" style="font-size:0.78rem;color:#1A2C3E;text-decoration:none;padding:7px 14px;border:1px solid #E2E8F0;border-radius:40px;font-weight:600;">👥 Atletas cadastrados</a>
-              ${podeInscrever ? `<a href="inscricao.html?id=${c.id}" class="btn-inscricao">📝 Inscrever</a>` : ''}
+            <div class="card-footer-top">
+              <span class="status-pill ${statusClass}">${statusLabel}</span>
+              ${podeInscrever ? `<a href="inscricao.html?id=${c.id}" class="btn-inscricao">📝 Inscrever-se</a>` : ''}
+            </div>
+            <div class="links-grid">
+              <a href="atletas-publico.html?id=${c.id}" class="btn-link-card">👥 Atletas</a>
+              <a href="cronograma-lutas.html?id=${c.id}" class="btn-link-card">📅 Cronograma</a>
+              <a href="tv-chaveamento.html?id=${c.id}" class="btn-link-card" target="_blank">📺 TV Lutas</a>
+              <a href="placar-publico.html?id=${c.id}" class="btn-link-card" target="_blank">🏆 Placar</a>
             </div>
           </div>
         </div>`;
