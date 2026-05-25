@@ -62,6 +62,27 @@ export async function deletarAtleta(campeonatoId, atletaId) {
   await deleteDoc(doc(db, "campeonatos", campeonatoId, "atletas", atletaId));
 }
 
+// ── Equipes ──────────────────────────────────────────────────
+export async function salvarEquipe(campeonatoId, equipe) {
+  return await addDoc(collection(db, "campeonatos", campeonatoId, "equipes"), {
+    ...equipe,
+    criadoEm: serverTimestamp()
+  });
+}
+
+export async function listarEquipes(campeonatoId) {
+  const snap = await getDocs(collection(db, "campeonatos", campeonatoId, "equipes"));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.nome||'').localeCompare(b.nome||'','pt-BR'));
+}
+
+export async function atualizarEquipe(campeonatoId, equipeId, dados) {
+  await updateDoc(doc(db, "campeonatos", campeonatoId, "equipes", equipeId), dados);
+}
+
+export async function deletarEquipe(campeonatoId, equipeId) {
+  await deleteDoc(doc(db, "campeonatos", campeonatoId, "equipes", equipeId));
+}
+
 // ── Inscrições ───────────────────────────────────────────────
 export async function salvarInscricao(campeonatoId, inscricao) {
   return await addDoc(collection(db, "campeonatos", campeonatoId, "inscricoes"), {

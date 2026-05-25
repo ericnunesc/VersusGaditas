@@ -105,9 +105,10 @@
 
         <div class="field">
           <label for="equipe">Equipe / Academia</label>
-          <input id="equipe" name="equipe" type="text" list="equipe-list" required placeholder="Nome da sua academia ou equipe" autocomplete="off" />
-          <datalist id="equipe-list"></datalist>
-          <div class="hint" id="equipeInfo">Digite o nome da sua academia ou equipe.</div>
+          <select id="equipe" name="equipe" required>
+            <option value="">⏳ Carregando equipes...</option>
+          </select>
+          <div class="hint" id="equipeInfo">Selecione sua equipe.</div>
         </div>
 
         <div class="field">
@@ -203,9 +204,23 @@
       return categoriaPorIdade(idade).faixas;
     }
 
-    function popularEquipesDatalist(nomes) {
-      const dl = $("equipe-list");
-      dl.innerHTML = nomes.map(n => `<option value="${n}">`).join('');
+    function popularEquipesSelect(equipes) {
+      const sel = $("equipe");
+      if (!equipes.length) {
+        sel.innerHTML = '<option value="">Nenhuma equipe cadastrada</option>';
+        $("equipeInfo").textContent = "Nenhuma equipe cadastrada. Digite sua equipe abaixo.";
+        // fallback: troca por input texto
+        const input = document.createElement('input');
+        input.id = 'equipe'; input.name = 'equipe'; input.required = true;
+        input.placeholder = 'Nome da sua academia ou equipe';
+        input.style.cssText = sel.style.cssText;
+        input.className = sel.className;
+        sel.parentNode.replaceChild(input, sel);
+        return;
+      }
+      sel.innerHTML = '<option value="">Selecione sua equipe</option>' +
+        equipes.map(e => `<option value="${e.nome}">${e.nome}</option>`).join('');
+      $("equipeInfo").textContent = `${equipes.length} equipe(s) disponível(is).`;
     }
 
     function atualizarFaixas(){
@@ -264,7 +279,10 @@
     const campeonatoId = new URLSearchParams(location.search).get('id') || null;
 
     async function salvarInscricao(){
-      const equipeNome = $("equipe").value.trim();
+      const equipeEl = $("equipe");
+      const equipeNome = (equipeEl.tagName === 'SELECT'
+        ? equipeEl.options[equipeEl.selectedIndex]?.text || equipeEl.value
+        : equipeEl.value).trim();
 
       const payload = {
         nome: $("nome").value.trim(),
@@ -471,7 +489,7 @@
 
   <!-- Firebase: expõe função de salvar inscrição para o código legado -->
   <script type="module">
-    import { salvarInscricao as fbSalvar, buscarCampeonato, buscarConfig, listarAtletas } from './js/firebase.js';
+    import { salvarInscricao as fbSalvar, buscarCampeonato, buscarConfig, listarEquipes } from './js/firebase.js';
 
     const id = new URLSearchParams(location.search).get('id');
 
@@ -502,20 +520,13 @@
         }
       });
 
-      // Carrega equipes do campeonato + atletas já confirmados como sugestões
-      Promise.all([
-        buscarCampeonato(id),
-        listarAtletas(id).catch(() => [])
-      ]).then(([camp, atletas]) => {
-        const doAdmin = Array.isArray(camp?.equipes) ? camp.equipes : [];
-        const doAtletas = atletas.map(a => a.academia).filter(Boolean);
-        const nomes = [...new Set([...doAdmin, ...doAtletas])].sort();
-        if (window.popularEquipesDatalist) popularEquipesDatalist(nomes);
-        if (nomes.length) {
-          document.getElementById('equipeInfo').textContent =
-            `${nomes.length} equipe(s) disponível(is). Comece a digitar para sugestões.`;
-        }
-      }).catch(() => {});
+      // Carrega equipes cadastradas no Firebase
+      listarEquipes(id).then(equipes => {
+        if (window.popularEquipesSelect) popularEquipesSelect(equipes);
+      }).catch(() => {
+        const sel = document.getElementById('equipe');
+        if (sel) sel.innerHTML = '<option value="">Selecione sua equipe</option>';
+      });
     }
 
     // "Voltar ao Sistema" no sucesso aponta para home
