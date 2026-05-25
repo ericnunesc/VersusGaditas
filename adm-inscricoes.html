@@ -52,6 +52,8 @@
     .btn-aprovar:hover { background:#15803d; }
     .btn-rejeitar { background:transparent; border:1px solid #EF4444; color:#EF4444; }
     .btn-rejeitar:hover { background:#EF4444; color:#fff; }
+    .btn-pendente { background:transparent; border:1px solid #C9A03D; color:#C9A03D; }
+    .btn-pendente:hover { background:#C9A03D; color:#fff; }
 
     .vazio { text-align:center; padding:60px 20px; color:#8A9CB0; }
     .vazio span { font-size:3rem; display:block; margin-bottom:12px; opacity:0.4; }
@@ -102,7 +104,7 @@
 </div>
 
 <script type="module">
-  import { listarInscricoes, atualizarInscricao, salvarAtleta, buscarCampeonato } from './js/firebase.js';
+  import { listarInscricoes, atualizarInscricao, salvarAtleta, deletarAtleta, buscarCampeonato } from './js/firebase.js';
 
   const campeonatoId = new URLSearchParams(location.search).get('id');
   if (!campeonatoId) {
@@ -166,11 +168,15 @@
               : `<div class="sem-comprovante">📎 Sem comprovante anexado</div>`}
           </div>
         </div>
-        ${i.status === 'pendente' ? `
         <div class="card-footer">
-          <button class="btn btn-rejeitar" onclick="rejeitar('${i.id}')">❌ Rejeitar</button>
-          <button class="btn btn-aprovar" onclick="aprovar('${i.id}')">✅ Aprovar</button>
-        </div>` : ''}
+          ${i.status === 'pendente' ? `
+            <button class="btn btn-rejeitar" onclick="rejeitar('${i.id}')">❌ Rejeitar</button>
+            <button class="btn btn-aprovar" onclick="aprovar('${i.id}')">✅ Aprovar</button>
+          ` : `
+            <button class="btn btn-pendente" onclick="deixarPendente('${i.id}')">↩️ Deixar Pendente</button>
+            ${i.status === 'rejeitado' ? `<button class="btn btn-aprovar" onclick="aprovar('${i.id}')">✅ Aprovar</button>` : ''}
+          `}
+        </div>
       </div>
     `).join('');
   }
@@ -197,8 +203,8 @@
     };
 
     try {
-      await atualizarInscricao(campeonatoId, id, { status: 'aprovado' });
-      await salvarAtleta(campeonatoId, atletaData);
+      const atletaRef = await salvarAtleta(campeonatoId, atletaData);
+      await atualizarInscricao(campeonatoId, id, { status: 'aprovado', atletaId: atletaRef.id });
 
       // Ponte para index.html: também salva no localStorage do mesmo browser
       try {
@@ -209,6 +215,7 @@
       } catch(_) {}
 
       i.status = 'aprovado';
+      i.atletaId = atletaRef.id;
       renderizar();
       // Notifica outras abas (index.html)
       localStorage.setItem('gaditas_last_update', Date.now().toString());
@@ -227,6 +234,26 @@
       renderizar();
     } catch(e) {
       alert('Erro ao rejeitar: ' + e.message);
+    }
+  };
+
+  window.deixarPendente = async function(id) {
+    if (!confirm('Reverter esta inscrição para PENDENTE?')) return;
+    if (!campeonatoId) return;
+    const i = todasInscricoes.find(x => x.id === id);
+    if (!i) return;
+    try {
+      // Se estava aprovado, remove o atleta da subcoleção
+      if (i.status === 'aprovado' && i.atletaId) {
+        try { await deletarAtleta(campeonatoId, i.atletaId); } catch(_) {}
+      }
+      await atualizarInscricao(campeonatoId, id, { status: 'pendente', atletaId: null });
+      i.status = 'pendente';
+      i.atletaId = null;
+      renderizar();
+      localStorage.setItem('gaditas_last_update', Date.now().toString());
+    } catch(e) {
+      alert('Erro ao reverter: ' + e.message);
     }
   };
 
