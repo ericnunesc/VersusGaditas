@@ -80,7 +80,7 @@
         <p>Aprovação de atletas</p>
       </div>
     </div>
-    <a href="index.html" class="btn btn-back">← Voltar</a>
+    <a href="painel.html" class="btn btn-back">← Voltar</a>
   </div>
 
   <div class="contador">
@@ -230,7 +230,7 @@
       const atletaRef = await salvarAtleta(campeonatoId, atletaData);
       await atualizarInscricao(campeonatoId, id, { status: 'aprovado', atletaId: atletaRef.id });
 
-      // Ponte para index.html: também salva no localStorage do mesmo browser
+      // Ponte para painel.html: também salva no localStorage do mesmo browser
       try {
         const local = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
         local.push({ id: Date.now(), ...atletaData });
@@ -241,7 +241,7 @@
       i.status = 'aprovado';
       i.atletaId = atletaRef.id;
       renderizar();
-      // Notifica outras abas (index.html)
+      // Notifica outras abas (painel.html)
       localStorage.setItem('gaditas_last_update', Date.now().toString());
     } catch(e) {
       alert('Erro ao aprovar: ' + e.message);

@@ -374,7 +374,7 @@
             <div class="relogio" id="relogio">--:--:--</div>
             <button class="btn-cfg" onclick="configurarHorario()">⚙️ Horário</button>
             <button class="btn-cfg" onclick="abrirConfigDuracao()">⏱️ Duração</button>
-            <button class="btn-cfg" onclick="window.location.href='index.html'">← Voltar</button>
+            <button class="btn-cfg" onclick="window.location.href='painel.html'">← Voltar</button>
         </div>
     </div>
 
@@ -1023,7 +1023,7 @@ function salvarDuracoes() {
     faixasConfig.forEach(function(faixa) {
         localStorage.setItem('gaditas_duracao_' + faixa.toLowerCase(), duracaoPorFaixa[faixa]);
     });
-    // Sincronizar com o index.html (torneio.js também lê essas chaves)
+    // Sincronizar com o painel.html (torneio.js também lê essas chaves)
     localStorage.setItem('gaditas_duracao_branca', duracaoPorFaixa['Branca']);
     localStorage.setItem('gaditas_duracao_azul',   duracaoPorFaixa['Azul']);
     localStorage.setItem('gaditas_duracao_roxa',   duracaoPorFaixa['Roxa']);

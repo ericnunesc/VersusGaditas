@@ -2,6 +2,7 @@ const CACHE_NAME = 'gaditas-torneios-v3.0.0';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/painel.html',
   '/app.js',
   '/style.css',
   '/manifest.json'

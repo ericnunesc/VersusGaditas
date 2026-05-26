@@ -44,7 +44,7 @@
 <script>verificarAuth();</script>
 
 <div class="container">
-  <a class="back" id="linkVoltar" href="index.html">← Voltar para Admin</a>
+  <a class="back" id="linkVoltar" href="painel.html">← Voltar para Admin</a>
   <div class="logo">🏢</div>
   <h1>Administração de Equipes</h1>
   <div class="subtitle">Incluir, alterar e excluir equipes</div>
@@ -90,7 +90,7 @@
     $('lista').innerHTML = '<div class="empty">⚠️ Campeonato não especificado.<br>Acesse via painel admin → Gerenciar.</div>';
     $('formEquipe').style.display = 'none';
   } else {
-    $('linkVoltar').href = `index.html?id=${campeonatoId}`;
+    $('linkVoltar').href = `painel.html?id=${campeonatoId}`;
     buscarCampeonato(campeonatoId).then(c => {
       if (c) $('camp-nome').textContent = `🏆 ${c.nome}`;
     });
