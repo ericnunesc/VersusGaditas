@@ -199,6 +199,38 @@
     .atleta-label{font-size:0.63rem;color:#94A3B8;margin-top:1px;}
     .abs-label{font-size:0.63rem;color:#C9A03D;font-weight:600;}
 
+    /* Inscricoes */
+    .insc-section-title{font-size:0.68rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.5px;padding:6px 0;border-bottom:1px solid #F1F5F9;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+    .insc-card{border:1px solid #E2E8F0;border-radius:10px;padding:13px 15px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+    .insc-card.aprovada{border-color:#BBF7D0;background:#F0FDF4;}
+    .insc-card.rejeitada{border-color:#FECACA;background:#FFF5F5;opacity:0.7;}
+    .insc-card.pendente{border-color:#FDE68A;background:#FFFBEB;}
+    .insc-info{flex:1;min-width:0;}
+    .insc-nome{font-weight:700;font-size:0.88rem;margin-bottom:2px;}
+    .insc-meta{font-size:0.7rem;color:#8A9CB0;display:flex;flex-wrap:wrap;gap:8px;margin-top:3px;}
+    .insc-faixa{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.62rem;font-weight:700;color:#fff;margin-right:4px;}
+    .insc-codigo{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:8px;margin-top:8px;}
+    .insc-codigo-label{font-size:0.65rem;color:#8A9CB0;font-weight:600;}
+    .insc-codigo-val{font-family:monospace;font-size:0.9rem;font-weight:700;color:#1A2C3E;letter-spacing:2px;}
+    .insc-actions{display:flex;flex-direction:column;gap:5px;align-self:flex-start;}
+    .btn-aprovar{background:#10B981;color:#fff;border:none;padding:6px 12px;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+    .btn-aprovar:hover{background:#059669;}
+    .btn-rejeitar{background:transparent;border:1px solid #EF4444;color:#EF4444;padding:6px 12px;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+    .btn-rejeitar:hover{background:#EF4444;color:#fff;}
+    .btn-copiar{background:transparent;border:1px solid #C9A03D;color:#C9A03D;padding:5px 10px;border-radius:6px;font-size:0.68rem;font-weight:700;cursor:pointer;}
+    .btn-copiar:hover{background:#C9A03D;color:#fff;}
+
+    /* Config faixas */
+    .faixas-config-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+    .faixa-check-item{display:flex;align-items:center;gap:6px;padding:7px 12px;border:2px solid #E2E8F0;border-radius:8px;background:#fff;cursor:pointer;transition:all 0.2s;user-select:none;}
+    .faixa-check-item:hover{border-color:#C9A03D;}
+    .faixa-check-item.selected{border-color:#C9A03D;background:#FFFBEC;}
+    .faixa-check-item input{accent-color:#C9A03D;width:14px;height:14px;}
+    .vagas-input-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+    .vagas-input-row label{font-size:0.75rem;font-weight:600;color:#4A5568;flex:1;}
+    .vagas-input-row input{width:70px;border:1px solid #E2E8F0;border-radius:6px;padding:6px 8px;font-size:0.82rem;outline:none;text-align:center;}
+    .vagas-input-row input:focus{border-color:#C9A03D;}
+
     @media(max-width:600px){
       .confronto-main{grid-template-columns:1fr 40px 1fr;}
     }
@@ -225,9 +257,11 @@
   </div>
 
   <div class="links-bar">
-    <a id="lnk-cronograma" href="#" class="lnk" target="_blank">📅 Cronograma Público</a>
+    <a id="lnk-inscricao"  href="#" class="lnk" target="_blank">📝 Pág. Inscrição</a>
+    <a id="lnk-portal"     href="#" class="lnk" target="_blank">🔐 Portal Equipe</a>
+    <a id="lnk-cronograma" href="#" class="lnk" target="_blank">📅 Cronograma</a>
     <a id="lnk-tv"         href="#" class="lnk" target="_blank">📺 TV Ao Vivo</a>
-    <a id="lnk-placar"     href="#" class="lnk" target="_blank">🏆 Placar Público</a>
+    <a id="lnk-placar"     href="#" class="lnk" target="_blank">🏆 Placar</a>
     <a id="lnk-placar-adm" href="#" class="lnk lnk-primary">🎙️ Placar Ao Vivo</a>
   </div>
 
@@ -241,6 +275,7 @@
 
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showTab('equipes')">⚽ Equipes</button>
+    <button class="nav-tab" onclick="showTab('inscricoes')">📋 Inscrições <span id="badge-pendentes" style="display:none;background:#EF4444;color:#fff;border-radius:20px;font-size:0.6rem;padding:1px 6px;margin-left:3px;">0</span></button>
     <button class="nav-tab" onclick="showTab('calendario')">📅 Calendário</button>
     <button class="nav-tab" onclick="showTab('classificacao')">🏆 Classificação</button>
     <button class="nav-tab" onclick="showTab('hof')">👑 Hall of Fame</button>
@@ -255,7 +290,13 @@
 
       <p style="font-size:0.78rem;color:#92400E;margin-bottom:10px;">Selecione as categorias de peso que fazem parte desta Liga. Cada equipe deve ter um atleta por categoria selecionada.</p>
 
-      <div style="font-size:0.72rem;font-weight:700;color:#8A9CB0;margin-bottom:7px;text-transform:uppercase;letter-spacing:0.5px;">Categorias de Peso</div>
+      <div style="font-size:0.72rem;font-weight:700;color:#8A9CB0;margin-bottom:7px;text-transform:uppercase;letter-spacing:0.5px;">Faixas Ativas nesta Liga</div>
+      <div class="faixas-config-grid" id="faixas-config-grid"></div>
+
+      <div style="font-size:0.72rem;font-weight:700;color:#8A9CB0;margin-bottom:7px;margin-top:10px;text-transform:uppercase;letter-spacing:0.5px;">Vagas por Faixa</div>
+      <div id="vagas-config-rows"></div>
+
+      <div style="font-size:0.72rem;font-weight:700;color:#8A9CB0;margin-bottom:7px;margin-top:10px;text-transform:uppercase;letter-spacing:0.5px;">Categorias de Peso</div>
       <div class="cats-grid" id="cats-config-grid"></div>
 
       <div style="font-size:0.72rem;font-weight:700;color:#8A9CB0;margin-bottom:7px;margin-top:10px;text-transform:uppercase;letter-spacing:0.5px;">Categoria Especial</div>
@@ -283,6 +324,31 @@
     </div>
 
     <div id="equipes-list"></div>
+  </div>
+
+  <!-- ═══ TAB: INSCRIÇÕES ═══ -->
+  <div class="tab-pane" id="tab-inscricoes">
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-header">
+        <h3>📋 Gestão de Inscrições</h3>
+        <button class="btn btn-sm btn-secondary" onclick="iniciar()">🔄 Atualizar</button>
+      </div>
+      <p style="font-size:0.78rem;color:#8A9CB0;margin-bottom:0;">
+        Gerencie as equipes que solicitaram inscrição nesta Liga. Aprovando uma equipe, um código de acesso será gerado — copie o link e envie para o representante.
+      </p>
+    </div>
+
+    <!-- Pendentes -->
+    <div class="insc-section-title">⏳ Aguardando Aprovação <span id="cnt-pendentes" style="background:#FDE68A;color:#92400E;padding:1px 7px;border-radius:10px;font-size:0.6rem;">0</span></div>
+    <div id="insc-pendentes"></div>
+
+    <!-- Aprovadas -->
+    <div class="insc-section-title" style="margin-top:16px;">✅ Aprovadas <span id="cnt-aprovadas" style="background:#BBF7D0;color:#166534;padding:1px 7px;border-radius:10px;font-size:0.6rem;">0</span></div>
+    <div id="insc-aprovadas"></div>
+
+    <!-- Rejeitadas -->
+    <div class="insc-section-title" style="margin-top:16px;">❌ Rejeitadas <span id="cnt-rejeitadas" style="background:#FECACA;color:#DC2626;padding:1px 7px;border-radius:10px;font-size:0.6rem;">0</span></div>
+    <div id="insc-rejeitadas"></div>
   </div>
 
   <!-- ═══ TAB: CALENDÁRIO ═══ -->
@@ -393,8 +459,11 @@ let tabAtiva = 'equipes';
 let confrontoEditando = null;
 let ligaConfig = {
   categorias: ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'],
-  temAbsoluto: false
+  temAbsoluto: false,
+  faixasAtivas: ['branca', 'azul'],
+  vagasPorFaixa: { branca: 6, azul: 6, roxa: 6, marrom: 6, preta: 6 }
 };
+const TODAS_FAIXAS = ['branca','azul','roxa','marrom','preta'];
 
 // ── Auth ──────────────────────────────────────────────────────
 onLogin(user => {
@@ -411,10 +480,12 @@ async function iniciar() {
   document.getElementById('comp-nome').textContent      = campeonato?.nome || 'Liga BJJ';
   document.getElementById('comp-subtitle').textContent  = campeonato?.local || 'Liga BJJ';
   document.getElementById('comp-local').textContent     = campeonato?.local ? '📍 ' + campeonato.local : '⚽ Liga BJJ';
-  document.getElementById('lnk-cronograma').href = `liga-cronograma.html?id=${campeonatoId}`;
-  document.getElementById('lnk-tv').href         = `liga-tv.html?id=${campeonatoId}`;
-  document.getElementById('lnk-placar').href      = `liga-placar-publico.html?id=${campeonatoId}`;
-  document.getElementById('lnk-placar-adm').href  = `liga-placar-adm.html?id=${campeonatoId}`;
+  document.getElementById('lnk-inscricao').href  = `liga-inscricao.html?id=${campeonatoId}`;
+  document.getElementById('lnk-portal').href      = `liga-portal.html?id=${campeonatoId}`;
+  document.getElementById('lnk-cronograma').href  = `liga-cronograma.html?id=${campeonatoId}`;
+  document.getElementById('lnk-tv').href          = `liga-tv.html?id=${campeonatoId}`;
+  document.getElementById('lnk-placar').href       = `liga-placar-publico.html?id=${campeonatoId}`;
+  document.getElementById('lnk-placar-adm').href   = `liga-placar-adm.html?id=${campeonatoId}`;
 
   const [eqs, ats, confs, hist, cfg] = await Promise.all([
     listarLigaEquipes(campeonatoId),
@@ -424,18 +495,41 @@ async function iniciar() {
     buscarLigaConfig(campeonatoId)
   ]);
   equipes = eqs; atletas = ats; confrontos = confs; historico = hist;
-  if (cfg) ligaConfig = cfg;
+  if (cfg) ligaConfig = { ...ligaConfig, ...cfg };
 
   renderConfigPanel();
+  atualizarBadgePendentes();
   salvarEstado();
   renderTabAtiva();
 }
 
 // ── Config Panel ──────────────────────────────────────────────
 function renderConfigPanel() {
+  const FAIXAS_LABEL2 = { branca:'⬜ Branca', azul:'🔵 Azul', roxa:'🟣 Roxa', marrom:'🟤 Marrom', preta:'⬛ Preta' };
+  const faixasAtivas = ligaConfig.faixasAtivas || ['branca','azul'];
+  const vagasPF = ligaConfig.vagasPorFaixa || {};
+
+  // Faixas ativas
+  document.getElementById('faixas-config-grid').innerHTML = TODAS_FAIXAS.map(f => {
+    const sel = faixasAtivas.includes(f);
+    return `<label class="faixa-check-item ${sel ? 'selected' : ''}" id="flbl-${f}" onclick="toggleFaixaConfig('${f}', this)">
+      <input type="checkbox" ${sel ? 'checked' : ''} style="pointer-events:none">
+      <span style="font-size:0.8rem">${FAIXAS_LABEL2[f]}</span>
+    </label>`;
+  }).join('');
+
+  // Vagas por faixa
+  document.getElementById('vagas-config-rows').innerHTML = TODAS_FAIXAS.map(f =>
+    `<div class="vagas-input-row">
+      <label>${FAIXAS_LABEL2[f]}</label>
+      <input type="number" id="vagas-${f}" value="${vagasPF[f] || 6}" min="1" max="30">
+    </div>`
+  ).join('');
+
+  // Categorias
   const grid = document.getElementById('cats-config-grid');
   grid.innerHTML = TODAS_CATEGORIAS.map(cat => {
-    const sel = ligaConfig.categorias.includes(cat);
+    const sel = (ligaConfig.categorias || []).includes(cat);
     return `<label class="cat-check-item ${sel ? 'selected' : ''}" id="lbl-${cat.replace(/[^a-zA-Z]/g,'')}" onclick="toggleCatConfig('${cat}', this)">
       <input type="checkbox" ${sel ? 'checked' : ''} style="pointer-events:none">
       <span>${cat}</span>
@@ -445,6 +539,13 @@ function renderConfigPanel() {
   document.getElementById('chk-absoluto').checked = !!ligaConfig.temAbsoluto;
   document.getElementById('absoluto-toggle').classList.toggle('on', !!ligaConfig.temAbsoluto);
 }
+
+window.toggleFaixaConfig = function(f, lbl) {
+  const chk = lbl.querySelector('input');
+  const checked = !chk.checked;
+  chk.checked = checked;
+  lbl.classList.toggle('selected', checked);
+};
 
 window.toggleCatConfig = function(cat, lbl) {
   const chk = lbl.querySelector('input');
@@ -459,19 +560,28 @@ window.toggleAbsolutoUI = function() {
 };
 
 window.salvarConfig = async function() {
+  const faixasAtivas = TODAS_FAIXAS.filter(f => document.getElementById('flbl-'+f)?.querySelector('input')?.checked);
+  if (!faixasAtivas.length) { alert('Selecione pelo menos 1 faixa ativa.'); return; }
+
+  const vagasPorFaixa = {};
+  TODAS_FAIXAS.forEach(f => {
+    vagasPorFaixa[f] = parseInt(document.getElementById('vagas-'+f)?.value || '6') || 6;
+  });
+
   const categoriasNovas = TODAS_CATEGORIAS.filter(cat => {
     const id = 'lbl-' + cat.replace(/[^a-zA-Z]/g,'');
     return document.getElementById(id)?.querySelector('input')?.checked;
   });
   if (!categoriasNovas.length) { alert('Selecione pelo menos 1 categoria.'); return; }
   const temAbsoluto = document.getElementById('chk-absoluto').checked;
-  ligaConfig = { categorias: categoriasNovas, temAbsoluto };
+
+  ligaConfig = { ...ligaConfig, categorias: categoriasNovas, temAbsoluto, faixasAtivas, vagasPorFaixa };
   try {
     await salvarLigaConfig(campeonatoId, ligaConfig);
     salvarEstado();
     renderEquipes();
     document.getElementById('config-details').removeAttribute('open');
-    alert(`✅ Configuração salva!\nCategorias: ${categoriasNovas.join(', ')}${temAbsoluto ? ' + Absoluto' : ''}`);
+    alert(`✅ Configuração salva!\nFaixas: ${faixasAtivas.join(', ')}\nCategorias: ${categoriasNovas.join(', ')}${temAbsoluto ? ' + Absoluto' : ''}`);
   } catch(e) { alert('Erro: ' + e.message); }
 };
 
@@ -479,7 +589,7 @@ window.salvarConfig = async function() {
 function showTab(tab) {
   tabAtiva = tab;
   document.querySelectorAll('.nav-tab').forEach((b, i) => {
-    b.classList.toggle('active', ['equipes','calendario','classificacao','hof'][i] === tab);
+    b.classList.toggle('active', ['equipes','inscricoes','calendario','classificacao','hof'][i] === tab);
   });
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
@@ -495,6 +605,7 @@ function setFaixa(f) {
 
 function renderTabAtiva() {
   if (tabAtiva === 'equipes')       renderEquipes();
+  if (tabAtiva === 'inscricoes')    renderInscricoes();
   if (tabAtiva === 'calendario')    renderCalendario();
   if (tabAtiva === 'classificacao') renderClassificacao();
   if (tabAtiva === 'hof')           renderHoF();
@@ -512,6 +623,116 @@ function getCapitaoAbsoluto(equipeId) {
   const cap = eq?.capitaes?.[faixaSelecionada];
   return cap ? atletas.find(a => a.id === cap) : null;
 }
+
+// ── Inscrições ────────────────────────────────────────────────
+const FAIXAS_COR2 = { branca:'#6B7280', azul:'#3B8BFF', roxa:'#9B59B6', marrom:'#92400E', preta:'#374151' };
+const FAIXAS_LBL2 = { branca:'Branca', azul:'Azul', roxa:'Roxa', marrom:'Marrom', preta:'Preta' };
+
+function atualizarBadgePendentes() {
+  const n = equipes.filter(e => e.status === 'pendente').length;
+  const badge = document.getElementById('badge-pendentes');
+  if (badge) { badge.textContent = n; badge.style.display = n > 0 ? 'inline' : 'none'; }
+}
+
+function renderInscricoes() {
+  const pendentes = equipes.filter(e => e.status === 'pendente');
+  const aprovadas = equipes.filter(e => e.status === 'aprovada');
+  const rejeitadas = equipes.filter(e => e.status === 'rejeitada');
+
+  document.getElementById('cnt-pendentes').textContent = pendentes.length;
+  document.getElementById('cnt-aprovadas').textContent = aprovadas.length;
+  document.getElementById('cnt-rejeitadas').textContent = rejeitadas.length;
+
+  const renderCard = (eq, tipo) => {
+    const corFaixa = FAIXAS_COR2[eq.faixa] || '#C9A03D';
+    const lblFaixa = FAIXAS_LBL2[eq.faixa] || eq.faixa;
+    const portalLink = `${location.origin}${location.pathname.replace('liga-adm.html','liga-portal.html')}?id=${campeonatoId}&e=${eq.id}`;
+
+    let actionsHtml = '';
+    let codigoHtml = '';
+
+    if (tipo === 'pendente') {
+      actionsHtml = `
+        <button class="btn-aprovar" onclick="aprovarEquipe('${eq.id}')">✅ Aprovar</button>
+        <button class="btn-rejeitar" onclick="rejeitarEquipe('${eq.id}')">❌ Rejeitar</button>`;
+    } else if (tipo === 'aprovada') {
+      codigoHtml = `<div class="insc-codigo">
+        <div>
+          <div class="insc-codigo-label">Código de Acesso</div>
+          <div class="insc-codigo-val">${eq.codigoAcesso || '—'}</div>
+        </div>
+        <button class="btn-copiar" onclick="copiarLink('${portalLink}', '${eq.codigoAcesso}')">📋 Copiar Link</button>
+      </div>`;
+      actionsHtml = `<button class="btn-rejeitar btn-xs" onclick="rejeitarEquipe('${eq.id}')">Revogar</button>`;
+    } else {
+      actionsHtml = `<button class="btn-aprovar" style="font-size:0.65rem;padding:4px 9px;" onclick="aprovarEquipe('${eq.id}')">↩ Restaurar</button>`;
+    }
+
+    return `<div class="insc-card ${tipo}">
+      <div class="insc-info">
+        <div class="insc-nome">
+          <span class="insc-faixa" style="background:${corFaixa}">${lblFaixa}</span>${eq.nome}
+        </div>
+        <div class="insc-meta">
+          <span>👤 ${eq.responsavel || '—'}</span>
+          <span>📧 ${eq.email || '—'}</span>
+          <span>📱 ${eq.telefone || '—'}</span>
+          ${eq.cidade ? `<span>📍 ${eq.cidade}</span>` : ''}
+          ${eq.obs ? `<span>💬 ${eq.obs}</span>` : ''}
+        </div>
+        ${codigoHtml}
+      </div>
+      <div class="insc-actions">${actionsHtml}</div>
+    </div>`;
+  };
+
+  document.getElementById('insc-pendentes').innerHTML =
+    pendentes.length ? pendentes.map(e => renderCard(e, 'pendente')).join('') :
+    `<div class="vazio"><span>📬</span><p>Nenhuma inscrição pendente.</p></div>`;
+
+  document.getElementById('insc-aprovadas').innerHTML =
+    aprovadas.length ? aprovadas.map(e => renderCard(e, 'aprovada')).join('') :
+    `<div class="vazio" style="padding:12px 0"><span style="font-size:1.3rem">—</span></div>`;
+
+  document.getElementById('insc-rejeitadas').innerHTML =
+    rejeitadas.length ? rejeitadas.map(e => renderCard(e, 'rejeitada')).join('') :
+    `<div class="vazio" style="padding:12px 0"><span style="font-size:1.3rem">—</span></div>`;
+}
+
+window.aprovarEquipe = async function(id) {
+  // Gerar código de acesso (6 chars alfanumérico)
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let codigo = '';
+  for (let i = 0; i < 6; i++) codigo += chars[Math.floor(Math.random() * chars.length)];
+
+  try {
+    await atualizarLigaEquipe(campeonatoId, id, { status: 'aprovada', codigoAcesso: codigo });
+    const eq = equipes.find(e => e.id === id);
+    if (eq) { eq.status = 'aprovada'; eq.codigoAcesso = codigo; }
+    atualizarBadgePendentes();
+    renderInscricoes();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+window.rejeitarEquipe = async function(id) {
+  if (!confirm('Rejeitar esta equipe? Ela perderá o acesso ao portal.')) return;
+  try {
+    await atualizarLigaEquipe(campeonatoId, id, { status: 'rejeitada', codigoAcesso: null });
+    const eq = equipes.find(e => e.id === id);
+    if (eq) { eq.status = 'rejeitada'; eq.codigoAcesso = null; }
+    atualizarBadgePendentes();
+    renderInscricoes();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+window.copiarLink = function(link, codigo) {
+  const texto = `Portal da Equipe — Liga BJJ\n\nLink: ${link}\nCódigo de Acesso: ${codigo}\n\nAcesse o link, digite o e-mail cadastrado e o código acima para entrar na sua área.`;
+  navigator.clipboard.writeText(texto).then(() => {
+    alert('✅ Link e código copiados!\n\nCole no WhatsApp ou e-mail para enviar ao representante da equipe.');
+  }).catch(() => {
+    prompt('Copie o texto abaixo:', texto);
+  });
+};
 
 function calcularClassificacao(faixa) {
   const eqs = getEquipesDaFaixa(faixa);

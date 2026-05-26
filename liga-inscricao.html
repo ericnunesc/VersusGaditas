@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscrição de Equipe — Liga BJJ</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',-apple-system,sans-serif;background:#F5F7FA;color:#1A2C3E;min-height:100vh;}
+
+    /* Header */
+    .header{background:linear-gradient(135deg,#1A2C3E,#2A4060);color:#fff;padding:0;overflow:hidden;}
+    .header-inner{max-width:680px;margin:0 auto;padding:28px 20px 24px;}
+    .badge-liga{display:inline-block;background:rgba(201,160,61,0.2);border:1px solid #C9A03D;color:#C9A03D;padding:4px 12px;border-radius:20px;font-size:0.68rem;font-weight:700;margin-bottom:10px;letter-spacing:1px;}
+    .header h1{font-size:1.5rem;font-weight:800;line-height:1.2;margin-bottom:5px;}
+    .header .meta{font-size:0.75rem;color:#8A9CB0;display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+    .header .meta span{display:flex;align-items:center;gap:4px;}
+
+    /* Faixas disponíveis */
+    .faixas-strip{background:#0F1C2B;padding:12px 20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+    .faixa-pill{padding:6px 14px;border-radius:20px;font-size:0.72rem;font-weight:700;display:flex;align-items:center;gap:5px;color:#fff;}
+    .fp-branca{background:#6B7280;}
+    .fp-azul{background:#3B8BFF;}
+    .fp-roxa{background:#9B59B6;}
+    .fp-marrom{background:#92400E;}
+    .fp-preta{background:#1A1A1A;border:1px solid #333;}
+
+    /* Container */
+    .container{max-width:680px;margin:0 auto;padding:24px 16px 60px;}
+
+    /* Info card */
+    .info-card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:16px 18px;margin-bottom:18px;}
+    .info-card-title{font-size:0.7rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
+    .cats-pills{display:flex;flex-wrap:wrap;gap:6px;}
+    .cat-pill{padding:5px 12px;background:#F1F5F9;border-radius:20px;font-size:0.75rem;font-weight:600;color:#1A2C3E;}
+    .cat-pill.absoluto{background:#FEF9C3;color:#92400E;border:1px solid #F5E3A0;}
+
+    /* Vagas cards */
+    .vagas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:18px;}
+    .vaga-card{background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:12px 14px;text-align:center;}
+    .vaga-faixa{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+    .vaga-nums{font-size:1.3rem;font-weight:800;color:#1A2C3E;line-height:1;}
+    .vaga-label{font-size:0.62rem;color:#8A9CB0;margin-top:2px;}
+    .vaga-full .vaga-nums{color:#EF4444;}
+    .vaga-full{border-color:#FEE2E2;background:#FFF5F5;}
+    .vaga-ok .vaga-nums{color:#10B981;}
+    .progress-bar{height:4px;background:#F1F5F9;border-radius:2px;margin-top:6px;overflow:hidden;}
+    .progress-fill{height:100%;border-radius:2px;background:#C9A03D;transition:width 0.3s;}
+    .progress-fill.full{background:#EF4444;}
+    .progress-fill.ok{background:#10B981;}
+
+    /* Form card */
+    .form-card{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:22px;margin-bottom:16px;}
+    .form-card h2{font-size:1rem;font-weight:700;margin-bottom:4px;}
+    .form-card p{font-size:0.78rem;color:#8A9CB0;margin-bottom:20px;}
+
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+    .form-row.full{grid-template-columns:1fr;}
+    .fg{display:flex;flex-direction:column;gap:4px;}
+    .fg label{font-size:0.68rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.5px;}
+    .fg input,.fg select{border:1.5px solid #E2E8F0;border-radius:8px;padding:10px 12px;font-size:0.85rem;outline:none;transition:border-color 0.2s;font-family:inherit;color:#1A2C3E;}
+    .fg input:focus,.fg select:focus{border-color:#C9A03D;}
+    .fg input.error,.fg select.error{border-color:#EF4444;}
+
+    /* Faixa selector */
+    .faixa-select-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:5px;}
+    .faixa-opt{position:relative;}
+    .faixa-opt input{position:absolute;opacity:0;width:0;height:0;}
+    .faixa-opt label{display:block;padding:10px 8px;border:2px solid #E2E8F0;border-radius:10px;text-align:center;cursor:pointer;transition:all 0.2s;font-size:0.75rem;font-weight:700;}
+    .faixa-opt label:hover{border-color:#C9A03D;}
+    .faixa-opt input:checked + label{background:#1A2C3E;color:#fff;border-color:#1A2C3E;}
+    .faixa-opt.branca input:checked + label{background:#6B7280;border-color:#6B7280;}
+    .faixa-opt.azul   input:checked + label{background:#3B8BFF;border-color:#3B8BFF;}
+    .faixa-opt.roxa   input:checked + label{background:#9B59B6;border-color:#9B59B6;}
+    .faixa-opt.marrom input:checked + label{background:#92400E;border-color:#92400E;}
+    .faixa-opt.preta  input:checked + label{background:#222;border-color:#222;}
+    .faixa-opt.disabled label{opacity:0.4;cursor:not-allowed;pointer-events:none;}
+
+    /* Termos */
+    .termos-check{display:flex;align-items:flex-start;gap:9px;margin:14px 0;padding:12px;background:#F8FAFC;border-radius:8px;}
+    .termos-check input{width:16px;height:16px;margin-top:2px;accent-color:#C9A03D;flex-shrink:0;cursor:pointer;}
+    .termos-check span{font-size:0.75rem;color:#4A5568;line-height:1.5;}
+
+    /* Submit */
+    .btn-submit{width:100%;background:#C9A03D;color:#fff;border:none;padding:13px;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;}
+    .btn-submit:hover:not(:disabled){background:#A0822E;}
+    .btn-submit:disabled{opacity:0.6;cursor:not-allowed;}
+
+    /* Success */
+    #success-screen{display:none;}
+    .success-card{background:#fff;border:1px solid #BBF7D0;border-radius:14px;padding:32px 24px;text-align:center;margin-bottom:16px;}
+    .success-icon{font-size:3.5rem;margin-bottom:12px;}
+    .success-card h2{font-size:1.15rem;font-weight:800;color:#059669;margin-bottom:8px;}
+    .success-card p{font-size:0.82rem;color:#4A5568;line-height:1.6;margin-bottom:6px;}
+    .success-info{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px 16px;margin:14px 0;text-align:left;}
+    .success-info p{font-size:0.78rem;color:#166534;margin:3px 0;}
+    .success-info strong{color:#14532D;}
+
+    /* Error */
+    .alert-err{background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 14px;font-size:0.78rem;color:#DC2626;margin-bottom:10px;display:none;}
+
+    /* Footer */
+    .footer{text-align:center;font-size:0.65rem;color:#94A3B8;margin-top:20px;letter-spacing:0.5px;}
+
+    @media(max-width:480px){
+      .form-row{grid-template-columns:1fr;}
+      .faixa-select-grid{grid-template-columns:repeat(2,1fr);}
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="badge-liga">⚽ LIGA BJJ</div>
+    <h1 id="hdr-nome">Carregando Liga...</h1>
+    <div class="meta">
+      <span id="hdr-data">📅 —</span>
+      <span id="hdr-local">📍 —</span>
+    </div>
+  </div>
+</div>
+
+<!-- Faixas disponíveis -->
+<div class="faixas-strip" id="faixas-strip"></div>
+
+<div class="container">
+
+  <!-- Categorias da Liga -->
+  <div class="info-card" id="info-cats" style="display:none">
+    <div class="info-card-title">📋 Categorias desta Liga</div>
+    <div class="cats-pills" id="cats-pills"></div>
+  </div>
+
+  <!-- Vagas por faixa -->
+  <div class="vagas-grid" id="vagas-grid"></div>
+
+  <!-- Formulário de Inscrição -->
+  <div id="form-screen">
+    <div class="form-card">
+      <h2>📝 Inscrição de Equipe</h2>
+      <p>Preencha os dados da sua equipe. Após análise, o organizador enviará o link de acesso para cadastrar seus atletas.</p>
+
+      <div class="alert-err" id="alerta-erro"></div>
+
+      <div class="form-row">
+        <div class="fg">
+          <label>Nome da Equipe *</label>
+          <input type="text" id="f-nome" placeholder="Ex: Alliance São Paulo">
+        </div>
+        <div class="fg">
+          <label>Cidade</label>
+          <input type="text" id="f-cidade" placeholder="Ex: São Paulo - SP">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="fg">
+          <label>Responsável (Representante) *</label>
+          <input type="text" id="f-responsavel" placeholder="Nome completo">
+        </div>
+        <div class="fg">
+          <label>Telefone / WhatsApp *</label>
+          <input type="tel" id="f-telefone" placeholder="(11) 99999-9999">
+        </div>
+      </div>
+
+      <div class="form-row full">
+        <div class="fg">
+          <label>E-mail *</label>
+          <input type="email" id="f-email" placeholder="email@suaequipe.com.br">
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px;">
+        <div class="fg">
+          <label>Faixa de Inscrição *</label>
+          <div class="faixa-select-grid" id="faixa-select-grid">
+            <!-- preenchido pelo JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row full">
+        <div class="fg">
+          <label>Informações adicionais (opcional)</label>
+          <input type="text" id="f-obs" placeholder="Ex: número de atletas, dúvidas, etc.">
+        </div>
+      </div>
+
+      <label class="termos-check">
+        <input type="checkbox" id="chk-termos">
+        <span>Estou ciente de que esta inscrição está sujeita a aprovação do organizador. Após confirmação, receberei as instruções para cadastrar os atletas da equipe.</span>
+      </label>
+
+      <button class="btn-submit" id="btn-enviar" onclick="enviarInscricao()">📤 Enviar Inscrição</button>
+    </div>
+  </div>
+
+  <!-- Tela de Sucesso -->
+  <div id="success-screen">
+    <div class="success-card">
+      <div class="success-icon">✅</div>
+      <h2>Inscrição Enviada!</h2>
+      <p>Sua solicitação de inscrição foi recebida com sucesso.</p>
+      <p>O organizador irá analisar e entrará em contato pelo e-mail ou WhatsApp informados.</p>
+      <div class="success-info" id="success-info">
+        <p><strong>Equipe:</strong> <span id="s-nome">—</span></p>
+        <p><strong>Responsável:</strong> <span id="s-resp">—</span></p>
+        <p><strong>E-mail:</strong> <span id="s-email">—</span></p>
+        <p><strong>Faixa:</strong> <span id="s-faixa">—</span></p>
+      </div>
+      <p style="font-size:0.72rem;color:#94A3B8;margin-top:10px;">⏳ Prazo de resposta: até 48 horas úteis.</p>
+    </div>
+  </div>
+
+  <div class="footer">Liga BJJ · Gaditas Torneios · competicaobjj.vercel.app</div>
+</div>
+
+<script type="module">
+import {
+  buscarCampeonato, buscarLigaConfig, listarLigaEquipes,
+  salvarLigaEquipe, signInAnonymously, auth
+} from './js/firebase.js';
+
+const params = new URLSearchParams(location.search);
+const campeonatoId = params.get('id');
+
+const FAIXAS_ALL = ['branca','azul','roxa','marrom','preta'];
+const FAIXAS_LABEL = { branca:'⬜ Branca', azul:'🔵 Azul', roxa:'🟣 Roxa', marrom:'🟤 Marrom', preta:'⬛ Preta' };
+const FAIXAS_SHORT = { branca:'Branca', azul:'Azul', roxa:'Roxa', marrom:'Marrom', preta:'Preta' };
+const FAIXAS_CLS = { branca:'fp-branca', azul:'fp-azul', roxa:'fp-roxa', marrom:'fp-marrom', preta:'fp-preta' };
+
+let campeonato = null;
+let ligaConfig = {};
+let equipes = [];
+
+async function init() {
+  if (!campeonatoId) {
+    document.getElementById('hdr-nome').textContent = 'Liga não encontrada';
+    return;
+  }
+
+  try {
+    [campeonato, ligaConfig, equipes] = await Promise.all([
+      buscarCampeonato(campeonatoId),
+      buscarLigaConfig(campeonatoId).then(c => c || {}),
+      listarLigaEquipes(campeonatoId)
+    ]);
+
+    renderHeader();
+    renderCats();
+    renderFaixas();
+    renderVagas();
+  } catch(e) {
+    console.error(e);
+    document.getElementById('hdr-nome').textContent = 'Erro ao carregar Liga';
+  }
+}
+
+function renderHeader() {
+  if (!campeonato) return;
+  document.title = `Inscrição — ${campeonato.nome}`;
+  document.getElementById('hdr-nome').textContent = campeonato.nome;
+  if (campeonato.data) {
+    const d = new Date(campeonato.data).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+    document.getElementById('hdr-data').textContent = '📅 ' + d;
+  }
+  if (campeonato.local) document.getElementById('hdr-local').textContent = '📍 ' + campeonato.local;
+}
+
+function renderCats() {
+  const cats = ligaConfig.categorias || [];
+  const temAbs = ligaConfig.temAbsoluto;
+  if (!cats.length && !temAbs) return;
+
+  document.getElementById('info-cats').style.display = '';
+  const pills = document.getElementById('cats-pills');
+  pills.innerHTML = cats.map(c => `<span class="cat-pill">${c}</span>`).join('') +
+    (temAbs ? `<span class="cat-pill absoluto">🏆 Absoluto</span>` : '');
+}
+
+function renderFaixas() {
+  const faixasAtivas = getFaixasAtivas();
+  const strip = document.getElementById('faixas-strip');
+  strip.innerHTML = faixasAtivas.map(f =>
+    `<span class="faixa-pill ${FAIXAS_CLS[f]}">${FAIXAS_LABEL[f]}</span>`
+  ).join('');
+
+  // Faixa selector no form
+  const vagasPorFaixa = ligaConfig.vagasPorFaixa || {};
+  const grid = document.getElementById('faixa-select-grid');
+  grid.innerHTML = faixasAtivas.map(f => {
+    const vagas = vagasPorFaixa[f] || 6;
+    const inscritas = equipes.filter(e => e.faixa === f && e.status === 'aprovada').length;
+    const cheia = inscritas >= vagas;
+    return `<div class="faixa-opt ${f} ${cheia ? 'disabled' : ''}">
+      <input type="radio" name="faixa" id="r-${f}" value="${f}" ${cheia ? 'disabled' : ''}>
+      <label for="r-${f}">${FAIXAS_LABEL[f]}<br>${cheia ? '<span style="font-size:0.6rem;opacity:0.7">ESGOTADO</span>' : `<span style="font-size:0.6rem;opacity:0.7">${vagas-inscritas} vaga(s)</span>`}</label>
+    </div>`;
+  }).join('');
+}
+
+function getFaixasAtivas() {
+  // Se ligaConfig tem faixasAtivas, usa. Senão, deriva das categorias configuradas
+  if (ligaConfig.faixasAtivas && ligaConfig.faixasAtivas.length) return ligaConfig.faixasAtivas;
+  // Padrão: branca e azul
+  return FAIXAS_ALL.filter(f => equipes.some(e => e.faixa === f) || f === 'branca' || f === 'azul');
+}
+
+function renderVagas() {
+  const faixasAtivas = getFaixasAtivas();
+  const vagasPorFaixa = ligaConfig.vagasPorFaixa || {};
+  const grid = document.getElementById('vagas-grid');
+  grid.innerHTML = faixasAtivas.map(f => {
+    const vagas = vagasPorFaixa[f] || 6;
+    const inscritas = equipes.filter(e => e.faixa === f && e.status === 'aprovada').length;
+    const restam = Math.max(0, vagas - inscritas);
+    const pct = Math.min(100, Math.round((inscritas/vagas)*100));
+    const cheia = restam === 0;
+    return `<div class="vaga-card ${cheia ? 'vaga-full' : 'vaga-ok'}">
+      <div class="vaga-faixa" style="color:${faixaCor(f)}">${FAIXAS_SHORT[f]}</div>
+      <div class="vaga-nums">${restam}</div>
+      <div class="vaga-label">${cheia ? 'ESGOTADO' : 'vaga(s) disponível'}</div>
+      <div class="progress-bar"><div class="progress-fill ${cheia?'full':'ok'}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function faixaCor(f) {
+  return {branca:'#6B7280',azul:'#3B8BFF',roxa:'#9B59B6',marrom:'#92400E',preta:'#374151'}[f]||'#C9A03D';
+}
+
+window.enviarInscricao = async function() {
+  const nome = document.getElementById('f-nome').value.trim();
+  const cidade = document.getElementById('f-cidade').value.trim();
+  const responsavel = document.getElementById('f-responsavel').value.trim();
+  const telefone = document.getElementById('f-telefone').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const obs = document.getElementById('f-obs').value.trim();
+  const faixa = document.querySelector('input[name="faixa"]:checked')?.value;
+  const termos = document.getElementById('chk-termos').checked;
+
+  const erroEl = document.getElementById('alerta-erro');
+  erroEl.style.display = 'none';
+
+  if (!nome || !responsavel || !telefone || !email || !faixa) {
+    erroEl.textContent = '⚠️ Preencha todos os campos obrigatórios (Nome, Responsável, Telefone, E-mail e Faixa).';
+    erroEl.style.display = 'block';
+    return;
+  }
+  if (!termos) {
+    erroEl.textContent = '⚠️ Confirme que está ciente das condições de inscrição.';
+    erroEl.style.display = 'block';
+    return;
+  }
+
+  // Verificar se já existe inscrição com mesmo email+faixa
+  const jaExiste = equipes.some(e => e.email === email && e.faixa === faixa);
+  if (jaExiste) {
+    erroEl.textContent = '⚠️ Já existe uma inscrição com este e-mail para esta faixa.';
+    erroEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('btn-enviar');
+  btn.disabled = true;
+  btn.textContent = '⏳ Enviando...';
+
+  try {
+    // Autenticação anônima para poder escrever no Firestore
+    await signInAnonymously(auth);
+
+    await salvarLigaEquipe(campeonatoId, {
+      nome, cidade, responsavel, telefone, email, obs,
+      faixa, status: 'pendente', codigoAcesso: null
+    });
+
+    // Mostrar tela de sucesso
+    document.getElementById('s-nome').textContent = nome;
+    document.getElementById('s-resp').textContent = responsavel;
+    document.getElementById('s-email').textContent = email;
+    document.getElementById('s-faixa').textContent = FAIXAS_LABEL[faixa] || faixa;
+    document.getElementById('form-screen').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+  } catch(e) {
+    console.error(e);
+    erroEl.textContent = '❌ Erro ao enviar inscrição: ' + e.message;
+    erroEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '📤 Enviar Inscrição';
+  }
+};
+
+init();
+</script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, addDoc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -146,6 +146,10 @@ export async function atualizarLigaEquipe(campeonatoId, equipeId, dados) {
 export async function deletarLigaEquipe(campeonatoId, equipeId) {
   await deleteDoc(doc(db, "campeonatos", campeonatoId, "liga-equipes", equipeId));
 }
+export async function buscarLigaEquipe(campeonatoId, equipeId) {
+  const snap = await getDoc(doc(db, "campeonatos", campeonatoId, "liga-equipes", equipeId));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
 
 // Liga Atletas
 export async function salvarLigaAtleta(campeonatoId, atleta) {
@@ -208,4 +212,4 @@ export async function deletarLigaHistorico(campeonatoId, historicoId) {
   await deleteDoc(doc(db, "campeonatos", campeonatoId, "liga-historico", historicoId));
 }
 
-export { db, auth, onSnapshot, collection, doc, query, where, orderBy };
+export { db, auth, onSnapshot, collection, doc, query, where, orderBy, signInAnonymously };

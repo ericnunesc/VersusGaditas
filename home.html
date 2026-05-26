@@ -164,10 +164,11 @@
       const isLiga = c.tipo === 'liga';
       const podeInscrever = c.status === 'ativo' && !isLiga;
       const linksGrid = isLiga
-        ? `<a href="liga-cronograma.html?id=${c.id}" class="btn-link-card">📅 Calendário</a>
+        ? `${c.status === 'ativo' ? `<a href="liga-inscricao.html?id=${c.id}" class="btn-link-card" style="background:#C9A03D;color:#fff;border-color:#C9A03D;grid-column:1/-1">📝 Inscrever Equipe</a>` : ''}
+           <a href="liga-cronograma.html?id=${c.id}" class="btn-link-card">📅 Calendário</a>
            <a href="liga-tv.html?id=${c.id}" class="btn-link-card" target="_blank">📺 TV Ao Vivo</a>
            <a href="liga-placar-publico.html?id=${c.id}" class="btn-link-card" target="_blank">🏆 Placar</a>
-           <a href="liga-adm.html?id=${c.id}" class="btn-link-card">⚙️ Admin</a>`
+           <a href="liga-portal.html?id=${c.id}" class="btn-link-card">🔐 Portal Equipe</a>`
         : `<a href="atletas-publico.html?id=${c.id}" class="btn-link-card">👥 Atletas</a>
            <a href="cronograma-lutas.html?id=${c.id}" class="btn-link-card">📅 Cronograma</a>
            <a href="tv-chaveamento.html?id=${c.id}" class="btn-link-card" target="_blank">📺 TV Lutas</a>
