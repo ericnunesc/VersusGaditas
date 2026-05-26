@@ -197,6 +197,7 @@
         const isLiga = c.tipo === 'liga';
         const acoesHtml = isLiga
           ? `<a href="liga-adm.html?id=${c.id}" class="btn-sm primary">⚽ Admin Liga</a>
+             <a href="liga-placar-adm.html?id=${c.id}" class="btn-sm" style="background:#10B981;color:#fff;border-color:#10B981;">🎙️ Placar Ao Vivo</a>
              <a href="liga-cronograma.html?id=${c.id}" target="_blank" class="btn-sm">📅 Calendário</a>
              <a href="liga-tv.html?id=${c.id}" target="_blank" class="btn-sm">📺 TV</a>
              <button class="btn-sm" onclick="editar('${c.id}')">✏️ Editar</button>
