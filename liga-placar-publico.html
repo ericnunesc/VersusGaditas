@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Placar — Liga BJJ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ouro:#C9A03D;--ouro-esc:#A0822E;
+      --bg:#060608;--bg2:#0E0E12;--bg3:#161620;--borda:#1E1E2A;
+      --txt:#E8E8F0;--txt-fraco:#5A5A7A;
+      --verde:#00E68A;--azul:#3B8BFF;--vermelho:#FF4444;--laranja:#F59E0B;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(201,160,61,0.07) 0%,transparent 60%);pointer-events:none;z-index:0;}
+    .wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 14px 40px;}
+
+    /* Header */
+    .header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 12px;border-bottom:1px solid var(--borda);margin-bottom:18px;flex-wrap:wrap;gap:8px;}
+    .logo{display:flex;align-items:center;gap:10px;}
+    .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--ouro),var(--ouro-esc));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+    .logo-title{font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;color:var(--ouro);letter-spacing:2px;}
+    .logo-sub{font-size:0.58rem;color:var(--txt-fraco);letter-spacing:1px;text-transform:uppercase;}
+    .relogio{font-family:'Oswald',sans-serif;font-size:1.6rem;font-weight:700;color:var(--ouro);letter-spacing:2px;}
+
+    /* Info bar */
+    .info-bar{background:var(--bg2);border:1px solid var(--borda);border-left:3px solid var(--ouro);border-radius:8px;padding:9px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+    .info-nome{font-family:'Oswald',sans-serif;font-size:0.9rem;color:var(--ouro);}
+    .dot-live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--verde);margin-right:5px;animation:blink 1.4s infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+    .info-upd{font-size:0.67rem;color:var(--txt-fraco);}
+
+    /* Confronto ao vivo — grande */
+    .placar-card{background:var(--bg2);border:1px solid rgba(0,230,138,0.25);border-radius:14px;overflow:hidden;margin-bottom:18px;}
+    .placar-top{background:var(--bg3);padding:10px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--borda);}
+    .placar-meta{font-size:0.72rem;color:var(--txt-fraco);}
+    .live-pill{background:rgba(0,230,138,0.12);border:1px solid rgba(0,230,138,0.35);color:var(--verde);padding:3px 11px;border-radius:20px;font-size:0.63rem;font-weight:700;animation:blink 0.9s infinite;}
+    .placar-body{padding:22px 18px;}
+    .placar-teams{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:16px;}
+    .pt-nome{font-family:'Oswald',sans-serif;font-size:1.5rem;font-weight:700;line-height:1.1;}
+    .pt-cidade{font-size:0.7rem;color:var(--txt-fraco);margin-top:3px;}
+    .pt-right{text-align:right;}
+    .pt-score{font-family:'Oswald',sans-serif;font-size:3.5rem;font-weight:900;color:var(--ouro);text-align:center;line-height:1;letter-spacing:-2px;}
+    .pt-score-sub{font-size:0.62rem;color:var(--txt-fraco);text-align:center;margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+
+    /* Cat mini row */
+    .cats-mini{border-top:1px solid var(--borda);padding-top:12px;}
+    .cat-mini-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+    .cat-mini-row:last-child{border-bottom:none;}
+    .cat-mini-nome{font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:600;letter-spacing:0.5px;color:var(--txt-fraco);text-transform:uppercase;width:85px;flex-shrink:0;}
+    .cat-mini-res{display:flex;align-items:center;gap:8px;flex:1;justify-content:center;}
+    .cat-mini-at{font-size:0.8rem;font-weight:600;max-width:130px;text-align:center;}
+    .cat-mini-badge{padding:2px 9px;border-radius:20px;font-size:0.6rem;font-weight:700;white-space:nowrap;}
+    .cb-1{background:rgba(59,139,255,0.12);color:var(--azul);border:1px solid rgba(59,139,255,0.25);}
+    .cb-2{background:rgba(239,68,68,0.12);color:var(--vermelho);border:1px solid rgba(239,68,68,0.25);}
+    .cb-emp{background:rgba(245,158,11,0.1);color:var(--laranja);border:1px solid rgba(245,158,11,0.25);}
+    .cb-pend{background:rgba(255,255,255,0.04);color:var(--txt-fraco);border:1px solid rgba(255,255,255,0.07);}
+
+    /* Standings */
+    .section-title{font-family:'Oswald',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:2px;color:var(--txt-fraco);text-transform:uppercase;margin-bottom:8px;margin-top:20px;}
+
+    .ftabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;}
+    .ftab{background:var(--bg2);border:1px solid var(--borda);color:var(--txt-fraco);padding:6px 13px;border-radius:7px;font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;font-weight:600;letter-spacing:1px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
+    .ftab.active{background:rgba(201,160,61,0.1);border-color:var(--ouro);color:var(--ouro);}
+
+    .standings-card{background:var(--bg2);border:1px solid var(--borda);border-radius:10px;overflow:hidden;margin-bottom:14px;}
+    .st-row{display:grid;grid-template-columns:32px 1fr 28px 28px 28px 28px 48px;gap:5px;padding:9px 14px;border-top:1px solid rgba(255,255,255,0.03);align-items:center;}
+    .st-row.header-row{background:var(--bg3);border-top:none;font-family:'Barlow Condensed',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:1px;color:var(--txt-fraco);text-transform:uppercase;}
+    .st-pos{font-family:'Oswald',sans-serif;font-size:0.82rem;color:var(--txt-fraco);}
+    .st-nome{font-weight:600;font-size:0.82rem;}
+    .st-num{text-align:center;font-size:0.75rem;color:var(--txt-fraco);}
+    .st-v{color:var(--verde);}
+    .st-d{color:var(--vermelho);}
+    .st-pts{font-family:'Oswald',sans-serif;font-weight:700;color:var(--ouro);font-size:0.88rem;}
+    .st-1{background:rgba(201,160,61,0.06);}
+    .st-2{background:rgba(201,160,61,0.03);}
+
+    .empty{text-align:center;padding:60px 20px;color:var(--txt-fraco);}
+    .empty .icon{font-size:2.8rem;margin-bottom:12px;opacity:0.4;}
+    .empty h3{font-family:'Oswald',sans-serif;font-size:1rem;margin-bottom:6px;letter-spacing:1px;}
+
+    .footer{text-align:center;margin-top:24px;font-size:0.6rem;color:var(--txt-fraco);letter-spacing:1px;text-transform:uppercase;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🏆</div>
+      <div>
+        <div class="logo-title">PLACAR — LIGA BJJ</div>
+        <div class="logo-sub" id="comp-sub">Gaditas Torneios</div>
+      </div>
+    </div>
+    <div class="relogio" id="relogio">--:--:--</div>
+  </div>
+
+  <div class="info-bar">
+    <span class="info-nome" id="info-nome">Carregando...</span>
+    <span class="info-upd"><span class="dot-live"></span><span id="upd-time">--</span></span>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div id="main"></div>
+
+  <div class="footer">Atualiza a cada 3 seg · Liga BJJ · Gaditas Torneios</div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const cid = params.get('id');
+const KEY = `gaditas_liga_${cid}`;
+const CATS = ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'];
+const FL = { branca:'Branca', azul:'Azul', roxa:'Roxa', marrom:'Marrom', preta:'Preta' };
+
+let faixaTab = null;
+
+function pad(n){ return n.toString().padStart(2,'0'); }
+function tick(){ const d=new Date(); document.getElementById('relogio').textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); }
+setInterval(tick,1000); tick();
+
+function render() {
+  document.getElementById('upd-time').textContent='às '+pad(new Date().getHours())+':'+pad(new Date().getMinutes())+':'+pad(new Date().getSeconds());
+  const raw = localStorage.getItem(KEY);
+  if (!raw) {
+    document.getElementById('info-nome').textContent = '⏸️ Nenhuma Liga ativa';
+    document.getElementById('main').innerHTML = `<div class="empty"><div class="icon">🏆</div><h3>Nenhuma Liga Ativa</h3><p>Acesse o painel admin para iniciar um confronto ao vivo.</p></div>`;
+    return;
+  }
+
+  const est = JSON.parse(raw);
+  const equipes = est.equipes || [], confrontos = est.confrontos || [], atletas = est.atletas || [];
+  document.getElementById('info-nome').textContent = '⚽ ' + (est.nomeCompeticao||'Liga BJJ');
+  document.getElementById('comp-sub').textContent = est.nomeCompeticao||'Liga BJJ';
+
+  const faixas = [...new Set(confrontos.map(c=>c.faixa))].filter(Boolean);
+  if (!faixaTab || !faixas.includes(faixaTab)) {
+    const av = confrontos.find(c=>c.status==='ao_vivo');
+    faixaTab = av?.faixa || est.faixaAtiva || faixas[0] || 'branca';
+  }
+
+  function nEq(id){ return equipes.find(e=>e.id===id)?.nome||'?'; }
+
+  // Ao vivo desta faixa
+  const aoVivo = confrontos.find(c=>c.faixa===faixaTab&&c.status==='ao_vivo');
+
+  let html = '';
+
+  // Faixa tabs
+  if (faixas.length > 1) {
+    html += `<div class="ftabs">${faixas.map(f=>`<button class="ftab ${f===faixaTab?'active':''}" onclick="setFaixa('${f}')">${FL[f]||f}</button>`).join('')}</div>`;
+  }
+
+  if (aoVivo) {
+    const eq1=nEq(aoVivo.equipe1Id), eq2=nEq(aoVivo.equipe2Id);
+    const r = aoVivo.resultado || {};
+    const cats = r.categorias || CATS.map(c=>({categoria:c,vencedor:null,finalizacao:false}));
+    const v1=r.vitoriasEq1||0, v2=r.vitoriasEq2||0;
+    const pend=cats.filter(c=>!c.vencedor).length;
+
+    html += `<div class="placar-card">
+      <div class="placar-top">
+        <span class="placar-meta">Rodada ${aoVivo.rodada} · ${FL[faixaTab]||faixaTab} · ${aoVivo.data||'—'} ${aoVivo.hora||''} · ${aoVivo.local||'—'}</span>
+        <span class="live-pill">🔴 AO VIVO</span>
+      </div>
+      <div class="placar-body">
+        <div class="placar-teams">
+          <div>
+            <div class="pt-nome">${eq1}</div>
+            <div class="pt-cidade">${equipes.find(e=>e.id===aoVivo.equipe1Id)?.cidade||'Casa'}</div>
+          </div>
+          <div>
+            <div class="pt-score">${v1}<span style="color:var(--txt-fraco);font-size:2.5rem;">×</span>${v2}</div>
+            <div class="pt-score-sub">${pend>0?pend+' pend.':'Placar Final'}</div>
+          </div>
+          <div class="pt-right">
+            <div class="pt-nome">${eq2}</div>
+            <div class="pt-cidade">${equipes.find(e=>e.id===aoVivo.equipe2Id)?.cidade||'Visit.'}</div>
+          </div>
+        </div>
+        <div class="cats-mini">${cats.map(cr=>{
+          const at1=atletas.find(a=>a.equipeId===aoVivo.equipe1Id&&a.faixa===faixaTab&&a.categoria===cr.categoria);
+          const at2=atletas.find(a=>a.equipeId===aoVivo.equipe2Id&&a.faixa===faixaTab&&a.categoria===cr.categoria);
+          const n1=at1?.nome||(eq1.split(' ')[0]);
+          const n2=at2?.nome||(eq2.split(' ')[0]);
+          let badge='<span class="cat-mini-badge cb-pend">⏳</span>';
+          let n1s=`<span class="cat-mini-at">${n1}</span>`, n2s=`<span class="cat-mini-at">${n2}</span>`;
+          if(cr.vencedor==='1'){ badge=`<span class="cat-mini-badge cb-1">${cr.finalizacao?'🔒 Sub':'🥇 Casa'}</span>`; n1s=`<strong class="cat-mini-at" style="color:var(--azul)">${n1}</strong>`; }
+          else if(cr.vencedor==='2'){ badge=`<span class="cat-mini-badge cb-2">${cr.finalizacao?'🔒 Sub':'🥇 Visit.'}</span>`; n2s=`<strong class="cat-mini-at" style="color:var(--vermelho)">${n2}</strong>`; }
+          else if(cr.vencedor==='empate'){ badge=`<span class="cat-mini-badge cb-emp">🤝 Emp</span>`; }
+          return `<div class="cat-mini-row">
+            <span class="cat-mini-nome">${cr.categoria}</span>
+            <div class="cat-mini-res">${n1s}${badge}${n2s}</div>
+          </div>`;
+        }).join('')}</div>
+      </div>
+    </div>`;
+  } else {
+    // Próximo confronto
+    const proximo = confrontos.filter(c=>c.faixa===faixaTab&&c.status==='pendente').sort((a,b)=>a.rodada-b.rodada)[0];
+    if (proximo) {
+      html += `<div class="empty"><div class="icon">⏸️</div><h3>Aguardando Próximo Confronto</h3><p>${nEq(proximo.equipe1Id)} × ${nEq(proximo.equipe2Id)}<br>Rodada ${proximo.rodada} · ${proximo.data||'—'} ${proximo.hora||''}</p></div>`;
+    } else {
+      html += `<div class="empty"><div class="icon">🏁</div><h3>Fase Concluída</h3><p>Todos os confrontos desta faixa foram realizados.</p></div>`;
+    }
+  }
+
+  // Classificação
+  const confsF = confrontos.filter(c=>c.faixa===faixaTab);
+  const eqIds = [...new Set(confsF.flatMap(c=>[c.equipe1Id,c.equipe2Id]))];
+  const eqsF = equipes.filter(e=>eqIds.includes(e.id));
+  if (eqsF.length) {
+    const stats = {};
+    eqsF.forEach(e=>{ stats[e.id]={eq:e,j:0,v:0,emp:0,d:0,pts:0,cv:0}; });
+    confsF.filter(c=>c.status==='concluido'&&c.resultado).forEach(c=>{
+      const s1=stats[c.equipe1Id],s2=stats[c.equipe2Id]; if(!s1||!s2) return;
+      const v1=c.resultado.vitoriasEq1||0,v2=c.resultado.vitoriasEq2||0;
+      s1.j++;s2.j++;s1.cv+=v1;s2.cv+=v2;
+      if(v1>v2){s1.v++;s2.d++;s1.pts+=3;}else if(v2>v1){s2.v++;s1.d++;s2.pts+=3;}else{s1.emp++;s2.emp++;s1.pts+=1;s2.pts+=1;}
+    });
+    const ranked = Object.values(stats).sort((a,b)=>b.pts-a.pts||b.v-a.v||b.cv-a.cv);
+    const medals=['🥇','🥈','🥉'];
+    html += `<div class="section-title">📊 Classificação — ${FL[faixaTab]||faixaTab}</div>
+    <div class="standings-card">
+      <div class="st-row header-row"><span>#</span><span>Equipe</span><span style="text-align:center">V</span><span style="text-align:center">E</span><span style="text-align:center">D</span><span style="text-align:center">J</span><span>Pts</span></div>
+      ${ranked.map((s,i)=>`<div class="st-row ${i===0?'st-1':i===1?'st-2':''}">
+        <span class="st-pos">${medals[i]||(i+1)+'º'}</span>
+        <span class="st-nome">${s.eq.nome}</span>
+        <span class="st-num st-v">${s.v}</span>
+        <span class="st-num" style="color:var(--laranja)">${s.emp}</span>
+        <span class="st-num st-d">${s.d}</span>
+        <span class="st-num">${s.j}</span>
+        <span class="st-pts">${s.pts}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  document.getElementById('main').innerHTML = html;
+}
+
+window.setFaixa = function(f){ faixaTab=f; render(); };
+
+render();
+setInterval(render, 3000);
+window.addEventListener('storage', e => { if(e.key===KEY) render(); });
+</script>
+</body>
+</html>

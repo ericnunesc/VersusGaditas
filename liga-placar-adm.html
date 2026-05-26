@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Placar Admin — Liga BJJ</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',-apple-system,sans-serif;background:#F5F7FA;color:#1A2C3E;}
+    header{background:#1A2C3E;color:#fff;padding:13px 22px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+    .hdr-logo{display:flex;align-items:center;gap:10px;}
+    .hdr-logo h1{font-size:0.95rem;font-weight:700;}
+    .hdr-logo p{font-size:0.65rem;color:#8A9CB0;}
+    .hdr-right{display:flex;align-items:center;gap:8px;}
+    .user-email{font-size:0.72rem;color:#8A9CB0;}
+    .btn-sair{background:transparent;border:1px solid #EF4444;color:#EF4444;padding:5px 12px;border-radius:40px;font-size:0.72rem;cursor:pointer;}
+    .btn-sair:hover{background:#EF4444;color:#fff;}
+    a.btn-back{background:transparent;border:1px solid #8A9CB0;color:#8A9CB0;padding:5px 12px;border-radius:40px;font-size:0.72rem;cursor:pointer;text-decoration:none;}
+    a.btn-back:hover{border-color:#C9A03D;color:#C9A03D;}
+
+    .app{max-width:900px;margin:0 auto;padding:22px 16px 60px;}
+
+    .card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:18px;margin-bottom:14px;}
+    .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:8px;}
+    .card-header h3{font-size:0.9rem;font-weight:700;}
+
+    .btn{padding:8px 18px;border-radius:40px;border:none;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.2s;display:inline-flex;align-items:center;gap:5px;}
+    .btn-primary{background:#C9A03D;color:#fff;}
+    .btn-primary:hover{background:#A0822E;}
+    .btn-secondary{background:transparent;border:1px solid #E2E8F0;color:#1A2C3E;}
+    .btn-secondary:hover{border-color:#C9A03D;color:#C9A03D;}
+    .btn-danger{background:transparent;border:1px solid #EF4444;color:#EF4444;}
+    .btn-danger:hover{background:#EF4444;color:#fff;}
+    .btn-success{background:#10B981;color:#fff;border:none;}
+    .btn-success:hover{background:#059669;}
+    .btn-sm{padding:5px 11px;font-size:0.72rem;}
+
+    select{width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:9px 12px;font-size:0.84rem;outline:none;background:#fff;margin-bottom:10px;}
+    select:focus{border-color:#C9A03D;}
+
+    /* Live score display */
+    .live-banner{background:linear-gradient(135deg,#1A2C3E,#2A4060);border-radius:14px;padding:20px;margin-bottom:14px;color:#fff;}
+    .live-badge{display:inline-block;background:#10B981;color:#fff;padding:3px 12px;border-radius:20px;font-size:0.7rem;font-weight:700;margin-bottom:12px;animation:pulse 1.2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+    .live-teams{display:grid;grid-template-columns:1fr 80px 1fr;align-items:center;gap:10px;margin-bottom:12px;}
+    .live-team-name{font-weight:700;font-size:1.1rem;}
+    .live-team-sub{font-size:0.7rem;color:#8A9CB0;margin-top:3px;}
+    .live-score{text-align:center;font-size:2.8rem;font-weight:900;color:#C9A03D;line-height:1;}
+    .live-meta{font-size:0.72rem;color:#8A9CB0;display:flex;gap:14px;flex-wrap:wrap;}
+
+    /* Category rows */
+    .cat-row{border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:9px;}
+    .cat-row-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+    .cat-nome{font-weight:700;font-size:0.88rem;}
+    .cat-atletas{font-size:0.72rem;color:#8A9CB0;}
+    .cat-btns{display:flex;gap:6px;flex-wrap:wrap;}
+    .cat-btn{padding:7px 14px;border:2px solid #E2E8F0;background:#fff;border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:600;transition:all 0.15s;flex:1;min-width:100px;text-align:center;}
+    .cat-btn:hover{border-color:#C9A03D;}
+    .cat-btn.sel-1{border-color:#3B8BFF;background:#EFF6FF;color:#1D4ED8;}
+    .cat-btn.sel-emp{border-color:#F59E0B;background:#FFFBEB;color:#92400E;}
+    .cat-btn.sel-2{border-color:#EF4444;background:#FEF2F2;color:#DC2626;}
+    .cat-fin{display:flex;align-items:center;gap:5px;font-size:0.74rem;color:#8A9CB0;margin-top:7px;cursor:pointer;}
+    .cat-fin input{accent-color:#C9A03D;width:16px;height:16px;}
+    .cat-status-done{font-size:0.72rem;padding:3px 9px;border-radius:20px;background:#DCFCE7;color:#166534;font-weight:700;}
+    .cat-status-pend{font-size:0.72rem;padding:3px 9px;border-radius:20px;background:#FEF9C3;color:#92400E;font-weight:700;}
+
+    .vazio{text-align:center;padding:36px 20px;color:#8A9CB0;}
+    .vazio span{font-size:2.4rem;display:block;margin-bottom:8px;opacity:0.3;}
+
+    .links-bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+    .lnk{padding:6px 13px;border:1px solid #E2E8F0;border-radius:8px;font-size:0.73rem;font-weight:600;color:#1A2C3E;text-decoration:none;background:#fff;transition:all 0.2s;}
+    .lnk:hover{border-color:#C9A03D;color:#C9A03D;}
+    .lnk-primary{background:#C9A03D;border-color:#C9A03D;color:#fff;}
+    .lnk-primary:hover{background:#A0822E;color:#fff;}
+  </style>
+</head>
+<body>
+<header>
+  <div class="hdr-logo">
+    <span style="font-size:1.5rem">🎙️</span>
+    <div><h1>PLACAR AO VIVO — LIGA BJJ</h1><p id="comp-subtitle">Carregando...</p></div>
+  </div>
+  <div class="hdr-right">
+    <a id="btn-liga-adm" href="#" class="btn-back">← Liga Admin</a>
+    <span class="user-email" id="user-email"></span>
+    <button class="btn-sair" id="btn-sair">↩ Sair</button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="links-bar">
+    <a id="lnk-tv" href="#" class="lnk lnk-primary" target="_blank">📺 Ver TV Ao Vivo</a>
+    <a id="lnk-placar" href="#" class="lnk" target="_blank">🏆 Ver Placar Público</a>
+  </div>
+
+  <!-- Selecionar confronto ao vivo -->
+  <div class="card" id="card-select">
+    <div class="card-header"><h3>▶️ Selecionar Confronto</h3></div>
+    <p style="font-size:0.8rem;color:#8A9CB0;margin-bottom:10px;">Escolha o confronto que está acontecendo agora para transmissão ao vivo.</p>
+    <select id="sel-confronto">
+      <option value="">⏳ Carregando confrontos...</option>
+    </select>
+    <button class="btn btn-success" onclick="iniciarAoVivo()">▶️ Iniciar Ao Vivo</button>
+  </div>
+
+  <!-- Controle ao vivo -->
+  <div id="live-control" style="display:none">
+    <div class="live-banner">
+      <span class="live-badge">🔴 AO VIVO</span>
+      <div class="live-teams">
+        <div>
+          <div class="live-team-name" id="lv-eq1">—</div>
+          <div class="live-team-sub">Casa</div>
+        </div>
+        <div class="live-score"><span id="lv-v1">0</span><span style="color:#64748B;font-size:1.8rem">×</span><span id="lv-v2">0</span></div>
+        <div style="text-align:right">
+          <div class="live-team-name" id="lv-eq2">—</div>
+          <div class="live-team-sub">Visitante</div>
+        </div>
+      </div>
+      <div class="live-meta">
+        <span id="lv-rodada">—</span>
+        <span id="lv-faixa">—</span>
+        <span id="lv-data">—</span>
+        <span id="lv-local">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>📋 Resultados por Categoria</h3>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-success btn-sm" onclick="finalizarConfronto()">✅ Finalizar Confronto</button>
+          <button class="btn btn-danger btn-sm" onclick="encerrarSemResultado()">⏹️ Encerrar</button>
+        </div>
+      </div>
+      <div id="cats-live"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import {
+  onLogin, logout, buscarCampeonato,
+  listarLigaEquipes, listarLigaAtletas,
+  listarLigaConfrontos, atualizarLigaConfronto,
+  atualizarLigaAtleta, listarLigaAtletas as getAtletas
+} from './js/firebase.js';
+
+const params = new URLSearchParams(location.search);
+const campeonatoId = params.get('id');
+if (!campeonatoId) location.replace('painel-admin.html');
+
+const CATEGORIAS = ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'];
+const FAIXAS_LABEL = { branca:'Branca', azul:'Azul', roxa:'Roxa', marrom:'Marrom', preta:'Preta' };
+
+let campeonato, equipes = [], atletas = [], confrontos = [];
+let confrontoAtivo = null;
+
+onLogin(user => {
+  if (!user) { location.replace('login-admin.html'); return; }
+  document.getElementById('user-email').textContent = user.email;
+  iniciar();
+});
+
+document.getElementById('btn-sair').addEventListener('click', async () => {
+  await logout(); location.replace('login-admin.html');
+});
+
+async function iniciar() {
+  campeonato = await buscarCampeonato(campeonatoId);
+  document.getElementById('comp-subtitle').textContent = campeonato?.nome || 'Liga BJJ';
+  document.getElementById('btn-liga-adm').href = `liga-adm.html?id=${campeonatoId}`;
+  document.getElementById('lnk-tv').href = `liga-tv.html?id=${campeonatoId}`;
+  document.getElementById('lnk-placar').href = `liga-placar-publico.html?id=${campeonatoId}`;
+
+  [equipes, atletas, confrontos] = await Promise.all([
+    listarLigaEquipes(campeonatoId),
+    getAtletas(campeonatoId),
+    listarLigaConfrontos(campeonatoId)
+  ]);
+
+  // Verificar se já tem algum ao vivo
+  const aoVivo = confrontos.find(c => c.status === 'ao_vivo');
+  if (aoVivo) {
+    confrontoAtivo = aoVivo;
+    mostrarControleAoVivo();
+  } else {
+    preencherSelectConfronto();
+  }
+}
+
+function nomeEquipe(id) { return equipes.find(e => e.id === id)?.nome || '?'; }
+
+function preencherSelectConfronto() {
+  const pendentes = confrontos.filter(c => c.status === 'pendente');
+  const sel = document.getElementById('sel-confronto');
+  if (!pendentes.length) {
+    sel.innerHTML = `<option value="">Nenhum confronto pendente encontrado</option>`;
+    return;
+  }
+  sel.innerHTML = `<option value="">Selecione um confronto...</option>` +
+    pendentes.map(c => {
+      const eq1 = nomeEquipe(c.equipe1Id), eq2 = nomeEquipe(c.equipe2Id);
+      const fl = FAIXAS_LABEL[c.faixa] || c.faixa;
+      return `<option value="${c.id}">${eq1} × ${eq2} — Rodada ${c.rodada} (${fl}) · ${c.data||'—'}</option>`;
+    }).join('');
+}
+
+window.iniciarAoVivo = async function() {
+  const id = document.getElementById('sel-confronto').value;
+  if (!id) { alert('Selecione um confronto.'); return; }
+  confrontoAtivo = confrontos.find(c => c.id === id);
+  if (!confrontoAtivo) return;
+  const resultado = {
+    categorias: CATEGORIAS.map(cat => ({ categoria: cat, vencedor: null, finalizacao: false })),
+    vitoriasEq1: 0, vitoriasEq2: 0
+  };
+  await atualizarLigaConfronto(campeonatoId, id, { status: 'ao_vivo', resultado });
+  confrontoAtivo.status = 'ao_vivo';
+  confrontoAtivo.resultado = resultado;
+  salvarEstado();
+  mostrarControleAoVivo();
+};
+
+function mostrarControleAoVivo() {
+  document.getElementById('card-select').style.display = 'none';
+  document.getElementById('live-control').style.display = 'block';
+  const c = confrontoAtivo;
+  const eq1 = nomeEquipe(c.equipe1Id), eq2 = nomeEquipe(c.equipe2Id);
+  document.getElementById('lv-eq1').textContent = eq1;
+  document.getElementById('lv-eq2').textContent = eq2;
+  document.getElementById('lv-rodada').textContent = `Rodada ${c.rodada}`;
+  document.getElementById('lv-faixa').textContent = `⬜ ${FAIXAS_LABEL[c.faixa]||c.faixa}`;
+  document.getElementById('lv-data').textContent = `📅 ${c.data||'—'} ${c.hora||''}`;
+  document.getElementById('lv-local').textContent = `📍 ${c.local||'—'}`;
+  renderCatsLive();
+}
+
+function renderCatsLive() {
+  const c = confrontoAtivo;
+  const eq1 = nomeEquipe(c.equipe1Id), eq2 = nomeEquipe(c.equipe2Id);
+  const cats = c.resultado?.categorias || CATEGORIAS.map(cat => ({ categoria: cat, vencedor: null, finalizacao: false }));
+
+  document.getElementById('cats-live').innerHTML = cats.map((cr, idx) => {
+    const at1 = atletas.find(a => a.equipeId === c.equipe1Id && a.faixa === c.faixa && a.categoria === cr.categoria);
+    const at2 = atletas.find(a => a.equipeId === c.equipe2Id && a.faixa === c.faixa && a.categoria === cr.categoria);
+    const nome1 = at1 ? at1.nome : eq1.split(' ')[0];
+    const nome2 = at2 ? at2.nome : eq2.split(' ')[0];
+    const done = !!cr.vencedor;
+    const sel = v => cr.vencedor === v ? (v==='1'?'sel-1':v==='2'?'sel-2':'sel-emp') : '';
+
+    return `<div class="cat-row">
+      <div class="cat-row-header">
+        <div>
+          <div class="cat-nome">${cr.categoria}</div>
+          <div class="cat-atletas">${nome1} vs ${nome2}</div>
+        </div>
+        <span class="${done ? 'cat-status-done' : 'cat-status-pend'}">${done ? '✅ Definido' : '⏳ Pendente'}</span>
+      </div>
+      <div class="cat-btns">
+        <button class="cat-btn ${sel('1')}" onclick="setVencedor(${idx},'1')">${nome1} venceu</button>
+        <button class="cat-btn ${sel('empate')}" onclick="setVencedor(${idx},'empate')">Empate</button>
+        <button class="cat-btn ${sel('2')}" onclick="setVencedor(${idx},'2')">${nome2} venceu</button>
+      </div>
+      <label class="cat-fin">
+        <input type="checkbox" ${cr.finalizacao?'checked':''} onchange="setFinalizacao(${idx},this.checked)">
+        Finalização (submissão) 🔒
+      </label>
+    </div>`;
+  }).join('');
+
+  atualizarScoreLive();
+}
+
+window.setVencedor = async function(idx, v) {
+  confrontoAtivo.resultado.categorias[idx].vencedor = v;
+  recalcularScore();
+  await salvarAoVivo();
+  renderCatsLive();
+};
+
+window.setFinalizacao = async function(idx, val) {
+  confrontoAtivo.resultado.categorias[idx].finalizacao = val;
+  await salvarAoVivo();
+};
+
+function recalcularScore() {
+  let v1 = 0, v2 = 0;
+  confrontoAtivo.resultado.categorias.forEach(c => {
+    if (c.vencedor === '1') v1++;
+    else if (c.vencedor === '2') v2++;
+  });
+  confrontoAtivo.resultado.vitoriasEq1 = v1;
+  confrontoAtivo.resultado.vitoriasEq2 = v2;
+}
+
+function atualizarScoreLive() {
+  const r = confrontoAtivo.resultado;
+  document.getElementById('lv-v1').textContent = r.vitoriasEq1 || 0;
+  document.getElementById('lv-v2').textContent = r.vitoriasEq2 || 0;
+}
+
+async function salvarAoVivo() {
+  await atualizarLigaConfronto(campeonatoId, confrontoAtivo.id, {
+    status: 'ao_vivo',
+    resultado: confrontoAtivo.resultado
+  });
+  salvarEstado();
+}
+
+window.finalizarConfronto = async function() {
+  const cats = confrontoAtivo.resultado.categorias;
+  const pendentes = cats.filter(c => !c.vencedor).length;
+  if (pendentes > 0 && !confirm(`Ainda há ${pendentes} categoria(s) sem resultado.\nFinalizar mesmo assim?`)) return;
+
+  try {
+    await atualizarLigaConfronto(campeonatoId, confrontoAtivo.id, {
+      status: 'concluido',
+      resultado: confrontoAtivo.resultado
+    });
+
+    // Atualizar stats dos atletas
+    for (const cr of cats) {
+      if (!cr.vencedor) continue;
+      const at1 = atletas.find(a => a.equipeId === confrontoAtivo.equipe1Id && a.faixa === confrontoAtivo.faixa && a.categoria === cr.categoria);
+      const at2 = atletas.find(a => a.equipeId === confrontoAtivo.equipe2Id && a.faixa === confrontoAtivo.faixa && a.categoria === cr.categoria);
+
+      const updAt = async (at, res) => {
+        if (!at) return;
+        const upd = {};
+        if (res === 'v') { upd.vitorias = (at.vitorias||0)+1; upd.pontos = (at.pontos||0)+3+(cr.finalizacao?1:0); upd.finalizacoes = (at.finalizacoes||0)+(cr.finalizacao?1:0); }
+        else if (res === 'd') { upd.derrotas = (at.derrotas||0)+1; }
+        else { upd.empates = (at.empates||0)+1; upd.pontos = (at.pontos||0)+1; }
+        await atualizarLigaAtleta(campeonatoId, at.id, upd);
+        Object.assign(at, upd);
+      };
+
+      if (cr.vencedor === '1') { await updAt(at1, 'v'); await updAt(at2, 'd'); }
+      else if (cr.vencedor === '2') { await updAt(at2, 'v'); await updAt(at1, 'd'); }
+      else { await updAt(at1, 'emp'); await updAt(at2, 'emp'); }
+    }
+
+    confrontoAtivo.status = 'concluido';
+    salvarEstado();
+    alert('✅ Confronto finalizado com sucesso!');
+    location.reload();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+window.encerrarSemResultado = async function() {
+  if (!confirm('Encerrar transmissão ao vivo sem finalizar o confronto?\n\nO confronto voltará ao status Pendente.')) return;
+  await atualizarLigaConfronto(campeonatoId, confrontoAtivo.id, { status: 'pendente', resultado: null });
+  confrontoAtivo = null;
+  salvarEstado();
+  location.reload();
+};
+
+function salvarEstado() {
+  const eq1 = equipes.map(e => ({ id: e.id, nome: e.nome, cidade: e.cidade || '' }));
+  const confsAtualizado = confrontos.map(c => c.id === confrontoAtivo?.id ? { ...c, ...confrontoAtivo } : c);
+  localStorage.setItem(`gaditas_liga_${campeonatoId}`, JSON.stringify({
+    nomeCompeticao: campeonato?.nome || 'Liga BJJ',
+    local: campeonato?.local || '',
+    equipes: eq1,
+    atletas,
+    confrontos: confsAtualizado,
+    faixaAtiva: confrontoAtivo?.faixa || 'branca'
+  }));
+}
+</script>
+</body>
+</html>

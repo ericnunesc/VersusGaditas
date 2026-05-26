@@ -128,4 +128,75 @@ export function onLogin(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
+// ── Liga BJJ ─────────────────────────────────────────────────
+
+// Liga Equipes
+export async function salvarLigaEquipe(campeonatoId, equipe) {
+  return await addDoc(collection(db, "campeonatos", campeonatoId, "liga-equipes"), {
+    ...equipe, criadoEm: serverTimestamp()
+  });
+}
+export async function listarLigaEquipes(campeonatoId) {
+  const snap = await getDocs(collection(db, "campeonatos", campeonatoId, "liga-equipes"));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+export async function atualizarLigaEquipe(campeonatoId, equipeId, dados) {
+  await updateDoc(doc(db, "campeonatos", campeonatoId, "liga-equipes", equipeId), dados);
+}
+export async function deletarLigaEquipe(campeonatoId, equipeId) {
+  await deleteDoc(doc(db, "campeonatos", campeonatoId, "liga-equipes", equipeId));
+}
+
+// Liga Atletas
+export async function salvarLigaAtleta(campeonatoId, atleta) {
+  return await addDoc(collection(db, "campeonatos", campeonatoId, "liga-atletas"), {
+    ...atleta, criadoEm: serverTimestamp()
+  });
+}
+export async function listarLigaAtletas(campeonatoId) {
+  const snap = await getDocs(collection(db, "campeonatos", campeonatoId, "liga-atletas"));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+export async function atualizarLigaAtleta(campeonatoId, atletaId, dados) {
+  await updateDoc(doc(db, "campeonatos", campeonatoId, "liga-atletas", atletaId), dados);
+}
+export async function deletarLigaAtleta(campeonatoId, atletaId) {
+  await deleteDoc(doc(db, "campeonatos", campeonatoId, "liga-atletas", atletaId));
+}
+
+// Liga Confrontos
+export async function salvarLigaConfronto(campeonatoId, confronto) {
+  return await addDoc(collection(db, "campeonatos", campeonatoId, "liga-confrontos"), {
+    ...confronto, criadoEm: serverTimestamp()
+  });
+}
+export async function listarLigaConfrontos(campeonatoId) {
+  const snap = await getDocs(query(
+    collection(db, "campeonatos", campeonatoId, "liga-confrontos"),
+    orderBy("rodada", "asc")
+  ));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+export async function atualizarLigaConfronto(campeonatoId, confrontoId, dados) {
+  await updateDoc(doc(db, "campeonatos", campeonatoId, "liga-confrontos", confrontoId), dados);
+}
+export async function deletarLigaConfronto(campeonatoId, confrontoId) {
+  await deleteDoc(doc(db, "campeonatos", campeonatoId, "liga-confrontos", confrontoId));
+}
+
+// Liga Histórico (Hall of Fame)
+export async function salvarLigaHistorico(campeonatoId, dados) {
+  return await addDoc(collection(db, "campeonatos", campeonatoId, "liga-historico"), {
+    ...dados, criadoEm: serverTimestamp()
+  });
+}
+export async function listarLigaHistorico(campeonatoId) {
+  const snap = await getDocs(collection(db, "campeonatos", campeonatoId, "liga-historico"));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (b.criadoEm?.seconds || 0) - (a.criadoEm?.seconds || 0));
+}
+export async function deletarLigaHistorico(campeonatoId, historicoId) {
+  await deleteDoc(doc(db, "campeonatos", campeonatoId, "liga-historico", historicoId));
+}
+
 export { db, auth, onSnapshot, collection, doc, query, where, orderBy };

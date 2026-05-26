@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liga BJJ - Admin - Gaditas Torneios</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',-apple-system,sans-serif;background:#F5F7FA;color:#1A2C3E;}
+    header{background:#1A2C3E;color:#fff;padding:13px 22px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+    .hdr-logo{display:flex;align-items:center;gap:10px;}
+    .hdr-logo h1{font-size:0.95rem;font-weight:700;}
+    .hdr-logo p{font-size:0.65rem;color:#8A9CB0;}
+    .hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .user-email{font-size:0.72rem;color:#8A9CB0;}
+    .btn-sair{background:transparent;border:1px solid #EF4444;color:#EF4444;padding:5px 12px;border-radius:40px;font-size:0.72rem;cursor:pointer;}
+    .btn-sair:hover{background:#EF4444;color:#fff;}
+    a.btn-back{background:transparent;border:1px solid #8A9CB0;color:#8A9CB0;padding:5px 12px;border-radius:40px;font-size:0.72rem;cursor:pointer;text-decoration:none;display:inline-block;}
+    a.btn-back:hover{border-color:#C9A03D;color:#C9A03D;}
+
+    .app{max-width:1080px;margin:0 auto;padding:22px 16px 60px;}
+
+    .comp-banner{background:linear-gradient(135deg,#1A2C3E,#2A4060);color:#fff;padding:15px 20px;border-radius:12px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+    .comp-banner h2{font-size:1.05rem;font-weight:700;}
+    .comp-banner p{font-size:0.7rem;color:#8A9CB0;margin-top:2px;}
+    .badge-liga{background:rgba(201,160,61,0.18);border:1px solid #C9A03D;color:#C9A03D;padding:4px 12px;border-radius:20px;font-size:0.7rem;font-weight:700;}
+
+    /* Faixa tabs */
+    .faixa-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+    .faixa-btn{padding:7px 16px;border-radius:20px;border:2px solid #E2E8F0;background:#fff;cursor:pointer;font-size:0.78rem;font-weight:600;transition:all 0.2s;color:#1A2C3E;}
+    .faixa-btn:hover{border-color:#C9A03D;}
+    .faixa-btn.active{color:#fff;}
+    .faixa-btn[data-f="branca"].active{border-color:#6B7280;background:#6B7280;}
+    .faixa-btn[data-f="azul"].active{border-color:#3B8BFF;background:#3B8BFF;}
+    .faixa-btn[data-f="roxa"].active{border-color:#9B59B6;background:#9B59B6;}
+    .faixa-btn[data-f="marrom"].active{border-color:#92400E;background:#92400E;}
+    .faixa-btn[data-f="preta"].active{border-color:#1A1A1A;background:#1A1A1A;}
+
+    /* Links bar */
+    .links-bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
+    .lnk{padding:6px 13px;border:1px solid #E2E8F0;border-radius:8px;font-size:0.73rem;font-weight:600;color:#1A2C3E;text-decoration:none;background:#fff;transition:all 0.2s;}
+    .lnk:hover{border-color:#C9A03D;color:#C9A03D;}
+
+    /* Nav tabs */
+    .nav-tabs{display:flex;gap:0;border-bottom:2px solid #E2E8F0;margin-bottom:20px;flex-wrap:wrap;}
+    .nav-tab{padding:10px 17px;border:none;background:none;cursor:pointer;font-size:0.82rem;font-weight:600;color:#8A9CB0;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s;white-space:nowrap;}
+    .nav-tab:hover{color:#1A2C3E;}
+    .nav-tab.active{color:#C9A03D;border-bottom-color:#C9A03D;}
+    .tab-pane{display:none;}
+    .tab-pane.active{display:block;}
+
+    /* Cards */
+    .card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:18px;margin-bottom:14px;}
+    .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:8px;}
+    .card-header h3{font-size:0.9rem;font-weight:700;}
+
+    /* Forms */
+    .fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:9px;margin-bottom:11px;}
+    .fg-col{display:flex;flex-direction:column;gap:3px;}
+    .fg-col label{font-size:0.68rem;font-weight:600;color:#8A9CB0;}
+    .fg input,.fg select{width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:9px 11px;font-size:0.83rem;outline:none;background:#fff;}
+    .fg input:focus,.fg select:focus{border-color:#C9A03D;}
+
+    /* Buttons */
+    .btn{padding:8px 18px;border-radius:40px;border:none;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.2s;display:inline-flex;align-items:center;gap:5px;}
+    .btn-primary{background:#C9A03D;color:#fff;}
+    .btn-primary:hover{background:#A0822E;}
+    .btn-secondary{background:transparent;border:1px solid #E2E8F0;color:#1A2C3E;}
+    .btn-secondary:hover{border-color:#C9A03D;color:#C9A03D;}
+    .btn-danger{background:transparent;border:1px solid #EF4444;color:#EF4444;}
+    .btn-danger:hover{background:#EF4444;color:#fff;}
+    .btn-success{background:#10B981;color:#fff;border:none;}
+    .btn-success:hover{background:#059669;}
+    .btn-sm{padding:5px 11px;font-size:0.72rem;}
+    .btn-xs{padding:3px 8px;font-size:0.66rem;}
+    .btn-icon{padding:5px 8px;font-size:0.8rem;}
+
+    /* Equipes list */
+    .equipe-card{border:1px solid #E2E8F0;border-radius:10px;margin-bottom:10px;overflow:hidden;}
+    .equipe-head{padding:11px 15px;background:#F8FAFC;display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:8px;}
+    .equipe-head:hover{background:#F1F5F9;}
+    .equipe-nome{font-weight:700;font-size:0.88rem;}
+    .equipe-sub{font-size:0.7rem;color:#8A9CB0;}
+    .equipe-body{display:none;padding:13px 15px;border-top:1px solid #F1F5F9;}
+    .equipe-body.open{display:block;}
+    .atletas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px;margin-bottom:10px;}
+    .atleta-item{border:1px solid #E2E8F0;border-radius:8px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;gap:6px;}
+    .atleta-nome{font-size:0.8rem;font-weight:600;}
+    .atleta-cat{font-size:0.65rem;color:#8A9CB0;}
+    .atleta-stats{font-size:0.65rem;color:#C9A03D;font-weight:600;white-space:nowrap;}
+    .cat-badge{padding:2px 8px;border-radius:10px;font-size:0.62rem;font-weight:700;background:#FEF9C3;color:#92400E;}
+
+    /* Confrontos */
+    .rodada-label{font-size:0.72rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:1px solid #F1F5F9;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+    .confronto-card{border:1px solid #E2E8F0;border-radius:10px;padding:13px 15px;margin-bottom:8px;}
+    .confronto-main{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;gap:10px;margin-bottom:8px;}
+    .confronto-eq{font-weight:600;font-size:0.88rem;}
+    .confronto-info{font-size:0.68rem;color:#8A9CB0;margin-top:2px;}
+    .confronto-vs{text-align:center;font-weight:800;font-size:1rem;color:#C9A03D;}
+    .confronto-score{text-align:center;font-size:1.3rem;font-weight:800;color:#C9A03D;}
+    .confronto-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+    .confronto-meta{font-size:0.7rem;color:#8A9CB0;}
+
+    /* Status badges */
+    .sbadge{padding:3px 9px;border-radius:20px;font-size:0.62rem;font-weight:700;}
+    .sbadge-pendente{background:#FEF9C3;color:#92400E;}
+    .sbadge-ao-vivo{background:#DCFCE7;color:#166534;animation:pulse-g 1.2s infinite;}
+    .sbadge-concluido{background:#F1F5F9;color:#64748B;}
+    @keyframes pulse-g{0%,100%{opacity:1}50%{opacity:0.6}}
+
+    /* Result display inline */
+    .cat-results{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+    .cat-r{padding:3px 9px;border-radius:6px;font-size:0.65rem;font-weight:600;}
+    .cat-r-1{background:#EFF6FF;color:#1D4ED8;}
+    .cat-r-2{background:#FEF2F2;color:#DC2626;}
+    .cat-r-emp{background:#FFFBEB;color:#92400E;}
+    .cat-r-pend{background:#F1F5F9;color:#94A3B8;}
+
+    /* Table */
+    .tbl-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;}
+    thead th{padding:9px 11px;text-align:left;font-size:0.66rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #E2E8F0;white-space:nowrap;}
+    tbody td{padding:9px 11px;border-bottom:1px solid #F1F5F9;font-size:0.83rem;}
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr:hover{background:#FAFBFC;}
+    .progress-bar{height:5px;background:#F1F5F9;border-radius:3px;width:70px;display:inline-block;vertical-align:middle;margin-right:5px;overflow:hidden;}
+    .progress-fill{height:100%;background:#C9A03D;border-radius:3px;}
+
+    /* Hall of Fame */
+    .hof-item{border:1px solid #E2E8F0;border-radius:10px;padding:13px 16px;display:flex;align-items:center;gap:13px;margin-bottom:8px;}
+    .hof-trophy{font-size:1.8rem;line-height:1;}
+    .hof-nome{font-weight:700;font-size:0.9rem;}
+    .hof-sub{font-size:0.7rem;color:#8A9CB0;margin-top:2px;}
+    .hof-faixa-dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:5px;}
+
+    /* Vazio */
+    .vazio{text-align:center;padding:36px 20px;color:#8A9CB0;}
+    .vazio span{font-size:2.4rem;display:block;margin-bottom:8px;opacity:0.3;}
+
+    /* Modal */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.48);z-index:999;align-items:center;justify-content:center;padding:14px;}
+    .modal-overlay.open{display:flex;}
+    .modal-box{background:#fff;border-radius:16px;padding:22px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.18);}
+    .modal-box h3{font-size:0.95rem;font-weight:700;margin-bottom:14px;}
+    .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;border-top:1px solid #F1F5F9;padding-top:14px;}
+    .btn-cancelar{background:transparent;border:1px solid #E2E8F0;padding:8px 16px;border-radius:40px;font-size:0.8rem;cursor:pointer;}
+    .btn-salvar{background:#C9A03D;border:none;color:#fff;padding:8px 20px;border-radius:40px;font-size:0.8rem;font-weight:600;cursor:pointer;}
+    .btn-salvar:hover{background:#A0822E;}
+
+    /* Score preview in modal */
+    .score-prev{background:linear-gradient(135deg,#1A2C3E,#2A4060);color:#fff;border-radius:10px;padding:13px;margin-bottom:13px;text-align:center;}
+    .score-prev-teams{display:flex;justify-content:space-around;align-items:center;gap:10px;}
+    .score-prev-team{font-size:0.8rem;font-weight:600;max-width:110px;text-align:center;line-height:1.3;}
+    .score-prev-nums{font-size:2.2rem;font-weight:800;color:#C9A03D;min-width:60px;text-align:center;}
+    .score-prev-sub{font-size:0.65rem;color:#8A9CB0;margin-top:3px;}
+
+    /* Result row */
+    .result-row{display:grid;grid-template-columns:85px 1fr;align-items:start;gap:8px;padding:9px 0;border-bottom:1px solid #F8F9FA;}
+    .result-row:last-child{border-bottom:none;}
+    .result-cat-name{font-size:0.75rem;font-weight:700;color:#8A9CB0;padding-top:4px;}
+    .result-controls{display:flex;flex-direction:column;gap:5px;}
+    .result-btns{display:flex;gap:5px;flex-wrap:wrap;}
+    .rbtn{padding:5px 10px;border:1px solid #E2E8F0;background:#fff;border-radius:6px;cursor:pointer;font-size:0.7rem;font-weight:600;transition:all 0.15s;flex:1;text-align:center;}
+    .rbtn:hover{border-color:#C9A03D;}
+    .rbtn.sel-eq1{border-color:#3B8BFF;background:#EFF6FF;color:#1D4ED8;}
+    .rbtn.sel-emp{border-color:#F59E0B;background:#FFFBEB;color:#92400E;}
+    .rbtn.sel-eq2{border-color:#EF4444;background:#FEF2F2;color:#DC2626;}
+    .fin-row{display:flex;align-items:center;gap:5px;font-size:0.7rem;color:#8A9CB0;}
+    .fin-row input{width:14px;height:14px;cursor:pointer;accent-color:#C9A03D;}
+    .atleta-label{font-size:0.65rem;color:#94A3B8;margin-top:1px;}
+
+    @media(max-width:600px){
+      .confronto-main{grid-template-columns:1fr 40px 1fr;}
+      .confronto-eq{font-size:0.78rem;}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-logo">
+    <span style="font-size:1.5rem">⚽</span>
+    <div><h1>LIGA BJJ — ADMIN</h1><p id="comp-subtitle">Carregando...</p></div>
+  </div>
+  <div class="hdr-right">
+    <a href="painel-admin.html" class="btn-back">← Voltar</a>
+    <span class="user-email" id="user-email"></span>
+    <button class="btn-sair" id="btn-sair">↩ Sair</button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="comp-banner">
+    <div><h2 id="comp-nome">Carregando...</h2><p id="comp-local">—</p></div>
+    <span class="badge-liga">⚽ Liga BJJ</span>
+  </div>
+
+  <!-- Links rápidos para páginas públicas -->
+  <div class="links-bar">
+    <a id="lnk-cronograma" href="#" class="lnk" target="_blank">📅 Cronograma Público</a>
+    <a id="lnk-tv"         href="#" class="lnk" target="_blank">📺 TV Ao Vivo</a>
+    <a id="lnk-placar"     href="#" class="lnk" target="_blank">🏆 Placar Público</a>
+    <a id="lnk-placar-adm" href="#" class="lnk">🎙️ Placar Admin</a>
+  </div>
+
+  <!-- Faixa tabs -->
+  <div class="faixa-tabs" id="faixa-tabs">
+    <button class="faixa-btn active" data-f="branca" onclick="setFaixa('branca')">⬜ Branca</button>
+    <button class="faixa-btn" data-f="azul"   onclick="setFaixa('azul')">🔵 Azul</button>
+    <button class="faixa-btn" data-f="roxa"   onclick="setFaixa('roxa')">🟣 Roxa</button>
+    <button class="faixa-btn" data-f="marrom" onclick="setFaixa('marrom')">🟤 Marrom</button>
+    <button class="faixa-btn" data-f="preta"  onclick="setFaixa('preta')">⬛ Preta</button>
+  </div>
+
+  <!-- Nav tabs -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('equipes')">⚽ Equipes</button>
+    <button class="nav-tab" onclick="showTab('calendario')">📅 Calendário</button>
+    <button class="nav-tab" onclick="showTab('classificacao')">🏆 Classificação</button>
+    <button class="nav-tab" onclick="showTab('hof')">👑 Hall of Fame</button>
+  </div>
+
+  <!-- ═══ TAB: EQUIPES ═══ -->
+  <div class="tab-pane active" id="tab-equipes">
+    <div class="card">
+      <div class="card-header"><h3>➕ Nova Equipe</h3></div>
+      <div class="fg">
+        <div class="fg-col"><label>Nome da Equipe *</label><input type="text" id="eq-nome" placeholder="Ex: Alliance São Paulo"></div>
+        <div class="fg-col"><label>Cidade</label><input type="text" id="eq-cidade" placeholder="Ex: São Paulo"></div>
+        <div class="fg-col"><label>Representante</label><input type="text" id="eq-repr" placeholder="Nome do responsável"></div>
+        <div class="fg-col"><label>Telefone</label><input type="text" id="eq-tel" placeholder="(11) 99999-9999"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addEquipe()">💾 Cadastrar Equipe</button>
+    </div>
+
+    <div id="equipes-list"></div>
+  </div>
+
+  <!-- ═══ TAB: CALENDÁRIO ═══ -->
+  <div class="tab-pane" id="tab-calendario">
+    <div class="card">
+      <div class="card-header">
+        <h3 id="cal-titulo">📅 Gerar Calendário — Branca</h3>
+        <span id="cal-eq-count" style="font-size:0.75rem;color:#8A9CB0;"></span>
+      </div>
+      <div class="fg">
+        <div class="fg-col"><label>Data Início *</label><input type="date" id="cal-data"></div>
+        <div class="fg-col"><label>Horário dos Jogos</label><input type="time" id="cal-hora" value="19:00"></div>
+        <div class="fg-col"><label>Local</label><input type="text" id="cal-local" placeholder="Ex: Ginásio Municipal"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="gerarCalendario()">⚡ Gerar Calendário</button>
+        <button class="btn btn-danger btn-sm" id="btn-limpar-cal" onclick="limparCalendario()" style="display:none">🗑️ Limpar Calendário</button>
+      </div>
+    </div>
+    <div id="confrontos-list"></div>
+  </div>
+
+  <!-- ═══ TAB: CLASSIFICAÇÃO ═══ -->
+  <div class="tab-pane" id="tab-classificacao">
+    <div id="classificacao-content"></div>
+  </div>
+
+  <!-- ═══ TAB: HALL OF FAME ═══ -->
+  <div class="tab-pane" id="tab-hof">
+    <div class="card">
+      <div class="card-header">
+        <h3 id="hof-titulo">👑 Finalizar Temporada — Branca</h3>
+      </div>
+      <p style="font-size:0.82rem;color:#8A9CB0;margin-bottom:14px;">Encerra a temporada atual e registra o campeão desta faixa no Hall of Fame.</p>
+      <button class="btn btn-success" onclick="finalizarTemporada()">🏆 Finalizar Temporada e Registrar Campeão</button>
+    </div>
+    <div id="hof-list"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Adicionar Atleta ══ -->
+<div class="modal-overlay" id="modal-atleta">
+  <div class="modal-box">
+    <h3>👤 Adicionar Atleta</h3>
+    <p style="font-size:0.78rem;color:#8A9CB0;margin-bottom:13px;">Equipe: <strong id="modal-atleta-eq"></strong> · Faixa: <strong id="modal-atleta-faixa"></strong></p>
+    <div class="fg">
+      <div class="fg-col" style="grid-column:1/-1"><label>Nome do Atleta *</label><input type="text" id="at-nome" placeholder="Nome completo"></div>
+      <div class="fg-col"><label>Categoria *</label>
+        <select id="at-cat">
+          <option value="">Selecione...</option>
+          <option>Pena</option><option>Leve</option><option>Médio</option>
+          <option>Meio-Pesado</option><option>Pesado</option>
+        </select>
+      </div>
+    </div>
+    <input type="hidden" id="at-equipe-id">
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="fecharModalAtleta()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarAtleta()">Salvar Atleta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Resultado do Confronto ══ -->
+<div class="modal-overlay" id="modal-resultado">
+  <div class="modal-box">
+    <h3 id="modal-res-titulo">📝 Resultado do Confronto</h3>
+    <div class="score-prev" id="score-prev">
+      <div class="score-prev-teams">
+        <div class="score-prev-team" id="sprev-eq1">—</div>
+        <div class="score-prev-nums"><span id="sprev-v1">0</span> × <span id="sprev-v2">0</span></div>
+        <div class="score-prev-team" id="sprev-eq2">—</div>
+      </div>
+      <div class="score-prev-sub" id="sprev-sub">0 empates · 0 categorias pendentes</div>
+    </div>
+    <div id="result-cats"></div>
+    <input type="hidden" id="res-confronto-id">
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="fecharModalResultado()">Cancelar</button>
+      <button class="btn-salvar" id="btn-salvar-res" onclick="salvarResultado()">💾 Salvar Resultado</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import {
+  onLogin, logout, buscarCampeonato,
+  salvarLigaEquipe, listarLigaEquipes, deletarLigaEquipe,
+  salvarLigaAtleta, listarLigaAtletas, atualizarLigaAtleta, deletarLigaAtleta,
+  salvarLigaConfronto, listarLigaConfrontos, atualizarLigaConfronto, deletarLigaConfronto,
+  salvarLigaHistorico, listarLigaHistorico, deletarLigaHistorico
+} from './js/firebase.js';
+
+const CATEGORIAS = ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'];
+const FAIXAS_LABEL = { branca:'Branca', azul:'Azul', roxa:'Roxa', marrom:'Marrom', preta:'Preta' };
+const FAIXAS_COR = { branca:'#6B7280', azul:'#3B8BFF', roxa:'#9B59B6', marrom:'#92400E', preta:'#1A1A1A' };
+
+const params = new URLSearchParams(location.search);
+const campeonatoId = params.get('id');
+if (!campeonatoId) { alert('ID inválido'); location.replace('painel-admin.html'); }
+
+let campeonato = null;
+let equipes = [], atletas = [], confrontos = [], historico = [];
+let faixaSelecionada = 'branca';
+let tabAtiva = 'equipes';
+
+// ── Auth ──────────────────────────────────────────────────────
+onLogin(user => {
+  if (!user) { location.replace('login-admin.html'); return; }
+  document.getElementById('user-email').textContent = user.email;
+  iniciar();
+});
+
+document.getElementById('btn-sair').addEventListener('click', async () => {
+  await logout(); location.replace('login-admin.html');
+});
+
+// ── Init ──────────────────────────────────────────────────────
+async function iniciar() {
+  campeonato = await buscarCampeonato(campeonatoId);
+  document.title = (campeonato?.nome || 'Liga') + ' — Admin';
+  document.getElementById('comp-nome').textContent = campeonato?.nome || 'Liga BJJ';
+  document.getElementById('comp-subtitle').textContent = campeonato?.local || 'Liga BJJ';
+  document.getElementById('comp-local').textContent = campeonato?.local ? '📍 ' + campeonato.local : '⚽ Liga BJJ';
+
+  // Links públicos
+  document.getElementById('lnk-cronograma').href = `liga-cronograma.html?id=${campeonatoId}`;
+  document.getElementById('lnk-tv').href         = `liga-tv.html?id=${campeonatoId}`;
+  document.getElementById('lnk-placar').href      = `liga-placar-publico.html?id=${campeonatoId}`;
+  document.getElementById('lnk-placar-adm').href  = `liga-placar-adm.html?id=${campeonatoId}`;
+
+  [equipes, atletas, confrontos, historico] = await Promise.all([
+    listarLigaEquipes(campeonatoId),
+    listarLigaAtletas(campeonatoId),
+    listarLigaConfrontos(campeonatoId),
+    listarLigaHistorico(campeonatoId)
+  ]);
+
+  salvarEstado();
+  renderTabAtiva();
+}
+
+// ── Estado localStorage (para páginas públicas) ───────────────
+function salvarEstado() {
+  const eq1 = equipes.map(e => ({ id: e.id, nome: e.nome, cidade: e.cidade || '' }));
+  localStorage.setItem(`gaditas_liga_${campeonatoId}`, JSON.stringify({
+    nomeCompeticao: campeonato?.nome || 'Liga BJJ',
+    local: campeonato?.local || '',
+    equipes: eq1,
+    atletas,
+    confrontos,
+    faixaAtiva: faixaSelecionada
+  }));
+}
+
+// ── Tab / Faixa ───────────────────────────────────────────────
+function showTab(tab) {
+  tabAtiva = tab;
+  document.querySelectorAll('.nav-tab').forEach((b, i) => {
+    b.classList.toggle('active', ['equipes','calendario','classificacao','hof'][i] === tab);
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  renderTabAtiva();
+}
+
+function setFaixa(f) {
+  faixaSelecionada = f;
+  document.querySelectorAll('.faixa-btn').forEach(b => b.classList.toggle('active', b.dataset.f === f));
+  salvarEstado();
+  renderTabAtiva();
+}
+
+function renderTabAtiva() {
+  if (tabAtiva === 'equipes')       renderEquipes();
+  if (tabAtiva === 'calendario')    renderCalendario();
+  if (tabAtiva === 'classificacao') renderClassificacao();
+  if (tabAtiva === 'hof')           renderHoF();
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function getEquipesDaFaixa(faixa) {
+  const ids = new Set(atletas.filter(a => a.faixa === faixa).map(a => a.equipeId));
+  return equipes.filter(e => ids.has(e.id));
+}
+
+function nomeEquipe(id) {
+  return equipes.find(e => e.id === id)?.nome || '?';
+}
+
+function calcularClassificacao(faixa) {
+  const eqs = getEquipesDaFaixa(faixa);
+  const stats = {};
+  eqs.forEach(e => { stats[e.id] = { equipe: e, j:0, v:0, emp:0, d:0, pts:0, cv:0, cd:0 }; });
+  confrontos
+    .filter(c => c.faixa === faixa && c.status === 'concluido' && c.resultado)
+    .forEach(c => {
+      const s1 = stats[c.equipe1Id], s2 = stats[c.equipe2Id];
+      if (!s1 || !s2) return;
+      const v1 = c.resultado.vitoriasEq1 || 0, v2 = c.resultado.vitoriasEq2 || 0;
+      s1.j++; s2.j++;
+      s1.cv += v1; s1.cd += v2; s2.cv += v2; s2.cd += v1;
+      if      (v1 > v2) { s1.v++; s2.d++; s1.pts += 3; }
+      else if (v2 > v1) { s2.v++; s1.d++; s2.pts += 3; }
+      else              { s1.emp++; s2.emp++; s1.pts += 1; s2.pts += 1; }
+    });
+  return Object.values(stats).sort((a,b) => b.pts - a.pts || b.v - a.v || b.cv - a.cv);
+}
+
+// ── Equipes ───────────────────────────────────────────────────
+function renderEquipes() {
+  const el = document.getElementById('equipes-list');
+  if (!equipes.length) {
+    el.innerHTML = `<div class="vazio"><span>⚽</span>Nenhuma equipe cadastrada ainda.</div>`;
+    return;
+  }
+  el.innerHTML = equipes.map(eq => {
+    const atsEq = atletas.filter(a => a.equipeId === eq.id && a.faixa === faixaSelecionada);
+    const openAtl = `<div class="atletas-grid">${
+      atsEq.length ? atsEq.map(a =>
+        `<div class="atleta-item">
+          <div>
+            <div class="atleta-nome">${a.nome}</div>
+            <div class="atleta-cat"><span class="cat-badge">${a.categoria}</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+            <span class="atleta-stats">${a.vitorias||0}V ${a.empates||0}E ${a.derrotas||0}D</span>
+            <button class="btn btn-danger btn-xs" onclick="removerAtleta('${a.id}')">✕</button>
+          </div>
+        </div>`
+      ).join('') : `<p style="font-size:0.78rem;color:#8A9CB0;grid-column:1/-1">Nenhum atleta nesta faixa.</p>`
+    }</div>
+    <button class="btn btn-secondary btn-sm" onclick="abrirModalAtleta('${eq.id}', '${eq.nome.replace(/'/g,"\\'")}')">➕ Adicionar Atleta ${FAIXAS_LABEL[faixaSelecionada]}</button>`;
+    return `<div class="equipe-card">
+      <div class="equipe-head" onclick="toggleEquipe('eq-body-${eq.id}')">
+        <div>
+          <div class="equipe-nome">${eq.nome}</div>
+          <div class="equipe-sub">${eq.cidade || '—'} · ${atsEq.length} atleta(s) em ${FAIXAS_LABEL[faixaSelecionada]}</div>
+        </div>
+        <div style="display:flex;gap:7px;align-items:center;">
+          <button class="btn btn-danger btn-xs" onclick="removerEquipe(event,'${eq.id}','${eq.nome.replace(/'/g,"\\'")}')">🗑️</button>
+          <span style="font-size:0.8rem;color:#8A9CB0;">▼</span>
+        </div>
+      </div>
+      <div class="equipe-body" id="eq-body-${eq.id}">${openAtl}</div>
+    </div>`;
+  }).join('');
+}
+
+window.toggleEquipe = id => {
+  const el = document.getElementById(id);
+  el?.classList.toggle('open');
+};
+
+window.addEquipe = async function() {
+  const nome = document.getElementById('eq-nome').value.trim();
+  if (!nome) { alert('Informe o nome da equipe.'); return; }
+  try {
+    const ref = await salvarLigaEquipe(campeonatoId, {
+      nome,
+      cidade: document.getElementById('eq-cidade').value.trim(),
+      representante: document.getElementById('eq-repr').value.trim(),
+      telefone: document.getElementById('eq-tel').value.trim()
+    });
+    equipes.push({ id: ref.id, nome, cidade: document.getElementById('eq-cidade').value.trim() });
+    ['eq-nome','eq-cidade','eq-repr','eq-tel'].forEach(id => document.getElementById(id).value = '');
+    salvarEstado();
+    renderEquipes();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+window.removerEquipe = async function(ev, id, nome) {
+  ev.stopPropagation();
+  const temConfrontos = confrontos.some(c => c.equipe1Id === id || c.equipe2Id === id);
+  const msg = temConfrontos
+    ? `⚠️ A equipe "${nome}" possui confrontos gerados. Remover também excluirá esses confrontos.\n\nContinuar?`
+    : `Remover a equipe "${nome}"?`;
+  if (!confirm(msg)) return;
+  try {
+    await deletarLigaEquipe(campeonatoId, id);
+    const atsRemover = atletas.filter(a => a.equipeId === id);
+    for (const a of atsRemover) await deletarLigaAtleta(campeonatoId, a.id);
+    const confsRemover = confrontos.filter(c => c.equipe1Id === id || c.equipe2Id === id);
+    for (const c of confsRemover) if (c.id) await deletarLigaConfronto(campeonatoId, c.id);
+    equipes = equipes.filter(e => e.id !== id);
+    atletas = atletas.filter(a => a.equipeId !== id);
+    confrontos = confrontos.filter(c => c.equipe1Id !== id && c.equipe2Id !== id);
+    salvarEstado();
+    renderEquipes();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+// ── Atletas ───────────────────────────────────────────────────
+window.abrirModalAtleta = function(equipeId, eqNome) {
+  document.getElementById('at-equipe-id').value = equipeId;
+  document.getElementById('modal-atleta-eq').textContent = eqNome;
+  document.getElementById('modal-atleta-faixa').textContent = FAIXAS_LABEL[faixaSelecionada];
+  document.getElementById('at-nome').value = '';
+  document.getElementById('at-cat').value = '';
+  document.getElementById('modal-atleta').classList.add('open');
+};
+
+window.fecharModalAtleta = () => document.getElementById('modal-atleta').classList.remove('open');
+
+window.salvarAtleta = async function() {
+  const nome = document.getElementById('at-nome').value.trim();
+  const cat  = document.getElementById('at-cat').value;
+  const equipeId = document.getElementById('at-equipe-id').value;
+  if (!nome || !cat) { alert('Preencha nome e categoria.'); return; }
+
+  // Verificar se já existe atleta nessa categoria/faixa para essa equipe
+  const existe = atletas.find(a => a.equipeId === equipeId && a.faixa === faixaSelecionada && a.categoria === cat);
+  if (existe) { alert(`Já existe um atleta na categoria ${cat} para esta faixa nessa equipe.`); return; }
+
+  try {
+    const ref = await salvarLigaAtleta(campeonatoId, {
+      nome, equipeId, faixa: faixaSelecionada, categoria: cat,
+      vitorias: 0, derrotas: 0, empates: 0, finalizacoes: 0, pontos: 0
+    });
+    atletas.push({ id: ref.id, nome, equipeId, faixa: faixaSelecionada, categoria: cat, vitorias:0, derrotas:0, empates:0, finalizacoes:0, pontos:0 });
+    fecharModalAtleta();
+    salvarEstado();
+    renderEquipes();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+window.removerAtleta = async function(id) {
+  if (!confirm('Remover este atleta?')) return;
+  try {
+    await deletarLigaAtleta(campeonatoId, id);
+    atletas = atletas.filter(a => a.id !== id);
+    salvarEstado();
+    renderEquipes();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+// ── Calendário ────────────────────────────────────────────────
+function renderCalendario() {
+  const fl = FAIXAS_LABEL[faixaSelecionada];
+  document.getElementById('cal-titulo').textContent = `📅 Gerar Calendário — ${fl}`;
+  const eqsFaixa = getEquipesDaFaixa(faixaSelecionada);
+  document.getElementById('cal-eq-count').textContent = `${eqsFaixa.length} equipe(s) com atletas nesta faixa`;
+
+  const confrontosFaixa = confrontos.filter(c => c.faixa === faixaSelecionada);
+  const btnLimpar = document.getElementById('btn-limpar-cal');
+  btnLimpar.style.display = confrontosFaixa.length ? 'inline-flex' : 'none';
+
+  const el = document.getElementById('confrontos-list');
+  if (!confrontosFaixa.length) {
+    el.innerHTML = `<div class="vazio"><span>📅</span>Nenhum jogo gerado para a faixa ${fl}. Gere o calendário acima.</div>`;
+    return;
+  }
+
+  const byRound = {};
+  confrontosFaixa.forEach(c => { if (!byRound[c.rodada]) byRound[c.rodada] = []; byRound[c.rodada].push(c); });
+
+  el.innerHTML = Object.keys(byRound).map(r => {
+    const ms = byRound[r];
+    const concluidos = ms.filter(m => m.status === 'concluido').length;
+    return `<div class="rodada-label">
+        <span>Rodada ${r}</span>
+        <span style="font-size:0.65rem;font-weight:400">${ms[0]?.leg === 'volta' ? '🔄 Volta' : '➡️ Ida'}</span>
+        <span style="margin-left:auto;font-weight:400">${concluidos}/${ms.length} concluídos</span>
+      </div>
+      ${ms.map(m => renderConfrontoCard(m)).join('')}`;
+  }).join('');
+}
+
+function renderConfrontoCard(m) {
+  const eq1 = nomeEquipe(m.equipe1Id);
+  const eq2 = nomeEquipe(m.equipe2Id);
+  let scoreHtml = '', catHtml = '';
+
+  if (m.status === 'concluido' && m.resultado) {
+    const r = m.resultado;
+    scoreHtml = `<div class="confronto-score">${r.vitoriasEq1} × ${r.vitoriasEq2}</div>`;
+    catHtml = `<div class="cat-results">${
+      CATEGORIAS.map(cat => {
+        const cr = r.categorias?.find(x => x.categoria === cat);
+        if (!cr || !cr.vencedor) return `<span class="cat-r cat-r-pend">${cat}: ⏳</span>`;
+        if (cr.vencedor === 'empate') return `<span class="cat-r cat-r-emp">${cat}: E</span>`;
+        const nome = cr.vencedor === '1' ? eq1 : eq2;
+        const cls = cr.vencedor === '1' ? 'cat-r-1' : 'cat-r-2';
+        return `<span class="cat-r ${cls}">${cat}: ${nome.split(' ')[0]}${cr.finalizacao ? ' 🔒' : ''}</span>`;
+      }).join('')
+    }</div>`;
+  } else if (m.status === 'ao_vivo' && m.resultado) {
+    const r = m.resultado;
+    scoreHtml = `<div class="confronto-score" style="color:#10B981">${r.vitoriasEq1} × ${r.vitoriasEq2}</div>`;
+    catHtml = `<div class="cat-results">${
+      CATEGORIAS.map(cat => {
+        const cr = r.categorias?.find(x => x.categoria === cat);
+        if (!cr || !cr.vencedor) return `<span class="cat-r cat-r-pend">${cat}: ⏳</span>`;
+        if (cr.vencedor === 'empate') return `<span class="cat-r cat-r-emp">${cat}: E</span>`;
+        const cls = cr.vencedor === '1' ? 'cat-r-1' : 'cat-r-2';
+        const nome = cr.vencedor === '1' ? eq1 : eq2;
+        return `<span class="cat-r ${cls}">${cat}: ${nome.split(' ')[0]}${cr.finalizacao ? ' 🔒' : ''}</span>`;
+      }).join('')
+    }</div>`;
+  } else {
+    scoreHtml = `<div class="confronto-vs">×</div>`;
+  }
+
+  const statusBadge = {
+    pendente: `<span class="sbadge sbadge-pendente">⏳ Pendente</span>`,
+    ao_vivo:  `<span class="sbadge sbadge-ao-vivo">🔴 Ao Vivo</span>`,
+    concluido:`<span class="sbadge sbadge-concluido">✅ Concluído</span>`
+  }[m.status] || '';
+
+  const acoesHtml = m.status === 'concluido'
+    ? `<button class="btn btn-secondary btn-sm" onclick="abrirModalResultado('${m.id}')">✏️ Editar Resultado</button>`
+    : m.status === 'ao_vivo'
+    ? `<button class="btn btn-success btn-sm" onclick="abrirModalResultado('${m.id}')">✏️ Resultado Parcial</button>
+       <button class="btn btn-secondary btn-sm" onclick="encerrarAoVivo('${m.id}')">⏹️ Encerrar</button>`
+    : `<button class="btn btn-primary btn-sm" onclick="marcarAoVivo('${m.id}')">▶️ Iniciar Ao Vivo</button>
+       <button class="btn btn-secondary btn-sm" onclick="abrirModalResultado('${m.id}')">📝 Inserir Resultado</button>`;
+
+  return `<div class="confronto-card">
+    <div class="confronto-main">
+      <div>
+        <div class="confronto-eq">${eq1}</div>
+        <div class="confronto-info">Casa</div>
+      </div>
+      ${scoreHtml}
+      <div style="text-align:right">
+        <div class="confronto-eq">${eq2}</div>
+        <div class="confronto-info">Visitante</div>
+      </div>
+    </div>
+    ${catHtml}
+    <div class="confronto-footer" style="margin-top:8px;">
+      <div class="confronto-meta">📅 ${m.data || '—'} ${m.hora || ''} · 📍 ${m.local || '—'} · ${statusBadge}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">${acoesHtml}</div>
+    </div>
+  </div>`;
+}
+
+window.gerarCalendario = async function() {
+  const eqsFaixa = getEquipesDaFaixa(faixaSelecionada);
+  if (eqsFaixa.length < 2) { alert(`Cadastre pelo menos 2 equipes com atletas na faixa ${FAIXAS_LABEL[faixaSelecionada]}.`); return; }
+  const dataVal = document.getElementById('cal-data').value;
+  if (!dataVal) { alert('Selecione a data inicial.'); return; }
+  const existentes = confrontos.filter(c => c.faixa === faixaSelecionada);
+  if (existentes.length && !confirm(`Já existe um calendário para a faixa ${FAIXAS_LABEL[faixaSelecionada]}.\nDeseja substituir?\n\nAtenção: confrontos concluídos também serão removidos.`)) return;
+
+  const startDate = new Date(dataVal + 'T12:00');
+  const hora = document.getElementById('cal-hora').value || '19:00';
+  const local = document.getElementById('cal-local').value.trim() || 'A definir';
+
+  // Deletar existentes com ID do Firestore
+  for (const c of existentes) if (c.id) await deletarLigaConfronto(campeonatoId, c.id);
+  confrontos = confrontos.filter(c => c.faixa !== faixaSelecionada);
+
+  // Gerar round robin
+  const novos = gerarRoundRobin(eqsFaixa, startDate, hora, local, faixaSelecionada);
+  const refs = [];
+  for (const c of novos) {
+    const ref = await salvarLigaConfronto(campeonatoId, c);
+    refs.push({ ...c, id: ref.id });
+  }
+  confrontos = [...confrontos, ...refs];
+  salvarEstado();
+  renderCalendario();
+  alert(`Calendário gerado! ${refs.length} jogos criados para a faixa ${FAIXAS_LABEL[faixaSelecionada]}.`);
+};
+
+function gerarRoundRobin(eqs, startDate, hora, local, faixa) {
+  const ids = eqs.map(e => e.id);
+  let part = [...ids];
+  if (part.length % 2 !== 0) part.push(null);
+  const totalRounds = part.length - 1;
+  const perRound = part.length / 2;
+  const result = [];
+
+  const gerar = (partArr, startD, legName, baseRound) => {
+    const p = [...partArr];
+    for (let r = 1; r <= totalRounds; r++) {
+      for (let j = 0; j < perRound; j++) {
+        const e1 = p[j], e2 = p[p.length - 1 - j];
+        if (e1 && e2) {
+          const d = new Date(startD);
+          d.setDate(startD.getDate() + (r-1) * 7);
+          result.push({
+            rodada: baseRound + r, leg: legName, faixa,
+            equipe1Id: legName === 'volta' ? e2 : e1,
+            equipe2Id: legName === 'volta' ? e1 : e2,
+            data: d.toISOString().split('T')[0], hora, local,
+            status: 'pendente', resultado: null
+          });
+        }
+      }
+      const last = p.pop(); p.splice(1, 0, last);
+    }
+  };
+
+  gerar(part, startDate, 'ida', 0);
+  const startReturn = new Date(startDate);
+  startReturn.setDate(startDate.getDate() + totalRounds * 7);
+  gerar(part, startReturn, 'volta', totalRounds);
+  return result;
+}
+
+window.limparCalendario = async function() {
+  const fl = FAIXAS_LABEL[faixaSelecionada];
+  if (!confirm(`Limpar todo o calendário da faixa ${fl}?\n\nEsta ação remove todos os jogos, inclusive os concluídos.`)) return;
+  const confsF = confrontos.filter(c => c.faixa === faixaSelecionada);
+  for (const c of confsF) if (c.id) await deletarLigaConfronto(campeonatoId, c.id);
+  confrontos = confrontos.filter(c => c.faixa !== faixaSelecionada);
+  salvarEstado();
+  renderCalendario();
+};
+
+window.marcarAoVivo = async function(id) {
+  const c = confrontos.find(x => x.id === id);
+  if (!c) return;
+  // Inicializar resultado vazio
+  const resultado = {
+    categorias: CATEGORIAS.map(cat => ({ categoria: cat, vencedor: null, finalizacao: false })),
+    vitoriasEq1: 0, vitoriasEq2: 0
+  };
+  await atualizarLigaConfronto(campeonatoId, id, { status: 'ao_vivo', resultado });
+  c.status = 'ao_vivo'; c.resultado = resultado;
+  salvarEstado();
+  renderCalendario();
+};
+
+window.encerrarAoVivo = async function(id) {
+  const c = confrontos.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm('Encerrar este confronto ao vivo sem salvar resultado final?\n\nO confronto voltará ao status Pendente.')) return;
+  await atualizarLigaConfronto(campeonatoId, id, { status: 'pendente', resultado: null });
+  c.status = 'pendente'; c.resultado = null;
+  salvarEstado();
+  renderCalendario();
+};
+
+// ── Modal Resultado ───────────────────────────────────────────
+let confrontoEditando = null;
+
+window.abrirModalResultado = function(id) {
+  confrontoEditando = confrontos.find(c => c.id === id);
+  if (!confrontoEditando) return;
+  const eq1 = nomeEquipe(confrontoEditando.equipe1Id);
+  const eq2 = nomeEquipe(confrontoEditando.equipe2Id);
+  document.getElementById('res-confronto-id').value = id;
+  document.getElementById('modal-res-titulo').textContent = `📝 Resultado: ${eq1} × ${eq2}`;
+  document.getElementById('sprev-eq1').textContent = eq1;
+  document.getElementById('sprev-eq2').textContent = eq2;
+
+  // Inicializar categorias
+  const cats = confrontoEditando.resultado?.categorias || CATEGORIAS.map(c => ({ categoria: c, vencedor: null, finalizacao: false }));
+
+  document.getElementById('result-cats').innerHTML = cats.map((cr, idx) => {
+    const at1 = atletas.find(a => a.equipeId === confrontoEditando.equipe1Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
+    const at2 = atletas.find(a => a.equipeId === confrontoEditando.equipe2Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
+    const sel = v => cr.vencedor === v ? `sel-${v === '1' ? 'eq1' : v === '2' ? 'eq2' : 'emp'}` : '';
+    return `<div class="result-row">
+      <div class="result-cat-name">${cr.categoria}</div>
+      <div class="result-controls">
+        <div class="result-btns">
+          <button class="rbtn ${sel('1')}" id="rbtn-${idx}-1" onclick="selecionarVencedor(${idx},'1')">${at1 ? at1.nome.split(' ')[0] : eq1.split(' ')[0]} venceu</button>
+          <button class="rbtn ${sel('empate')}" id="rbtn-${idx}-emp" onclick="selecionarVencedor(${idx},'empate')">Empate</button>
+          <button class="rbtn ${sel('2')}" id="rbtn-${idx}-2" onclick="selecionarVencedor(${idx},'2')">${at2 ? at2.nome.split(' ')[0] : eq2.split(' ')[0]} venceu</button>
+        </div>
+        <div class="fin-row">
+          <input type="checkbox" id="fin-${idx}" ${cr.finalizacao ? 'checked' : ''} onchange="atualizarFinalizacao(${idx}, this.checked)">
+          <label for="fin-${idx}">Finalização 🔒</label>
+          <span style="font-size:0.63rem;color:#CBD5E1;margin-left:4px;">${at1 ? at1.nome : '(sem atleta)'} vs ${at2 ? at2.nome : '(sem atleta)'}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  atualizarScorePreview();
+  document.getElementById('modal-resultado').classList.add('open');
+};
+
+window.fecharModalResultado = () => {
+  document.getElementById('modal-resultado').classList.remove('open');
+  confrontoEditando = null;
+};
+
+window.selecionarVencedor = function(idx, v) {
+  if (!confrontoEditando?.resultado) {
+    confrontoEditando.resultado = { categorias: CATEGORIAS.map(c => ({ categoria: c, vencedor: null, finalizacao: false })), vitoriasEq1: 0, vitoriasEq2: 0 };
+  }
+  confrontoEditando.resultado.categorias[idx].vencedor = v;
+  // Update button styles
+  ['1','emp','2'].forEach(k => {
+    const b = document.getElementById(`rbtn-${idx}-${k}`);
+    if (b) { b.className = 'rbtn'; }
+  });
+  const keyMap = { '1': '1', 'empate': 'emp', '2': '2' };
+  const btn = document.getElementById(`rbtn-${idx}-${keyMap[v]}`);
+  if (btn) btn.classList.add(`sel-${v === '1' ? 'eq1' : v === '2' ? 'eq2' : 'emp'}`);
+  atualizarScorePreview();
+};
+
+window.atualizarFinalizacao = function(idx, checked) {
+  if (confrontoEditando?.resultado?.categorias?.[idx]) {
+    confrontoEditando.resultado.categorias[idx].finalizacao = checked;
+  }
+};
+
+function atualizarScorePreview() {
+  const cats = confrontoEditando?.resultado?.categorias || [];
+  let v1 = 0, v2 = 0, emp = 0, pend = 0;
+  cats.forEach(c => {
+    if (c.vencedor === '1') v1++;
+    else if (c.vencedor === '2') v2++;
+    else if (c.vencedor === 'empate') emp++;
+    else pend++;
+  });
+  confrontoEditando.resultado.vitoriasEq1 = v1;
+  confrontoEditando.resultado.vitoriasEq2 = v2;
+  document.getElementById('sprev-v1').textContent = v1;
+  document.getElementById('sprev-v2').textContent = v2;
+  document.getElementById('sprev-sub').textContent = `${emp} empate(s) · ${pend} categoria(s) pendente(s)`;
+}
+
+window.salvarResultado = async function() {
+  if (!confrontoEditando) return;
+  const btn = document.getElementById('btn-salvar-res');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+
+  const cats = confrontoEditando.resultado?.categorias || [];
+  const pendentes = cats.filter(c => !c.vencedor).length;
+  const status = pendentes === 0 ? 'concluido' : confrontoEditando.status === 'ao_vivo' ? 'ao_vivo' : 'concluido';
+
+  let v1 = 0, v2 = 0;
+  cats.forEach(c => { if (c.vencedor === '1') v1++; else if (c.vencedor === '2') v2++; });
+
+  const resultado = { ...confrontoEditando.resultado, vitoriasEq1: v1, vitoriasEq2: v2 };
+
+  try {
+    await atualizarLigaConfronto(campeonatoId, confrontoEditando.id, { status, resultado });
+    confrontoEditando.status = status;
+    confrontoEditando.resultado = resultado;
+
+    // Atualizar stats de atletas (apenas se concluido)
+    if (status === 'concluido') {
+      for (const cr of cats) {
+        if (!cr.vencedor) continue;
+        const at1 = atletas.find(a => a.equipeId === confrontoEditando.equipe1Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
+        const at2 = atletas.find(a => a.equipeId === confrontoEditando.equipe2Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
+
+        const atualizarAt = async (at, resultado) => {
+          if (!at) return;
+          const upd = {};
+          if (resultado === 'vitoria') {
+            upd.vitorias = (at.vitorias||0) + 1;
+            upd.pontos = (at.pontos||0) + 3 + (cr.finalizacao ? 1 : 0);
+            upd.finalizacoes = (at.finalizacoes||0) + (cr.finalizacao ? 1 : 0);
+          } else if (resultado === 'derrota') {
+            upd.derrotas = (at.derrotas||0) + 1;
+          } else {
+            upd.empates = (at.empates||0) + 1;
+            upd.pontos = (at.pontos||0) + 1;
+          }
+          await atualizarLigaAtleta(campeonatoId, at.id, upd);
+          Object.assign(at, upd);
+        };
+
+        if (cr.vencedor === '1') { await atualizarAt(at1, 'vitoria'); await atualizarAt(at2, 'derrota'); }
+        else if (cr.vencedor === '2') { await atualizarAt(at2, 'vitoria'); await atualizarAt(at1, 'derrota'); }
+        else { await atualizarAt(at1, 'empate'); await atualizarAt(at2, 'empate'); }
+      }
+    }
+
+    salvarEstado();
+    fecharModalResultado();
+    renderCalendario();
+    if (tabAtiva === 'classificacao') renderClassificacao();
+  } catch(e) {
+    alert('Erro ao salvar: ' + e.message);
+  } finally {
+    btn.textContent = '💾 Salvar Resultado'; btn.disabled = false;
+  }
+};
+
+// ── Classificação ─────────────────────────────────────────────
+function renderClassificacao() {
+  const fl = FAIXAS_LABEL[faixaSelecionada];
+  const ranking = calcularClassificacao(faixaSelecionada);
+  const el = document.getElementById('classificacao-content');
+
+  if (!ranking.length) {
+    el.innerHTML = `<div class="vazio"><span>🏆</span>Nenhuma equipe registrada para a faixa ${fl}.</div>`;
+    return;
+  }
+
+  const medals = ['🥇','🥈','🥉'];
+  let html = `<div class="card">
+    <div class="card-header"><h3>🏆 Classificação — Faixa ${fl}</h3></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Pos</th><th>Equipe</th><th>J</th><th>V</th><th>E</th><th>D</th><th>Pts</th><th>Cat. V</th><th>Aprov.</th></tr></thead>
+      <tbody>${ranking.map((s, i) => {
+        const aprov = s.j > 0 ? ((s.pts / (s.j * 3)) * 100).toFixed(0) : 0;
+        return `<tr>
+          <td><strong>${medals[i] || (i+1)+'º'}</strong></td>
+          <td><strong>${s.equipe.nome}</strong><br><span style="font-size:0.68rem;color:#8A9CB0">${s.equipe.cidade||''}</span></td>
+          <td>${s.j}</td>
+          <td style="color:#10B981;font-weight:700">${s.v}</td>
+          <td style="color:#F59E0B;font-weight:700">${s.emp}</td>
+          <td style="color:#EF4444;font-weight:700">${s.d}</td>
+          <td><strong style="color:#C9A03D;font-size:1rem">${s.pts}</strong></td>
+          <td>${s.cv}</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:${aprov}%"></div></div>${aprov}%</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>
+  </div>`;
+
+  // Ranking individual por categoria
+  html += `<div class="card"><div class="card-header"><h3>🥋 Ranking Individual por Categoria — ${fl}</h3></div>`;
+  CATEGORIAS.forEach(cat => {
+    const ats = atletas.filter(a => a.faixa === faixaSelecionada && a.categoria === cat)
+      .sort((a,b) => (b.pontos||0) - (a.pontos||0) || (b.vitorias||0) - (a.vitorias||0));
+    if (!ats.length) return;
+    html += `<div style="margin-bottom:14px">
+      <div style="font-size:0.72rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">${cat}</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Pos</th><th>Atleta</th><th>Equipe</th><th>Pts</th><th>V</th><th>E</th><th>D</th><th>Fin.</th></tr></thead>
+        <tbody>${ats.map((a,i) => `<tr>
+          <td>${medals[i] || (i+1)+'º'}</td>
+          <td><strong>${a.nome}</strong></td>
+          <td>${nomeEquipe(a.equipeId)}</td>
+          <td><strong style="color:#C9A03D">${a.pontos||0}</strong></td>
+          <td style="color:#10B981">${a.vitorias||0}</td>
+          <td style="color:#F59E0B">${a.empates||0}</td>
+          <td style="color:#EF4444">${a.derrotas||0}</td>
+          <td>🔒 ${a.finalizacoes||0}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  el.innerHTML = html;
+}
+
+// ── Hall of Fame ───────────────────────────────────────────────
+function renderHoF() {
+  const fl = FAIXAS_LABEL[faixaSelecionada];
+  document.getElementById('hof-titulo').textContent = `👑 Finalizar Temporada — Faixa ${fl}`;
+
+  const hofFaixa = historico.filter(h => h.faixa === faixaSelecionada)
+    .sort((a,b) => (b.criadoEm?.seconds||0) - (a.criadoEm?.seconds||0));
+
+  const el = document.getElementById('hof-list');
+  if (!hofFaixa.length) {
+    el.innerHTML = `<div class="vazio"><span>👑</span>Nenhuma temporada finalizada para a faixa ${fl} ainda.</div>`;
+    return;
+  }
+
+  const corFaixa = FAIXAS_COR[faixaSelecionada];
+  el.innerHTML = `<div class="card">
+    <div class="card-header"><h3>🏆 Campeões — Faixa ${fl}</h3></div>
+    ${hofFaixa.map(h => `<div class="hof-item">
+      <div class="hof-trophy">🏆</div>
+      <div style="flex:1">
+        <div class="hof-nome">${h.campeaoNome}</div>
+        <div class="hof-sub">
+          <span class="hof-faixa-dot" style="background:${corFaixa}"></span>
+          Faixa ${FAIXAS_LABEL[h.faixa]} · ${h.temporada} · ${h.pontos} pts · ${h.vitorias}V ${h.empates||0}E ${h.derrotas||0}D
+        </div>
+      </div>
+      <button class="btn btn-danger btn-xs" onclick="removerHoF('${h.id}')">🗑️</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+window.finalizarTemporada = async function() {
+  const ranking = calcularClassificacao(faixaSelecionada);
+  if (!ranking.length) { alert('Não há equipes classificadas para esta faixa.'); return; }
+
+  const campeao = ranking[0];
+  const temporada = prompt(`Qual o nome desta temporada?\nEx: 2025/1ª Edição\n\nCampeão atual: ${campeao.equipe.nome}`, new Date().getFullYear().toString());
+  if (!temporada) return;
+
+  if (!confirm(`🏆 Registrar como campeão da temporada "${temporada}":\n\n${campeao.equipe.nome}\nFaixa ${FAIXAS_LABEL[faixaSelecionada]} · ${campeao.pts} pontos\n\nConfirmar?`)) return;
+
+  try {
+    const ref = await salvarLigaHistorico(campeonatoId, {
+      temporada,
+      faixa: faixaSelecionada,
+      campeaoEquipeId: campeao.equipe.id,
+      campeaoNome: campeao.equipe.nome,
+      pontos: campeao.pts,
+      vitorias: campeao.v,
+      empates: campeao.emp,
+      derrotas: campeao.d
+    });
+    historico.push({ id: ref.id, temporada, faixa: faixaSelecionada, campeaoEquipeId: campeao.equipe.id, campeaoNome: campeao.equipe.nome, pontos: campeao.pts, vitorias: campeao.v, empates: campeao.emp, derrotas: campeao.d });
+    salvarEstado();
+    renderHoF();
+    alert(`✅ Temporada "${temporada}" finalizada!\n🏆 Campeão registrado: ${campeao.equipe.nome}`);
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+window.removerHoF = async function(id) {
+  if (!confirm('Remover este registro do Hall of Fame?')) return;
+  try {
+    await deletarLigaHistorico(campeonatoId, id);
+    historico = historico.filter(h => h.id !== id);
+    renderHoF();
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+// ── Expose globals ─────────────────────────────────────────────
+window.showTab        = showTab;
+window.setFaixa       = setFaixa;
+window.addEquipe      = window.addEquipe;
+
+// Close modals clicking overlay
+document.getElementById('modal-atleta').addEventListener('click', e => { if (e.target === e.currentTarget) fecharModalAtleta(); });
+document.getElementById('modal-resultado').addEventListener('click', e => { if (e.target === e.currentTarget) fecharModalResultado(); });
+</script>
+</body>
+</html>

@@ -115,6 +115,12 @@
     <label>Descrição</label>
     <textarea id="f-descricao" placeholder="Informações gerais sobre o campeonato..."></textarea>
 
+    <label>Tipo de Competição</label>
+    <select id="f-tipo">
+      <option value="chaveamento">🥋 Chaveamento (Eliminatórias)</option>
+      <option value="liga">⚽ Liga (Pontos Corridos)</option>
+    </select>
+
     <label>Status</label>
     <select id="f-status">
       <option value="breve">🕐 Em breve</option>
@@ -188,19 +194,25 @@
         const banner = c.cartaz
           ? `<div class="card-banner"><img src="${c.cartaz}" alt="Cartaz"></div>`
           : `<div class="card-banner"><span class="emoji-sobre">${c.emoji || '🥋'}</span></div>`;
+        const isLiga = c.tipo === 'liga';
+        const acoesHtml = isLiga
+          ? `<a href="liga-adm.html?id=${c.id}" class="btn-sm primary">⚽ Admin Liga</a>
+             <a href="liga-cronograma.html?id=${c.id}" target="_blank" class="btn-sm">📅 Calendário</a>
+             <a href="liga-tv.html?id=${c.id}" target="_blank" class="btn-sm">📺 TV</a>
+             <button class="btn-sm" onclick="editar('${c.id}')">✏️ Editar</button>
+             <button class="btn-sm danger" onclick="excluir('${c.id}', '${c.nome.replace(/'/g, "\\'")}')">🗑️ Excluir</button>`
+          : `<a href="index.html?id=${c.id}" class="btn-sm primary">⚙️ Gerenciar</a>
+             <a href="adm-inscricoes.html?id=${c.id}" class="btn-sm">📋 Inscrições</a>
+             <a href="atletas-publico.html?id=${c.id}" target="_blank" class="btn-sm">👥 Atletas cadastrados</a>
+             <button class="btn-sm" onclick="editar('${c.id}')">✏️ Editar</button>
+             <button class="btn-sm danger" onclick="excluir('${c.id}', '${c.nome.replace(/'/g, "\\'")}')">🗑️ Excluir</button>`;
         return `<div class="card">
           ${banner}
           <div class="card-body">
-            <span class="status-pill status-${c.status||'ativo'}">${{ativo:'✅ Aberto',breve:'🕐 Em breve',encerrado:'🔒 Encerrado'}[c.status||'ativo']}</span>
+            <span class="status-pill status-${c.status||'ativo'}">${{ativo:'✅ Aberto',breve:'🕐 Em breve',encerrado:'🔒 Encerrado'}[c.status||'ativo']}</span>${isLiga ? ' <span style="background:#EFF6FF;color:#1D4ED8;padding:3px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;">⚽ Liga</span>' : ''}
             <div class="card-nome">${c.nome}</div>
             <div class="card-info">📅 ${data}${c.local ? ' · 📍 '+c.local : ''}</div>
-            <div class="card-acoes">
-              <a href="index.html?id=${c.id}" class="btn-sm primary">⚙️ Gerenciar</a>
-              <a href="adm-inscricoes.html?id=${c.id}" class="btn-sm">📋 Inscrições</a>
-              <a href="atletas-publico.html?id=${c.id}" target="_blank" class="btn-sm">👥 Atletas cadastrados</a>
-              <button class="btn-sm" onclick="editar('${c.id}')">✏️ Editar</button>
-              <button class="btn-sm danger" onclick="excluir('${c.id}', '${c.nome.replace(/'/g, "\\'")}')">🗑️ Excluir</button>
-            </div>
+            <div class="card-acoes">${acoesHtml}</div>
           </div>
         </div>`;
       }).join('');
@@ -216,6 +228,7 @@
     document.getElementById('f-data').value = dados?.data || '';
     document.getElementById('f-local').value = dados?.local || '';
     document.getElementById('f-descricao').value = dados?.descricao || '';
+    document.getElementById('f-tipo').value = dados?.tipo || 'chaveamento';
     document.getElementById('f-status').value = dados?.status || 'breve';
     document.getElementById('f-emoji').value = dados?.emoji || '🥋';
     document.getElementById('f-cartaz').value = '';
@@ -311,6 +324,7 @@
     const equipes = equipesTxt.split('\n').map(e => e.trim()).filter(Boolean);
     const dados = {
       nome,
+      tipo: document.getElementById('f-tipo').value,
       data: document.getElementById('f-data').value,
       local: document.getElementById('f-local').value.trim(),
       descricao: document.getElementById('f-descricao').value.trim(),

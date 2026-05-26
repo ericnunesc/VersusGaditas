@@ -83,6 +83,7 @@
     .links-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
     .btn-link-card { display:block; text-align:center; padding:7px 6px; border:1px solid #E2E8F0; border-radius:8px; font-size:0.75rem; font-weight:600; color:#1A2C3E; text-decoration:none; transition:all 0.2s; background:#fff; }
     .btn-link-card:hover { border-color:#C9A03D; color:#C9A03D; background:#FFFDF5; }
+    .badge-liga-home { background:#EFF6FF; color:#1D4ED8; padding:3px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; }
 
     .vazio { text-align:center; padding:60px 20px; color:#8A9CB0; }
     .vazio span { font-size:3rem; display:block; margin-bottom:12px; opacity:0.3; }
@@ -160,14 +161,24 @@
       const data = c.data ? new Date(c.data).toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'}) : '—';
       const statusLabel = {ativo:'✅ Inscrições abertas', breve:'🕐 Em breve', encerrado:'🔒 Encerrado'}[c.status] || c.status;
       const statusClass = `status-${c.status || 'ativo'}`;
-      const podeInscrever = c.status === 'ativo';
+      const isLiga = c.tipo === 'liga';
+      const podeInscrever = c.status === 'ativo' && !isLiga;
+      const linksGrid = isLiga
+        ? `<a href="liga-cronograma.html?id=${c.id}" class="btn-link-card">📅 Calendário</a>
+           <a href="liga-tv.html?id=${c.id}" class="btn-link-card" target="_blank">📺 TV Ao Vivo</a>
+           <a href="liga-placar-publico.html?id=${c.id}" class="btn-link-card" target="_blank">🏆 Placar</a>
+           <a href="liga-adm.html?id=${c.id}" class="btn-link-card">⚙️ Admin</a>`
+        : `<a href="atletas-publico.html?id=${c.id}" class="btn-link-card">👥 Atletas</a>
+           <a href="cronograma-lutas.html?id=${c.id}" class="btn-link-card">📅 Cronograma</a>
+           <a href="tv-chaveamento.html?id=${c.id}" class="btn-link-card" target="_blank">📺 TV Lutas</a>
+           <a href="placar-publico.html?id=${c.id}" class="btn-link-card" target="_blank">🏆 Placar</a>`;
       return `
         <div class="card-camp">
           <div class="card-banner">
             ${c.cartaz ? `<img src="${c.cartaz}" alt="Cartaz ${c.nome}">` : `<span class="emoji-sobre">${c.emoji || '🥋'}</span>`}
           </div>
           <div class="card-body">
-            <div class="card-nome">${c.nome}</div>
+            <div class="card-nome">${c.nome}${isLiga ? ' <span class="badge-liga-home">⚽ LIGA</span>' : ''}</div>
             <div class="card-info">
               <span>📅 ${data}</span>
               ${c.local ? `<span>📍 ${c.local}</span>` : ''}
@@ -179,12 +190,7 @@
               <span class="status-pill ${statusClass}">${statusLabel}</span>
               ${podeInscrever ? `<a href="inscricao.html?id=${c.id}" class="btn-inscricao">📝 Inscrever-se</a>` : ''}
             </div>
-            <div class="links-grid">
-              <a href="atletas-publico.html?id=${c.id}" class="btn-link-card">👥 Atletas</a>
-              <a href="cronograma-lutas.html?id=${c.id}" class="btn-link-card">📅 Cronograma</a>
-              <a href="tv-chaveamento.html?id=${c.id}" class="btn-link-card" target="_blank">📺 TV Lutas</a>
-              <a href="placar-publico.html?id=${c.id}" class="btn-link-card" target="_blank">🏆 Placar</a>
-            </div>
+            <div class="links-grid">${linksGrid}</div>
           </div>
         </div>`;
     }).join('');
