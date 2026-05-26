@@ -109,6 +109,9 @@
     .fight-counter-label{font-size:0.55rem;color:#8A9CB0;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;}
     .fight-counter-val{font-size:1.4rem;font-weight:800;color:#F1F5F9;display:block;margin-bottom:5px;}
     .fight-counter-val.pun-val{color:#EF4444;}
+    .pun-hint{font-size:0.5rem;color:#475569;display:block;margin-top:2px;min-height:9px;line-height:1.2;}
+    .pun-hint.pactive{color:#F59E0B;}
+    .pun-hint.pdanger{color:#EF4444;font-weight:700;}
     .fight-counter-btns{display:flex;gap:4px;justify-content:center;}
     .fight-counter-btn{background:#0D1117;border:1px solid #334155;color:#CBD5E1;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;user-select:none;}
     .fight-counter-btn:hover{border-color:#C9A03D;color:#C9A03D;}
@@ -256,19 +259,58 @@ function timerDisplay(idx) {
   return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
 }
 
-// BJJ winner logic: each punição on oponnent = +2pts effective
+// BJJ winner logic (priority order):
+// 1. Finalização (declared externally via checkbox + botão)
+// 2. Maior pontuação (efeitos de punição JÁ somados nos contadores)
+// 3. Maior vantagem
+// 4. Menor punição
 function calcularLidando(idx) {
   const d = lutaData[idx];
   if (!d) return null;
-  const t1 = d.pts1 + d.pun2 * 2;
-  const t2 = d.pts2 + d.pun1 * 2;
-  if (t1 > t2) return '1';
-  if (t2 > t1) return '2';
+  if (d.pts1 > d.pts2) return '1';
+  if (d.pts2 > d.pts1) return '2';
   if (d.van1 > d.van2) return '1';
   if (d.van2 > d.van1) return '2';
   if (d.pun1 < d.pun2) return '1';
   if (d.pun2 < d.pun1) return '2';
-  return null; // truly tied
+  return null;
+}
+
+// Dicas visuais das punições
+function getPunHint(n) {
+  if (n === 0) return '';
+  if (n === 1) return '▸ próx: +1 van adv';
+  if (n === 2) return '▸ +1van adv · próx: +2pts adv';
+  if (n === 3) return '▸ +2pts adv · próx: DQ';
+  return '⛔ DQ';
+}
+function getPunClass(n) {
+  if (n >= 3) return 'pdanger';
+  if (n >= 1) return 'pactive';
+  return '';
+}
+
+// Helper: nomes dos atletas da categoria idx
+function getNomesCat(idx) {
+  const c = confrontoAtivo;
+  const cr = c.resultado?.categorias?.[idx];
+  if (!cr) return [nomeEquipe(c.equipe1Id).split(' ')[0], nomeEquipe(c.equipe2Id).split(' ')[0]];
+  const at1 = atletas.find(a => a.equipeId===c.equipe1Id && a.faixa===c.faixa && a.categoria===cr.categoria);
+  const at2 = atletas.find(a => a.equipeId===c.equipe2Id && a.faixa===c.faixa && a.categoria===cr.categoria);
+  return [at1?.nome||nomeEquipe(c.equipe1Id).split(' ')[0], at2?.nome||nomeEquipe(c.equipe2Id).split(' ')[0]];
+}
+
+// Atualiza todos os contadores DOM sem re-render completo
+function updateFightDOM(idx) {
+  const d = lutaData[idx]; if (!d) return;
+  const g = k => document.getElementById(`${k}-${idx}`);
+  const s1=g('s1'),s2=g('s2'),v1=g('v1'),v2=g('v2'),p1=g('p1'),p2=g('p2'),ph1=g('ph1'),ph2=g('ph2');
+  if (s1) { s1.textContent=d.pts1; s1.classList.toggle('leading',d.pts1>d.pts2); }
+  if (s2) { s2.textContent=d.pts2; s2.classList.toggle('leading',d.pts2>d.pts1); }
+  if (v1) v1.textContent=d.van1; if (v2) v2.textContent=d.van2;
+  if (p1) p1.textContent=d.pun1; if (p2) p2.textContent=d.pun2;
+  if (ph1) { ph1.textContent=getPunHint(d.pun1); ph1.className='pun-hint '+getPunClass(d.pun1); }
+  if (ph2) { ph2.textContent=getPunHint(d.pun2); ph2.className='pun-hint '+getPunClass(d.pun2); }
 }
 
 // ── Auth ──────────────────────────────────────────────────────
@@ -407,8 +449,6 @@ function renderCatsLive() {
       const secs = timerSecs[idx] ?? tempoLuta;
       const urgent = secs <= 30;
 
-      const eff1 = d.pts1 + d.pun2*2, eff2 = d.pts2 + d.pun1*2;
-
       const selCls = v => {
         if (cr.vencedor === v) return v==='1'?'sel-1':v==='2'?'sel-2':'sel-emp';
         if (!cr.vencedor && sug === v) return 'sugerido';
@@ -444,7 +484,7 @@ function renderCatsLive() {
               <div class="fight-badge fight-badge-1">🔵 CASA</div>
               <div class="fight-name" title="${nome1}">${nome1}</div>
               <div class="fight-team">${eq1}</div>
-              <div class="fight-score-num${eff1>eff2?' leading':''}" id="s1-${idx}">${d.pts1}</div>
+              <div class="fight-score-num${d.pts1>d.pts2?' leading':''}" id="s1-${idx}">${d.pts1}</div>
               <div class="fight-pt-row">
                 <button class="fight-pt-btn pos" onclick="addPts(${idx},1,2)">+2</button>
                 <button class="fight-pt-btn pos" onclick="addPts(${idx},1,3)">+3</button>
@@ -467,6 +507,7 @@ function renderCatsLive() {
                 <div class="fight-counter">
                   <span class="fight-counter-label">Punição</span>
                   <span class="fight-counter-val pun-val" id="p1-${idx}">${d.pun1}</span>
+                  <span class="pun-hint ${getPunClass(d.pun1)}" id="ph1-${idx}">${getPunHint(d.pun1)}</span>
                   <div class="fight-counter-btns">
                     <button class="fight-counter-btn" onclick="addPun(${idx},1,-1)">−</button>
                     <button class="fight-counter-btn" onclick="addPun(${idx},1,1)">+</button>
@@ -482,7 +523,7 @@ function renderCatsLive() {
               <div class="fight-badge fight-badge-2">🔴 VIS.</div>
               <div class="fight-name" title="${nome2}">${nome2}</div>
               <div class="fight-team">${eq2}</div>
-              <div class="fight-score-num${eff2>eff1?' leading':''}" id="s2-${idx}">${d.pts2}</div>
+              <div class="fight-score-num${d.pts2>d.pts1?' leading':''}" id="s2-${idx}">${d.pts2}</div>
               <div class="fight-pt-row">
                 <button class="fight-pt-btn pos" onclick="addPts(${idx},2,2)">+2</button>
                 <button class="fight-pt-btn pos" onclick="addPts(${idx},2,3)">+3</button>
@@ -505,6 +546,7 @@ function renderCatsLive() {
                 <div class="fight-counter">
                   <span class="fight-counter-label">Punição</span>
                   <span class="fight-counter-val pun-val" id="p2-${idx}">${d.pun2}</span>
+                  <span class="pun-hint ${getPunClass(d.pun2)}" id="ph2-${idx}">${getPunHint(d.pun2)}</span>
                   <div class="fight-counter-btns">
                     <button class="fight-counter-btn" onclick="addPun(${idx},2,-1)">−</button>
                     <button class="fight-counter-btn" onclick="addPun(${idx},2,1)">+</button>
@@ -599,11 +641,7 @@ window.addPts = function(idx, lado, delta) {
   const d = lutaData[idx]; if (!d) return;
   if (lado === 1) d.pts1 = Math.max(0, d.pts1 + delta);
   else            d.pts2 = Math.max(0, d.pts2 + delta);
-  const eff1 = d.pts1 + d.pun2*2, eff2 = d.pts2 + d.pun1*2;
-  const e1 = document.getElementById(`s1-${idx}`);
-  const e2 = document.getElementById(`s2-${idx}`);
-  if (e1) { e1.textContent = d.pts1; e1.classList.toggle('leading', eff1 > eff2); }
-  if (e2) { e2.textContent = d.pts2; e2.classList.toggle('leading', eff2 > eff1); }
+  updateFightDOM(idx);
   atualizarSugestao(idx);
 };
 
@@ -611,27 +649,54 @@ window.addVan = function(idx, lado, delta) {
   const d = lutaData[idx]; if (!d) return;
   if (lado === 1) d.van1 = Math.max(0, d.van1 + delta);
   else            d.van2 = Math.max(0, d.van2 + delta);
-  const e1 = document.getElementById(`v1-${idx}`);
-  const e2 = document.getElementById(`v2-${idx}`);
-  if (e1) e1.textContent = d.van1;
-  if (e2) e2.textContent = d.van2;
+  updateFightDOM(idx);
   atualizarSugestao(idx);
 };
 
+// Punições com efeitos automáticos:
+// 2ª → +1 vantagem no adversário
+// 3ª → +2 pontos no adversário
+// 4ª → DQ (adversário vence)
 window.addPun = function(idx, lado, delta) {
   const d = lutaData[idx]; if (!d) return;
-  if (lado === 1) d.pun1 = Math.max(0, d.pun1 + delta);
-  else            d.pun2 = Math.max(0, d.pun2 + delta);
-  const e1 = document.getElementById(`p1-${idx}`);
-  const e2 = document.getElementById(`p2-${idx}`);
-  if (e1) e1.textContent = d.pun1;
-  if (e2) e2.textContent = d.pun2;
-  // Punição altera placar efetivo — atualizar leading
-  const eff1 = d.pts1 + d.pun2*2, eff2 = d.pts2 + d.pun1*2;
-  const s1 = document.getElementById(`s1-${idx}`);
-  const s2 = document.getElementById(`s2-${idx}`);
-  if (s1) s1.classList.toggle('leading', eff1 > eff2);
-  if (s2) s2.classList.toggle('leading', eff2 > eff1);
+  const oldPun = lado === 1 ? d.pun1 : d.pun2;
+  const newPun = Math.max(0, oldPun + delta);
+  if (lado === 1) d.pun1 = newPun; else d.pun2 = newPun;
+
+  if (delta > 0) {
+    if (newPun === 2) {
+      // 2ª punição: +1 vantagem no adversário
+      if (lado === 1) d.van2 = (d.van2||0) + 1;
+      else            d.van1 = (d.van1||0) + 1;
+    } else if (newPun === 3) {
+      // 3ª punição: +2 pontos no adversário
+      if (lado === 1) d.pts2 = (d.pts2||0) + 2;
+      else            d.pts1 = (d.pts1||0) + 2;
+    } else if (newPun >= 4) {
+      // 4ª punição: DESCLASSIFICAÇÃO
+      updateFightDOM(idx);
+      const [n1, n2] = getNomesCat(idx);
+      const desq = lado === 1 ? n1 : n2;
+      const venc = lado === 1 ? n2 : n1;
+      setTimeout(() => {
+        if (confirm(`⛔ 4ª PUNIÇÃO!\n\n${desq} está DESCLASSIFICADO.\n\nDeclarar "${venc}" vencedor?`)) {
+          window.declararVencedor(idx, lado === 1 ? '2' : '1');
+        }
+      }, 40);
+      return;
+    }
+  } else {
+    // Remover punição (correção) — desfaz efeito automático
+    if (oldPun === 2 && newPun === 1) {
+      if (lado === 1) d.van2 = Math.max(0, (d.van2||0) - 1);
+      else            d.van1 = Math.max(0, (d.van1||0) - 1);
+    } else if (oldPun === 3 && newPun === 2) {
+      if (lado === 1) d.pts2 = Math.max(0, (d.pts2||0) - 2);
+      else            d.pts1 = Math.max(0, (d.pts1||0) - 2);
+    }
+  }
+
+  updateFightDOM(idx);
   atualizarSugestao(idx);
 };
 
