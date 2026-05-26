@@ -120,6 +120,20 @@
 
     .footer{text-align:center;font-size:0.63rem;color:#94A3B8;margin-top:24px;}
 
+    /* Foto do atleta */
+    .foto-upload-area{border:2px dashed #CBD5E1;border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;background:#FAFBFC;display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .foto-upload-area:hover{border-color:#C9A03D;background:#FFFBEC;}
+    .foto-upload-area.has-img{border-style:solid;border-color:#C9A03D;background:#FFFBEC;}
+    .foto-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .foto-circulo{width:52px;height:52px;border-radius:50%;background:#F1F5F9;border:2px solid #E2E8F0;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;overflow:hidden;}
+    .foto-circulo img{width:100%;height:100%;object-fit:cover;}
+    .foto-txt{font-size:0.73rem;color:#8A9CB0;text-align:left;line-height:1.5;}
+    .foto-txt strong{color:#C9A03D;display:block;font-size:0.75rem;}
+    .foto-size{font-size:0.6rem;color:#10B981;font-weight:600;margin-top:2px;}
+    /* Thumbnail no card */
+    .atleta-foto{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #E2E8F0;flex-shrink:0;}
+    .atleta-avatar{width:34px;height:34px;border-radius:50%;background:#F1F5F9;border:2px solid #E2E8F0;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+
     @media(max-width:480px){
       .atleta-row{flex-direction:column;align-items:flex-start;}
     }
@@ -208,6 +222,17 @@
   <div class="modal-box">
     <h3 id="modal-atleta-titulo">👤 Adicionar Atleta</h3>
 
+    <!-- Foto do atleta -->
+    <div class="foto-upload-area" id="foto-area">
+      <input type="file" id="foto-input" accept="image/*" onchange="onFotoChange(event)">
+      <div class="foto-circulo" id="foto-circulo"><span id="foto-icon">📷</span></div>
+      <div class="foto-txt">
+        <strong id="foto-txt-title">Adicionar foto do atleta</strong>
+        Clique aqui · Reduzida automaticamente
+        <div class="foto-size" id="foto-size-info" style="display:none"></div>
+      </div>
+    </div>
+
     <label class="m-label">Nome Completo *</label>
     <input type="text" class="m-inp" id="ma-nome" placeholder="Nome do atleta">
 
@@ -242,7 +267,37 @@ import {
 
 const params = new URLSearchParams(location.search);
 const campeonatoId = params.get('id');
-const equipeIdParam = params.get('e'); // opcional na URL
+const equipeIdParam = params.get('e');
+
+// ── Resize via Canvas ──────────────────────────────────────────
+function resizeImage(file, maxW, maxH, quality = 0.78) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        // Crop quadrado para foto de atleta
+        const side = Math.min(w, h);
+        const canvas = document.createElement('canvas');
+        const out = Math.min(side, maxW);
+        canvas.width = out; canvas.height = out;
+        const ctx = canvas.getContext('2d');
+        const ox = (w - side) / 2, oy = (h - side) / 2;
+        ctx.drawImage(img, ox, oy, side, side, 0, 0, out, out);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function b64Size(b64) {
+  const kb = Math.round((b64.length * 3) / 4 / 1024);
+  return kb + ' KB';
+}
+
+let fotoBase64 = null;
 
 const FAIXAS_LABEL = { branca:'⬜ Branca', azul:'🔵 Azul', roxa:'🟣 Roxa', marrom:'🟤 Marrom', preta:'⬛ Preta' };
 const FAIXAS_COR = { branca:'#6B7280', azul:'#3B8BFF', roxa:'#9B59B6', marrom:'#92400E', preta:'#374151' };
@@ -337,6 +392,13 @@ function mostrarPortal() {
   document.getElementById('ph-nome').textContent = equipe.nome;
   document.getElementById('ph-meta').textContent = (equipe.cidade || '') + (equipe.responsavel ? ' · ' + equipe.responsavel : '');
   document.getElementById('hdr-equipe-badge').textContent = equipe.nome;
+  // Logo da equipe no header do portal
+  if (equipe.logoBase64) {
+    const logoEl = document.createElement('img');
+    logoEl.src = equipe.logoBase64;
+    logoEl.style.cssText = 'height:42px;object-fit:contain;border-radius:6px;margin-right:8px;';
+    document.querySelector('.portal-header').prepend(logoEl);
+  }
 
   const faixaEl = document.getElementById('ph-faixa');
   faixaEl.textContent = FAIXAS_LABEL[equipe.faixa] || equipe.faixa;
@@ -383,7 +445,11 @@ function renderCats() {
     } else {
       bodyHtml = '';
       if (titular) {
+        const foto = titular.fotoBase64
+          ? `<img src="${titular.fotoBase64}" class="atleta-foto">`
+          : `<div class="atleta-avatar">👤</div>`;
         bodyHtml += `<div class="atleta-row">
+          ${foto}
           <div class="atleta-info">
             <div class="atleta-nome">${titular.nome}</div>
             <div class="atleta-sub">${titular.peso ? titular.peso + 'kg' : ''} ${titular.nasc ? '· Nasc: ' + titular.nasc : ''}</div>
@@ -395,7 +461,11 @@ function renderCats() {
         </div>`;
       }
       if (suplente) {
+        const fotoS = suplente.fotoBase64
+          ? `<img src="${suplente.fotoBase64}" class="atleta-foto" style="opacity:0.75">`
+          : `<div class="atleta-avatar" style="opacity:0.6">👤</div>`;
         bodyHtml += `<div class="atleta-row suplente">
+          ${fotoS}
           <div class="atleta-info">
             <div class="atleta-nome">${suplente.nome} <span class="atleta-badge-sup">SUP</span></div>
             <div class="atleta-sub">${suplente.peso ? suplente.peso + 'kg' : ''}</div>
@@ -420,6 +490,39 @@ function renderCats() {
   }).join('');
 }
 
+window.onFotoChange = async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  fotoBase64 = await resizeImage(file, 300, 300, 0.78);
+  const circulo = document.getElementById('foto-circulo');
+  circulo.innerHTML = `<img src="${fotoBase64}" style="width:100%;height:100%;object-fit:cover;">`;
+  document.getElementById('foto-txt-title').textContent = 'Foto adicionada ✅';
+  document.getElementById('foto-size-info').textContent = `~${b64Size(fotoBase64)}`;
+  document.getElementById('foto-size-info').style.display = 'block';
+  document.getElementById('foto-area').classList.add('has-img');
+};
+
+function resetFotoModal(fotoExistente) {
+  fotoBase64 = fotoExistente || null;
+  const circulo = document.getElementById('foto-circulo');
+  const txtTitle = document.getElementById('foto-txt-title');
+  const sizeInfo = document.getElementById('foto-size-info');
+  const area = document.getElementById('foto-area');
+  document.getElementById('foto-input').value = '';
+  if (fotoExistente) {
+    circulo.innerHTML = `<img src="${fotoExistente}" style="width:100%;height:100%;object-fit:cover;">`;
+    txtTitle.textContent = 'Foto atual (clique para trocar)';
+    sizeInfo.textContent = `~${b64Size(fotoExistente)}`;
+    sizeInfo.style.display = 'block';
+    area.classList.add('has-img');
+  } else {
+    circulo.innerHTML = '<span id="foto-icon">📷</span>';
+    txtTitle.textContent = 'Adicionar foto do atleta';
+    sizeInfo.style.display = 'none';
+    area.classList.remove('has-img');
+  }
+}
+
 window.abrirModalAtleta = function(categoria, suplente) {
   modoAtleta = { categoria, suplente, atletaId: null };
   document.getElementById('modal-atleta-titulo').textContent = suplente ? '👤 Adicionar Suplente' : '👤 Adicionar Atleta Titular';
@@ -428,6 +531,7 @@ window.abrirModalAtleta = function(categoria, suplente) {
   document.getElementById('ma-nasc').value = '';
   document.getElementById('ma-tel').value = '';
   document.getElementById('ma-suplente').checked = suplente;
+  resetFotoModal(null);
   document.getElementById('modal-atleta').classList.add('open');
 };
 
@@ -441,6 +545,7 @@ window.editarAtleta = function(id) {
   document.getElementById('ma-nasc').value = at.nasc || '';
   document.getElementById('ma-tel').value = at.tel || '';
   document.getElementById('ma-suplente').checked = at.suplente || false;
+  resetFotoModal(at.fotoBase64 || null);
   document.getElementById('modal-atleta').classList.add('open');
 };
 
@@ -455,7 +560,8 @@ window.salvarAtleta = async function() {
     suplente: document.getElementById('ma-suplente').checked,
     categoria: modoAtleta.categoria,
     faixa: equipe.faixa,
-    equipeId: equipe.id
+    equipeId: equipe.id,
+    ...(fotoBase64 ? { fotoBase64 } : {})
   };
 
   try {
