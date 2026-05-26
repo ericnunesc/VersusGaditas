@@ -6,7 +6,8 @@
   <title>Placar Admin — Liga BJJ</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Inter',-apple-system,sans-serif;background:#F5F7FA;color:#1A2C3E;}
+    body{font-family:'Inter',-apple-system,sans-serif;background:#0D1117;color:#E2E8F0;}
+
     header{background:#1A2C3E;color:#fff;padding:13px 22px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
     .hdr-logo{display:flex;align-items:center;gap:10px;}
     .hdr-logo h1{font-size:0.95rem;font-weight:700;}
@@ -18,16 +19,17 @@
     a.btn-back{background:transparent;border:1px solid #8A9CB0;color:#8A9CB0;padding:5px 12px;border-radius:40px;font-size:0.72rem;cursor:pointer;text-decoration:none;}
     a.btn-back:hover{border-color:#C9A03D;color:#C9A03D;}
 
-    .app{max-width:900px;margin:0 auto;padding:22px 16px 60px;}
+    .app{max-width:920px;margin:0 auto;padding:22px 16px 60px;}
 
-    .card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:18px;margin-bottom:14px;}
+    /* Card (light, for select screen) */
+    .card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:18px;margin-bottom:14px;color:#1A2C3E;}
     .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:8px;}
     .card-header h3{font-size:0.9rem;font-weight:700;}
 
     .btn{padding:8px 18px;border-radius:40px;border:none;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.2s;display:inline-flex;align-items:center;gap:5px;}
     .btn-primary{background:#C9A03D;color:#fff;}
     .btn-primary:hover{background:#A0822E;}
-    .btn-secondary{background:transparent;border:1px solid #E2E8F0;color:#1A2C3E;}
+    .btn-secondary{background:transparent;border:1px solid #475569;color:#E2E8F0;}
     .btn-secondary:hover{border-color:#C9A03D;color:#C9A03D;}
     .btn-danger{background:transparent;border:1px solid #EF4444;color:#EF4444;}
     .btn-danger:hover{background:#EF4444;color:#fff;}
@@ -35,46 +37,111 @@
     .btn-success:hover{background:#059669;}
     .btn-sm{padding:5px 11px;font-size:0.72rem;}
 
-    select{width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:9px 12px;font-size:0.84rem;outline:none;background:#fff;margin-bottom:10px;}
-    select:focus{border-color:#C9A03D;}
+    select.sel-light{width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:9px 12px;font-size:0.84rem;outline:none;background:#fff;color:#1A2C3E;margin-bottom:10px;}
+    select.sel-light:focus{border-color:#C9A03D;}
 
-    /* Live score display */
+    /* Links bar */
+    .links-bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+    .lnk{padding:6px 13px;border:1px solid #475569;border-radius:8px;font-size:0.73rem;font-weight:600;color:#E2E8F0;text-decoration:none;background:#1E293B;transition:all 0.2s;}
+    .lnk:hover{border-color:#C9A03D;color:#C9A03D;}
+    .lnk-primary{background:#C9A03D;border-color:#C9A03D;color:#fff;}
+    .lnk-primary:hover{background:#A0822E;color:#fff;}
+
+    /* Live banner */
     .live-banner{background:linear-gradient(135deg,#1A2C3E,#2A4060);border-radius:14px;padding:20px;margin-bottom:14px;color:#fff;}
     .live-badge{display:inline-block;background:#10B981;color:#fff;padding:3px 12px;border-radius:20px;font-size:0.7rem;font-weight:700;margin-bottom:12px;animation:pulse 1.2s infinite;}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
     .live-teams{display:grid;grid-template-columns:1fr 80px 1fr;align-items:center;gap:10px;margin-bottom:12px;}
-    .live-team-name{font-weight:700;font-size:1.1rem;}
+    .live-team-name{font-weight:700;font-size:1.05rem;}
     .live-team-sub{font-size:0.7rem;color:#8A9CB0;margin-top:3px;}
     .live-score{text-align:center;font-size:2.8rem;font-weight:900;color:#C9A03D;line-height:1;}
     .live-meta{font-size:0.72rem;color:#8A9CB0;display:flex;gap:14px;flex-wrap:wrap;}
 
-    /* Category rows */
-    .cat-row{border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:9px;}
-    .cat-row-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
-    .cat-nome{font-weight:700;font-size:0.88rem;}
-    .cat-atletas{font-size:0.72rem;color:#8A9CB0;}
-    .cat-btns{display:flex;gap:6px;flex-wrap:wrap;}
-    .cat-btn{padding:7px 14px;border:2px solid #E2E8F0;background:#fff;border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:600;transition:all 0.15s;flex:1;min-width:100px;text-align:center;}
-    .cat-btn:hover{border-color:#C9A03D;}
-    .cat-btn.sel-1{border-color:#3B8BFF;background:#EFF6FF;color:#1D4ED8;}
-    .cat-btn.sel-emp{border-color:#F59E0B;background:#FFFBEB;color:#92400E;}
-    .cat-btn.sel-2{border-color:#EF4444;background:#FEF2F2;color:#DC2626;}
-    .cat-fin{display:flex;align-items:center;gap:5px;font-size:0.74rem;color:#8A9CB0;margin-top:7px;cursor:pointer;}
-    .cat-fin input{accent-color:#C9A03D;width:16px;height:16px;}
-    .cat-status-done{font-size:0.72rem;padding:3px 9px;border-radius:20px;background:#DCFCE7;color:#166534;font-weight:700;}
-    .cat-status-pend{font-size:0.72rem;padding:3px 9px;border-radius:20px;background:#FEF9C3;color:#92400E;font-weight:700;}
+    /* ═══ CATEGORIA ROW ═══ */
+    .cat-row{border:1px solid #1E293B;border-radius:12px;margin-bottom:10px;overflow:hidden;background:#161B22;}
+    .cat-row-head{padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+    .cat-row-nome{font-weight:700;font-size:0.9rem;color:#F1F5F9;}
+    .cat-row-atletas{font-size:0.72rem;color:#8A9CB0;margin-top:2px;}
+    .badge-pend{background:#292524;color:#F59E0B;padding:3px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;}
+    .badge-done{background:#14532D;color:#86EFAC;padding:3px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;}
+    .badge-ativa{background:#1D4ED8;color:#BFDBFE;padding:3px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;animation:pulse 1.4s infinite;}
+    .btn-iniciar{background:#10B981;color:#fff;border:none;padding:7px 16px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;}
+    .btn-iniciar:hover{background:#059669;}
+    .btn-reabrir{background:transparent;border:1px solid #334155;color:#8A9CB0;padding:5px 10px;border-radius:8px;font-size:0.7rem;cursor:pointer;}
+    .btn-reabrir:hover{border-color:#C9A03D;color:#C9A03D;}
+    .cat-result-winner{font-size:0.78rem;color:#86EFAC;font-weight:700;margin-top:2px;}
+    .cat-result-score{font-size:0.67rem;color:#475569;margin-top:1px;}
+
+    /* ═══ FIGHT UI ═══ */
+    .fight-wrap{background:#0D1117;border-top:2px solid #1E293B;padding:16px;}
+
+    /* Timer */
+    .fight-timer{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;background:#161B22;border-radius:12px;padding:14px 16px;}
+    .fight-timer-center{text-align:center;}
+    .fight-timer-label{font-size:0.58rem;color:#8A9CB0;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+    .fight-timer-display{font-size:2.6rem;font-weight:900;color:#C9A03D;font-family:monospace;line-height:1;min-width:110px;display:block;}
+    .fight-timer-display.urgent{color:#EF4444;animation:pulse 0.5s infinite;}
+    .fight-timer-btn{background:#1E293B;border:1px solid #334155;color:#E2E8F0;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;transition:all 0.2s;white-space:nowrap;}
+    .fight-timer-btn:hover{border-color:#3B8BFF;color:#3B8BFF;}
+    .fight-timer-btn.running{border-color:#EF4444;color:#EF4444;}
+    .fight-timer-btn.running:hover{background:#EF4444;color:#fff;}
+    .fight-timer-reset{background:transparent;border:1px solid #334155;color:#64748B;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;}
+    .fight-timer-reset:hover{border-color:#F59E0B;color:#F59E0B;}
+
+    /* Scoreboard */
+    .fight-board{display:grid;grid-template-columns:1fr 44px 1fr;gap:10px;align-items:start;margin-bottom:14px;}
+    .fight-side{border-radius:12px;padding:14px;text-align:center;}
+    .fight-side-1{background:linear-gradient(160deg,#1e3a5f 0%,#1e293b 100%);border:2px solid #3B8BFF;}
+    .fight-side-2{background:linear-gradient(160deg,#3b1a1a 0%,#1e293b 100%);border:2px solid #EF4444;}
+    .fight-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:700;margin-bottom:8px;}
+    .fight-badge-1{background:#1D4ED8;color:#BFDBFE;}
+    .fight-badge-2{background:#B91C1C;color:#FECACA;}
+    .fight-name{font-weight:700;font-size:0.88rem;color:#F1F5F9;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .fight-team{font-size:0.62rem;color:#475569;margin-bottom:10px;}
+    .fight-score-num{font-size:3.8rem;font-weight:900;color:#E2E8F0;line-height:1;margin-bottom:10px;transition:color 0.2s;}
+    .fight-score-num.leading{color:#C9A03D;}
+    .fight-pt-row{display:flex;gap:4px;justify-content:center;margin-bottom:4px;}
+    .fight-pt-btn{background:#1E293B;border:1px solid #334155;color:#CBD5E1;padding:7px 0;border-radius:7px;cursor:pointer;font-size:0.82rem;font-weight:700;flex:1;transition:all 0.15s;user-select:none;}
+    .fight-pt-btn.pos:hover,.fight-pt-btn.pos:active{border-color:#10B981;color:#10B981;background:#022C22;}
+    .fight-pt-btn.neg:hover,.fight-pt-btn.neg:active{border-color:#EF4444;color:#EF4444;background:#2D0000;}
+    .fight-counters{display:flex;gap:7px;margin-top:10px;}
+    .fight-counter{background:#1E293B;border-radius:8px;padding:8px 6px;flex:1;text-align:center;}
+    .fight-counter-label{font-size:0.55rem;color:#8A9CB0;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px;}
+    .fight-counter-val{font-size:1.4rem;font-weight:800;color:#F1F5F9;display:block;margin-bottom:5px;}
+    .fight-counter-val.pun-val{color:#EF4444;}
+    .fight-counter-btns{display:flex;gap:4px;justify-content:center;}
+    .fight-counter-btn{background:#0D1117;border:1px solid #334155;color:#CBD5E1;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;user-select:none;}
+    .fight-counter-btn:hover{border-color:#C9A03D;color:#C9A03D;}
+    .fight-vs{display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;color:#334155;padding-top:70px;}
+
+    /* Declare winner */
+    .fight-declare{background:#161B22;border-radius:10px;padding:14px;}
+    .fight-declare-title{text-align:center;font-size:0.68rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+    .fight-declare-btns{display:flex;gap:7px;margin-bottom:10px;}
+    .fight-decl-btn{flex:1;padding:11px 6px;border-radius:8px;border:2px solid #334155;background:#1E293B;color:#CBD5E1;cursor:pointer;font-size:0.82rem;font-weight:700;transition:all 0.15s;text-align:center;user-select:none;}
+    .fight-decl-btn:hover{border-color:#C9A03D;color:#F1F5F9;}
+    .fight-decl-btn.sugerido{border-color:#C9A03D;background:#1C1400;color:#FCD34D;}
+    .fight-decl-btn.sel-1{border-color:#3B8BFF;background:#1D4ED8;color:#fff;}
+    .fight-decl-btn.sel-2{border-color:#EF4444;background:#B91C1C;color:#fff;}
+    .fight-decl-btn.sel-emp{border-color:#F59E0B;background:#78350F;color:#FDE68A;}
+    .fight-fin-row{display:flex;align-items:center;gap:8px;font-size:0.76rem;color:#64748B;cursor:pointer;}
+    .fight-fin-row input{accent-color:#C9A03D;width:16px;height:16px;cursor:pointer;}
 
     .vazio{text-align:center;padding:36px 20px;color:#8A9CB0;}
     .vazio span{font-size:2.4rem;display:block;margin-bottom:8px;opacity:0.3;}
 
-    .links-bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
-    .lnk{padding:6px 13px;border:1px solid #E2E8F0;border-radius:8px;font-size:0.73rem;font-weight:600;color:#1A2C3E;text-decoration:none;background:#fff;transition:all 0.2s;}
-    .lnk:hover{border-color:#C9A03D;color:#C9A03D;}
-    .lnk-primary{background:#C9A03D;border-color:#C9A03D;color:#fff;}
-    .lnk-primary:hover{background:#A0822E;color:#fff;}
+    @media(max-width:580px){
+      .fight-board{grid-template-columns:1fr 30px 1fr;gap:6px;}
+      .fight-score-num{font-size:2.8rem;}
+      .fight-timer-display{font-size:2rem;}
+      .fight-pt-btn{font-size:0.72rem;padding:6px 0;}
+      .live-score{font-size:2rem;}
+      .live-team-name{font-size:0.88rem;}
+    }
   </style>
 </head>
 <body>
+
 <header>
   <div class="hdr-logo">
     <span style="font-size:1.5rem">🎙️</span>
@@ -93,18 +160,30 @@
     <a id="lnk-placar" href="#" class="lnk" target="_blank">🏆 Ver Placar Público</a>
   </div>
 
-  <!-- Selecionar confronto ao vivo -->
+  <!-- ── Selecionar confronto ── -->
   <div class="card" id="card-select">
     <div class="card-header"><h3>▶️ Selecionar Confronto</h3></div>
-    <p style="font-size:0.8rem;color:#8A9CB0;margin-bottom:10px;">Escolha o confronto que está acontecendo agora para transmissão ao vivo.</p>
-    <select id="sel-confronto">
+    <p style="font-size:0.8rem;color:#8A9CB0;margin-bottom:12px;">Escolha o confronto para transmissão ao vivo.</p>
+    <select class="sel-light" id="sel-confronto">
       <option value="">⏳ Carregando confrontos...</option>
     </select>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+      <label style="font-size:0.78rem;color:#4A5568;font-weight:600;">⏱️ Tempo por luta:</label>
+      <select class="sel-light" id="sel-tempo" style="width:auto;margin:0;" onchange="setTempoLuta(this.value)">
+        <option value="180">3 minutos</option>
+        <option value="300" selected>5 minutos</option>
+        <option value="360">6 minutos</option>
+        <option value="420">7 minutos</option>
+        <option value="480">8 minutos</option>
+        <option value="600">10 minutos</option>
+      </select>
+    </div>
     <button class="btn btn-success" onclick="iniciarAoVivo()">▶️ Iniciar Ao Vivo</button>
   </div>
 
-  <!-- Controle ao vivo -->
+  <!-- ── Controle ao vivo ── -->
   <div id="live-control" style="display:none">
+
     <div class="live-banner">
       <span class="live-badge">🔴 AO VIVO</span>
       <div class="live-teams">
@@ -112,7 +191,9 @@
           <div class="live-team-name" id="lv-eq1">—</div>
           <div class="live-team-sub">Casa</div>
         </div>
-        <div class="live-score"><span id="lv-v1">0</span><span style="color:#64748B;font-size:1.8rem">×</span><span id="lv-v2">0</span></div>
+        <div class="live-score">
+          <span id="lv-v1">0</span><span style="color:#334155;font-size:1.6rem">×</span><span id="lv-v2">0</span>
+        </div>
         <div style="text-align:right">
           <div class="live-team-name" id="lv-eq2">—</div>
           <div class="live-team-sub">Visitante</div>
@@ -126,16 +207,12 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h3>📋 Resultados por Categoria</h3>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-success btn-sm" onclick="finalizarConfronto()">✅ Finalizar Confronto</button>
-          <button class="btn btn-danger btn-sm" onclick="encerrarSemResultado()">⏹️ Encerrar</button>
-        </div>
-      </div>
-      <div id="cats-live"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn btn-success btn-sm" onclick="finalizarConfronto()">✅ Finalizar Confronto</button>
+      <button class="btn btn-danger btn-sm" onclick="encerrarSemResultado()">⏹️ Encerrar</button>
     </div>
+
+    <div id="cats-live"></div>
   </div>
 </div>
 
@@ -147,76 +224,112 @@ import {
   atualizarLigaAtleta, buscarLigaConfig
 } from './js/firebase.js';
 
-const params = new URLSearchParams(location.search);
-const campeonatoId = params.get('id');
-if (!campeonatoId) location.replace('painel-admin.html');
+const params   = new URLSearchParams(location.search);
+const campId   = params.get('id');
+if (!campId) location.replace('painel-admin.html');
 
-const CATS_DEFAULT = ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'];
-const FAIXAS_LABEL = { branca:'Branca', azul:'Azul', roxa:'Roxa', marrom:'Marrom', preta:'Preta' };
-const LIGA_KEY = `gaditas_liga_${campeonatoId}`;
+const CATS_DEFAULT  = ['Pena','Leve','Médio','Meio-Pesado','Pesado'];
+const FAIXAS_LABEL  = { branca:'Branca', azul:'Azul', roxa:'Roxa', marrom:'Marrom', preta:'Preta' };
+const LIGA_KEY      = `gaditas_liga_${campId}`;
 
 let campeonato, equipes = [], atletas = [], confrontos = [];
 let confrontoAtivo = null;
 let ligaConfig = { categorias: CATS_DEFAULT, temAbsoluto: false };
 
+// ── Fight state (in-memory) ───────────────────────────────────
+let tempoLuta = 300;             // seconds (default 5 min)
+let lutaData  = {};              // { [idx]: { pts1,pts2,van1,van2,pun1,pun2, status } }
+let timerSecs = {};              // { [idx]: remainingSeconds }
+let timerInterval = null;
+let timerIdx  = null;            // which category's timer is running
+
+window.setTempoLuta = v => { tempoLuta = parseInt(v) || 300; };
+
+// ── Helpers ───────────────────────────────────────────────────
 function getCategorias() {
   return [...(ligaConfig.categorias || CATS_DEFAULT), ...(ligaConfig.temAbsoluto ? ['Absoluto'] : [])];
 }
+function nomeEquipe(id) { return equipes.find(e => e.id === id)?.nome || '?'; }
 
+function timerDisplay(idx) {
+  const s = timerSecs[idx] ?? tempoLuta;
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+// BJJ winner logic: each punição on oponnent = +2pts effective
+function calcularLidando(idx) {
+  const d = lutaData[idx];
+  if (!d) return null;
+  const t1 = d.pts1 + d.pun2 * 2;
+  const t2 = d.pts2 + d.pun1 * 2;
+  if (t1 > t2) return '1';
+  if (t2 > t1) return '2';
+  if (d.van1 > d.van2) return '1';
+  if (d.van2 > d.van1) return '2';
+  if (d.pun1 < d.pun2) return '1';
+  if (d.pun2 < d.pun1) return '2';
+  return null; // truly tied
+}
+
+// ── Auth ──────────────────────────────────────────────────────
 onLogin(user => {
   if (!user) { location.replace('login-admin.html'); return; }
   document.getElementById('user-email').textContent = user.email;
   iniciar();
 });
-
 document.getElementById('btn-sair').addEventListener('click', async () => {
   await logout(); location.replace('login-admin.html');
 });
 
+// ── Init ──────────────────────────────────────────────────────
 async function iniciar() {
-  campeonato = await buscarCampeonato(campeonatoId);
+  campeonato = await buscarCampeonato(campId);
   document.getElementById('comp-subtitle').textContent = campeonato?.nome || 'Liga BJJ';
-  document.getElementById('btn-liga-adm').href = `liga-adm.html?id=${campeonatoId}`;
-  document.getElementById('lnk-tv').href = `liga-tv.html?id=${campeonatoId}`;
-  document.getElementById('lnk-placar').href = `liga-placar-publico.html?id=${campeonatoId}`;
+  document.getElementById('btn-liga-adm').href  = `liga-adm.html?id=${campId}`;
+  document.getElementById('lnk-tv').href        = `liga-tv.html?id=${campId}`;
+  document.getElementById('lnk-placar').href    = `liga-placar-publico.html?id=${campId}`;
 
   const [eqs, ats, confs, cfg] = await Promise.all([
-    listarLigaEquipes(campeonatoId),
-    listarLigaAtletas(campeonatoId),
-    listarLigaConfrontos(campeonatoId),
-    buscarLigaConfig(campeonatoId)
+    listarLigaEquipes(campId), listarLigaAtletas(campId),
+    listarLigaConfrontos(campId), buscarLigaConfig(campId)
   ]);
   equipes = eqs; atletas = ats; confrontos = confs;
 
-  // Merge config: Firestore > localStorage > default
-  const existingState = JSON.parse(localStorage.getItem(LIGA_KEY) || '{}');
+  const st = JSON.parse(localStorage.getItem(LIGA_KEY) || '{}');
   if (cfg) ligaConfig = cfg;
-  else if (existingState.ligaConfig) ligaConfig = existingState.ligaConfig;
+  else if (st.ligaConfig) ligaConfig = st.ligaConfig;
 
-  // Verificar se já tem algum ao vivo
   const aoVivo = confrontos.find(c => c.status === 'ao_vivo');
   if (aoVivo) {
     confrontoAtivo = aoVivo;
-    mostrarControleAoVivo();
+    inicializarLutaData();
+    mostrarControle();
   } else {
-    preencherSelectConfronto();
+    preencherSelect();
   }
 }
 
-function nomeEquipe(id) { return equipes.find(e => e.id === id)?.nome || '?'; }
+function inicializarLutaData() {
+  const cats = confrontoAtivo.resultado?.categorias || [];
+  cats.forEach((cr, idx) => {
+    if (!lutaData[idx]) {
+      lutaData[idx] = { pts1:0, pts2:0, van1:0, van2:0, pun1:0, pun2:0,
+        status: cr.vencedor ? 'definida' : 'pendente' };
+    }
+    if (timerSecs[idx] === undefined) timerSecs[idx] = tempoLuta;
+  });
+}
 
-function preencherSelectConfronto() {
+function preencherSelect() {
   const pendentes = confrontos.filter(c => c.status === 'pendente');
   const sel = document.getElementById('sel-confronto');
   if (!pendentes.length) {
-    sel.innerHTML = `<option value="">Nenhum confronto pendente encontrado</option>`;
-    return;
+    sel.innerHTML = `<option value="">Nenhum confronto pendente</option>`; return;
   }
   sel.innerHTML = `<option value="">Selecione um confronto...</option>` +
     pendentes.map(c => {
-      const eq1 = nomeEquipe(c.equipe1Id), eq2 = nomeEquipe(c.equipe2Id);
       const fl = FAIXAS_LABEL[c.faixa] || c.faixa;
-      return `<option value="${c.id}">${eq1} × ${eq2} — Rodada ${c.rodada} (${fl}) · ${c.data||'—'}</option>`;
+      return `<option value="${c.id}">${nomeEquipe(c.equipe1Id)} × ${nomeEquipe(c.equipe2Id)} — R${c.rodada} (${fl}) · ${c.data||'—'}</option>`;
     }).join('');
 }
 
@@ -229,64 +342,341 @@ window.iniciarAoVivo = async function() {
     categorias: getCategorias().map(cat => ({ categoria: cat, vencedor: null, finalizacao: false })),
     vitoriasEq1: 0, vitoriasEq2: 0
   };
-  await atualizarLigaConfronto(campeonatoId, id, { status: 'ao_vivo', resultado });
+  await atualizarLigaConfronto(campId, id, { status: 'ao_vivo', resultado });
   confrontoAtivo.status = 'ao_vivo';
   confrontoAtivo.resultado = resultado;
+  inicializarLutaData();
   salvarEstado();
-  mostrarControleAoVivo();
+  mostrarControle();
 };
 
-function mostrarControleAoVivo() {
+function mostrarControle() {
   document.getElementById('card-select').style.display = 'none';
   document.getElementById('live-control').style.display = 'block';
   const c = confrontoAtivo;
-  const eq1 = nomeEquipe(c.equipe1Id), eq2 = nomeEquipe(c.equipe2Id);
-  document.getElementById('lv-eq1').textContent = eq1;
-  document.getElementById('lv-eq2').textContent = eq2;
+  document.getElementById('lv-eq1').textContent    = nomeEquipe(c.equipe1Id);
+  document.getElementById('lv-eq2').textContent    = nomeEquipe(c.equipe2Id);
   document.getElementById('lv-rodada').textContent = `Rodada ${c.rodada}`;
-  document.getElementById('lv-faixa').textContent = `⬜ ${FAIXAS_LABEL[c.faixa]||c.faixa}`;
-  document.getElementById('lv-data').textContent = `📅 ${c.data||'—'} ${c.hora||''}`;
-  document.getElementById('lv-local').textContent = `📍 ${c.local||'—'}`;
+  document.getElementById('lv-faixa').textContent  = `⬜ ${FAIXAS_LABEL[c.faixa]||c.faixa}`;
+  document.getElementById('lv-data').textContent   = `📅 ${c.data||'—'} ${c.hora||''}`;
+  document.getElementById('lv-local').textContent  = `📍 ${c.local||'—'}`;
   renderCatsLive();
 }
 
+// ── Render categories ─────────────────────────────────────────
 function renderCatsLive() {
-  const c = confrontoAtivo;
-  const eq1 = nomeEquipe(c.equipe1Id), eq2 = nomeEquipe(c.equipe2Id);
-  const cats = c.resultado?.categorias || getCategorias().map(cat => ({ categoria: cat, vencedor: null, finalizacao: false }));
+  const c   = confrontoAtivo;
+  const eq1 = nomeEquipe(c.equipe1Id);
+  const eq2 = nomeEquipe(c.equipe2Id);
+  const cats = c.resultado?.categorias || [];
 
   document.getElementById('cats-live').innerHTML = cats.map((cr, idx) => {
     const at1 = atletas.find(a => a.equipeId === c.equipe1Id && a.faixa === c.faixa && a.categoria === cr.categoria);
     const at2 = atletas.find(a => a.equipeId === c.equipe2Id && a.faixa === c.faixa && a.categoria === cr.categoria);
-    const nome1 = at1 ? at1.nome : eq1.split(' ')[0];
-    const nome2 = at2 ? at2.nome : eq2.split(' ')[0];
-    const done = !!cr.vencedor;
-    const sel = v => cr.vencedor === v ? (v==='1'?'sel-1':v==='2'?'sel-2':'sel-emp') : '';
+    const nome1 = at1?.nome || eq1.split(' ')[0];
+    const nome2 = at2?.nome || eq2.split(' ')[0];
+    const ld    = lutaData[idx] || {};
+    const status = ld.status || (cr.vencedor ? 'definida' : 'pendente');
 
-    return `<div class="cat-row">
-      <div class="cat-row-header">
-        <div>
-          <div class="cat-nome">${cr.categoria}</div>
-          <div class="cat-atletas">${nome1} vs ${nome2}</div>
+    // ── DEFINIDA ──────────────────────────────────────────────
+    if (status === 'definida') {
+      const vHtml = cr.vencedor === '1' ? `🏆 ${nome1}`
+                  : cr.vencedor === '2' ? `🏆 ${nome2}` : '🤝 Empate';
+      const finHtml = cr.finalizacao ? ' · 🔒 Finalização' : '';
+      const sc = `${nome1.split(' ')[0]} ${ld.pts1||0}pts ${ld.van1||0}van ${ld.pun1||0}pun  ×  ${nome2.split(' ')[0]} ${ld.pts2||0}pts ${ld.van2||0}van ${ld.pun2||0}pun`;
+      return `<div class="cat-row" id="cat-${idx}">
+        <div class="cat-row-head">
+          <div>
+            <div class="cat-row-nome">${cr.categoria}</div>
+            <div class="cat-result-winner">${vHtml}${finHtml}</div>
+            <div class="cat-result-score">${sc}</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span class="badge-done">✅ Definido</span>
+            <button class="btn-reabrir" onclick="reabrirLuta(${idx})">✏️ Editar</button>
+          </div>
         </div>
-        <span class="${done ? 'cat-status-done' : 'cat-status-pend'}">${done ? '✅ Definido' : '⏳ Pendente'}</span>
+      </div>`;
+    }
+
+    // ── ATIVA ─────────────────────────────────────────────────
+    if (status === 'ativa') {
+      const d   = ld;
+      const sug = calcularLidando(idx);
+      const isRunning = timerIdx === idx;
+      const secs = timerSecs[idx] ?? tempoLuta;
+      const urgent = secs <= 30;
+
+      const eff1 = d.pts1 + d.pun2*2, eff2 = d.pts2 + d.pun1*2;
+
+      const selCls = v => {
+        if (cr.vencedor === v) return v==='1'?'sel-1':v==='2'?'sel-2':'sel-emp';
+        if (!cr.vencedor && sug === v) return 'sugerido';
+        return '';
+      };
+
+      return `<div class="cat-row" id="cat-${idx}" style="border-color:#1D4ED8;border-width:2px;">
+        <div class="cat-row-head">
+          <div>
+            <div class="cat-row-nome">${cr.categoria}</div>
+            <div class="cat-row-atletas">${nome1} vs ${nome2}</div>
+          </div>
+          <span class="badge-ativa">🥊 Em Andamento</span>
+        </div>
+        <div class="fight-wrap">
+
+          <!-- Timer -->
+          <div class="fight-timer">
+            <div class="fight-timer-center">
+              <div class="fight-timer-label">⏱ Tempo Restante</div>
+              <span class="fight-timer-display${urgent?' urgent':''}" id="td-${idx}">${timerDisplay(idx)}</span>
+            </div>
+            <button class="fight-timer-btn${isRunning?' running':''}" id="tbtn-${idx}" onclick="toggleTimer(${idx})">
+              ${isRunning ? '⏸ Pausar' : '▶ Iniciar'}
+            </button>
+            <button class="fight-timer-reset" onclick="resetTimer(${idx})">↺ Zerar</button>
+          </div>
+
+          <!-- Scoreboard -->
+          <div class="fight-board">
+            <!-- Atleta 1 (Casa) -->
+            <div class="fight-side fight-side-1">
+              <div class="fight-badge fight-badge-1">🔵 CASA</div>
+              <div class="fight-name" title="${nome1}">${nome1}</div>
+              <div class="fight-team">${eq1}</div>
+              <div class="fight-score-num${eff1>eff2?' leading':''}" id="s1-${idx}">${d.pts1}</div>
+              <div class="fight-pt-row">
+                <button class="fight-pt-btn pos" onclick="addPts(${idx},1,2)">+2</button>
+                <button class="fight-pt-btn pos" onclick="addPts(${idx},1,3)">+3</button>
+                <button class="fight-pt-btn pos" onclick="addPts(${idx},1,4)">+4</button>
+              </div>
+              <div class="fight-pt-row">
+                <button class="fight-pt-btn neg" onclick="addPts(${idx},1,-2)">-2</button>
+                <button class="fight-pt-btn neg" onclick="addPts(${idx},1,-3)">-3</button>
+                <button class="fight-pt-btn neg" onclick="addPts(${idx},1,-4)">-4</button>
+              </div>
+              <div class="fight-counters">
+                <div class="fight-counter">
+                  <span class="fight-counter-label">Vantagem</span>
+                  <span class="fight-counter-val" id="v1-${idx}">${d.van1}</span>
+                  <div class="fight-counter-btns">
+                    <button class="fight-counter-btn" onclick="addVan(${idx},1,-1)">−</button>
+                    <button class="fight-counter-btn" onclick="addVan(${idx},1,1)">+</button>
+                  </div>
+                </div>
+                <div class="fight-counter">
+                  <span class="fight-counter-label">Punição</span>
+                  <span class="fight-counter-val pun-val" id="p1-${idx}">${d.pun1}</span>
+                  <div class="fight-counter-btns">
+                    <button class="fight-counter-btn" onclick="addPun(${idx},1,-1)">−</button>
+                    <button class="fight-counter-btn" onclick="addPun(${idx},1,1)">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fight-vs">VS</div>
+
+            <!-- Atleta 2 (Visitante) -->
+            <div class="fight-side fight-side-2">
+              <div class="fight-badge fight-badge-2">🔴 VIS.</div>
+              <div class="fight-name" title="${nome2}">${nome2}</div>
+              <div class="fight-team">${eq2}</div>
+              <div class="fight-score-num${eff2>eff1?' leading':''}" id="s2-${idx}">${d.pts2}</div>
+              <div class="fight-pt-row">
+                <button class="fight-pt-btn pos" onclick="addPts(${idx},2,2)">+2</button>
+                <button class="fight-pt-btn pos" onclick="addPts(${idx},2,3)">+3</button>
+                <button class="fight-pt-btn pos" onclick="addPts(${idx},2,4)">+4</button>
+              </div>
+              <div class="fight-pt-row">
+                <button class="fight-pt-btn neg" onclick="addPts(${idx},2,-2)">-2</button>
+                <button class="fight-pt-btn neg" onclick="addPts(${idx},2,-3)">-3</button>
+                <button class="fight-pt-btn neg" onclick="addPts(${idx},2,-4)">-4</button>
+              </div>
+              <div class="fight-counters">
+                <div class="fight-counter">
+                  <span class="fight-counter-label">Vantagem</span>
+                  <span class="fight-counter-val" id="v2-${idx}">${d.van2}</span>
+                  <div class="fight-counter-btns">
+                    <button class="fight-counter-btn" onclick="addVan(${idx},2,-1)">−</button>
+                    <button class="fight-counter-btn" onclick="addVan(${idx},2,1)">+</button>
+                  </div>
+                </div>
+                <div class="fight-counter">
+                  <span class="fight-counter-label">Punição</span>
+                  <span class="fight-counter-val pun-val" id="p2-${idx}">${d.pun2}</span>
+                  <div class="fight-counter-btns">
+                    <button class="fight-counter-btn" onclick="addPun(${idx},2,-1)">−</button>
+                    <button class="fight-counter-btn" onclick="addPun(${idx},2,1)">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- /fight-board -->
+
+          <!-- Declare Winner -->
+          <div class="fight-declare">
+            <div class="fight-declare-title">🏆 Declarar Vencedor</div>
+            <div class="fight-declare-btns">
+              <button class="fight-decl-btn ${selCls('1')}"      id="d1-${idx}"  onclick="declararVencedor(${idx},'1')">🏆 ${nome1.split(' ')[0]}</button>
+              <button class="fight-decl-btn ${selCls('empate')}" id="de-${idx}"  onclick="declararVencedor(${idx},'empate')" style="flex:0.65;font-size:0.74rem;">Empate</button>
+              <button class="fight-decl-btn ${selCls('2')}"      id="d2-${idx}"  onclick="declararVencedor(${idx},'2')">🏆 ${nome2.split(' ')[0]}</button>
+            </div>
+            <label class="fight-fin-row">
+              <input type="checkbox" ${cr.finalizacao?'checked':''} onchange="setFinalizacao(${idx},this.checked)">
+              Finalização / Submissão 🔒
+            </label>
+          </div>
+
+        </div><!-- /fight-wrap -->
+      </div>`;
+    }
+
+    // ── PENDENTE ──────────────────────────────────────────────
+    return `<div class="cat-row" id="cat-${idx}">
+      <div class="cat-row-head">
+        <div>
+          <div class="cat-row-nome">${cr.categoria}</div>
+          <div class="cat-row-atletas">${nome1} vs ${nome2}</div>
+        </div>
+        <div style="display:flex;gap:7px;align-items:center;">
+          <span class="badge-pend">⏳ Pendente</span>
+          <button class="btn-iniciar" onclick="iniciarLuta(${idx})">▶️ Lutar</button>
+        </div>
       </div>
-      <div class="cat-btns">
-        <button class="cat-btn ${sel('1')}" onclick="setVencedor(${idx},'1')">${nome1} venceu</button>
-        <button class="cat-btn ${sel('empate')}" onclick="setVencedor(${idx},'empate')">Empate</button>
-        <button class="cat-btn ${sel('2')}" onclick="setVencedor(${idx},'2')">${nome2} venceu</button>
-      </div>
-      <label class="cat-fin">
-        <input type="checkbox" ${cr.finalizacao?'checked':''} onchange="setFinalizacao(${idx},this.checked)">
-        Finalização (submissão) 🔒
-      </label>
     </div>`;
   }).join('');
 
   atualizarScoreLive();
 }
 
-window.setVencedor = async function(idx, v) {
+// ── Timer controls ────────────────────────────────────────────
+window.toggleTimer = function(idx) {
+  if (timerIdx === idx) {
+    // Pause
+    clearInterval(timerInterval); timerInterval = null; timerIdx = null;
+    const btn = document.getElementById(`tbtn-${idx}`);
+    if (btn) { btn.textContent = '▶ Iniciar'; btn.classList.remove('running'); }
+  } else {
+    // Pause previous
+    if (timerIdx !== null) {
+      clearInterval(timerInterval); timerInterval = null;
+      const pb = document.getElementById(`tbtn-${timerIdx}`);
+      if (pb) { pb.textContent = '▶ Iniciar'; pb.classList.remove('running'); }
+    }
+    timerIdx = idx;
+    const btn = document.getElementById(`tbtn-${idx}`);
+    if (btn) { btn.textContent = '⏸ Pausar'; btn.classList.add('running'); }
+    timerInterval = setInterval(() => {
+      const s = timerSecs[idx] ?? 0;
+      if (s <= 0) {
+        clearInterval(timerInterval); timerInterval = null; timerIdx = null;
+        const b = document.getElementById(`tbtn-${idx}`);
+        if (b) { b.textContent = '▶ Iniciar'; b.classList.remove('running'); }
+        return;
+      }
+      timerSecs[idx] = s - 1;
+      const el = document.getElementById(`td-${idx}`);
+      if (el) {
+        el.textContent = timerDisplay(idx);
+        el.classList.toggle('urgent', timerSecs[idx] <= 30);
+      }
+    }, 1000);
+  }
+};
+
+window.resetTimer = function(idx) {
+  if (timerIdx === idx) { clearInterval(timerInterval); timerInterval = null; timerIdx = null; }
+  timerSecs[idx] = tempoLuta;
+  const el  = document.getElementById(`td-${idx}`);
+  const btn = document.getElementById(`tbtn-${idx}`);
+  if (el)  { el.textContent = timerDisplay(idx); el.classList.remove('urgent'); }
+  if (btn) { btn.textContent = '▶ Iniciar'; btn.classList.remove('running'); }
+};
+
+// ── Score controls (DOM update only — no re-render) ───────────
+window.addPts = function(idx, lado, delta) {
+  const d = lutaData[idx]; if (!d) return;
+  if (lado === 1) d.pts1 = Math.max(0, d.pts1 + delta);
+  else            d.pts2 = Math.max(0, d.pts2 + delta);
+  const eff1 = d.pts1 + d.pun2*2, eff2 = d.pts2 + d.pun1*2;
+  const e1 = document.getElementById(`s1-${idx}`);
+  const e2 = document.getElementById(`s2-${idx}`);
+  if (e1) { e1.textContent = d.pts1; e1.classList.toggle('leading', eff1 > eff2); }
+  if (e2) { e2.textContent = d.pts2; e2.classList.toggle('leading', eff2 > eff1); }
+  atualizarSugestao(idx);
+};
+
+window.addVan = function(idx, lado, delta) {
+  const d = lutaData[idx]; if (!d) return;
+  if (lado === 1) d.van1 = Math.max(0, d.van1 + delta);
+  else            d.van2 = Math.max(0, d.van2 + delta);
+  const e1 = document.getElementById(`v1-${idx}`);
+  const e2 = document.getElementById(`v2-${idx}`);
+  if (e1) e1.textContent = d.van1;
+  if (e2) e2.textContent = d.van2;
+  atualizarSugestao(idx);
+};
+
+window.addPun = function(idx, lado, delta) {
+  const d = lutaData[idx]; if (!d) return;
+  if (lado === 1) d.pun1 = Math.max(0, d.pun1 + delta);
+  else            d.pun2 = Math.max(0, d.pun2 + delta);
+  const e1 = document.getElementById(`p1-${idx}`);
+  const e2 = document.getElementById(`p2-${idx}`);
+  if (e1) e1.textContent = d.pun1;
+  if (e2) e2.textContent = d.pun2;
+  // Punição altera placar efetivo — atualizar leading
+  const eff1 = d.pts1 + d.pun2*2, eff2 = d.pts2 + d.pun1*2;
+  const s1 = document.getElementById(`s1-${idx}`);
+  const s2 = document.getElementById(`s2-${idx}`);
+  if (s1) s1.classList.toggle('leading', eff1 > eff2);
+  if (s2) s2.classList.toggle('leading', eff2 > eff1);
+  atualizarSugestao(idx);
+};
+
+function atualizarSugestao(idx) {
+  const sug = calcularLidando(idx);
+  const cr  = confrontoAtivo.resultado.categorias[idx];
+  if (cr?.vencedor) return; // já definido
+  const b1 = document.getElementById(`d1-${idx}`);
+  const be = document.getElementById(`de-${idx}`);
+  const b2 = document.getElementById(`d2-${idx}`);
+  if (!b1) return;
+  [b1, be, b2].forEach(b => b.classList.remove('sugerido'));
+  if (sug === '1') b1.classList.add('sugerido');
+  else if (sug === '2') b2.classList.add('sugerido');
+}
+
+// ── Fight flow ────────────────────────────────────────────────
+window.iniciarLuta = function(idx) {
+  // Pause any running timer from another category
+  if (timerIdx !== null && timerIdx !== idx) {
+    clearInterval(timerInterval); timerInterval = null;
+    const pb = document.getElementById(`tbtn-${timerIdx}`);
+    if (pb) { pb.textContent = '▶ Iniciar'; pb.classList.remove('running'); }
+    timerIdx = null;
+  }
+  lutaData[idx] = { pts1:0, pts2:0, van1:0, van2:0, pun1:0, pun2:0, status:'ativa' };
+  timerSecs[idx] = tempoLuta;
+  renderCatsLive();
+  setTimeout(() => document.getElementById(`cat-${idx}`)?.scrollIntoView({ behavior:'smooth', block:'nearest' }), 60);
+};
+
+window.reabrirLuta = function(idx) {
+  if (timerIdx !== null) { clearInterval(timerInterval); timerInterval = null; timerIdx = null; }
+  lutaData[idx] = { pts1:0, pts2:0, van1:0, van2:0, pun1:0, pun2:0, status:'ativa' };
+  timerSecs[idx] = tempoLuta;
+  confrontoAtivo.resultado.categorias[idx].vencedor = null;
+  recalcularScore();
+  renderCatsLive();
+};
+
+window.declararVencedor = async function(idx, v) {
+  if (timerIdx === idx) { clearInterval(timerInterval); timerInterval = null; timerIdx = null; }
+  const ld = lutaData[idx] || {};
+  ld.status = 'definida'; ld.vencedor = v;
+  lutaData[idx] = ld;
   confrontoAtivo.resultado.categorias[idx].vencedor = v;
   recalcularScore();
   await salvarAoVivo();
@@ -309,75 +699,65 @@ function recalcularScore() {
 }
 
 function atualizarScoreLive() {
-  const r = confrontoAtivo.resultado;
+  const r = confrontoAtivo?.resultado;
+  if (!r) return;
   document.getElementById('lv-v1').textContent = r.vitoriasEq1 || 0;
   document.getElementById('lv-v2').textContent = r.vitoriasEq2 || 0;
 }
 
 async function salvarAoVivo() {
-  await atualizarLigaConfronto(campeonatoId, confrontoAtivo.id, {
-    status: 'ao_vivo',
-    resultado: confrontoAtivo.resultado
-  });
+  await atualizarLigaConfronto(campId, confrontoAtivo.id, { status:'ao_vivo', resultado: confrontoAtivo.resultado });
   salvarEstado();
 }
 
+// ── Finalizar / Encerrar ──────────────────────────────────────
 window.finalizarConfronto = async function() {
   const cats = confrontoAtivo.resultado.categorias;
-  const pendentes = cats.filter(c => !c.vencedor).length;
-  if (pendentes > 0 && !confirm(`Ainda há ${pendentes} categoria(s) sem resultado.\nFinalizar mesmo assim?`)) return;
-
+  const pend = cats.filter(c => !c.vencedor).length;
+  if (pend > 0 && !confirm(`Ainda há ${pend} categoria(s) sem resultado.\nFinalizar mesmo assim?`)) return;
   try {
-    await atualizarLigaConfronto(campeonatoId, confrontoAtivo.id, {
-      status: 'concluido',
-      resultado: confrontoAtivo.resultado
-    });
-
-    // Atualizar stats dos atletas
+    await atualizarLigaConfronto(campId, confrontoAtivo.id, { status:'concluido', resultado: confrontoAtivo.resultado });
     for (const cr of cats) {
       if (!cr.vencedor) continue;
       const at1 = atletas.find(a => a.equipeId === confrontoAtivo.equipe1Id && a.faixa === confrontoAtivo.faixa && a.categoria === cr.categoria);
       const at2 = atletas.find(a => a.equipeId === confrontoAtivo.equipe2Id && a.faixa === confrontoAtivo.faixa && a.categoria === cr.categoria);
-
       const updAt = async (at, res) => {
         if (!at) return;
         const upd = {};
-        if (res === 'v') { upd.vitorias = (at.vitorias||0)+1; upd.pontos = (at.pontos||0)+3+(cr.finalizacao?1:0); upd.finalizacoes = (at.finalizacoes||0)+(cr.finalizacao?1:0); }
+        if (res === 'v') { upd.vitorias=(at.vitorias||0)+1; upd.pontos=(at.pontos||0)+3+(cr.finalizacao?1:0); upd.finalizacoes=(at.finalizacoes||0)+(cr.finalizacao?1:0); }
         else if (res === 'd') { upd.derrotas = (at.derrotas||0)+1; }
-        else { upd.empates = (at.empates||0)+1; upd.pontos = (at.pontos||0)+1; }
-        await atualizarLigaAtleta(campeonatoId, at.id, upd);
+        else { upd.empates=(at.empates||0)+1; upd.pontos=(at.pontos||0)+1; }
+        await atualizarLigaAtleta(campId, at.id, upd);
         Object.assign(at, upd);
       };
-
-      if (cr.vencedor === '1') { await updAt(at1, 'v'); await updAt(at2, 'd'); }
-      else if (cr.vencedor === '2') { await updAt(at2, 'v'); await updAt(at1, 'd'); }
-      else { await updAt(at1, 'emp'); await updAt(at2, 'emp'); }
+      if (cr.vencedor==='1') { await updAt(at1,'v'); await updAt(at2,'d'); }
+      else if (cr.vencedor==='2') { await updAt(at2,'v'); await updAt(at1,'d'); }
+      else { await updAt(at1,'emp'); await updAt(at2,'emp'); }
     }
-
     confrontoAtivo.status = 'concluido';
     salvarEstado();
-    alert('✅ Confronto finalizado com sucesso!');
+    alert('✅ Confronto finalizado!');
     location.reload();
   } catch(e) { alert('Erro: ' + e.message); }
 };
 
 window.encerrarSemResultado = async function() {
-  if (!confirm('Encerrar transmissão ao vivo sem finalizar o confronto?\n\nO confronto voltará ao status Pendente.')) return;
-  await atualizarLigaConfronto(campeonatoId, confrontoAtivo.id, { status: 'pendente', resultado: null });
+  if (!confirm('Encerrar sem finalizar? O confronto voltará ao status Pendente.')) return;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; timerIdx = null; }
+  await atualizarLigaConfronto(campId, confrontoAtivo.id, { status:'pendente', resultado: null });
   confrontoAtivo = null;
   salvarEstado();
   location.reload();
 };
 
+// ── localStorage ──────────────────────────────────────────────
 function salvarEstado() {
-  const eq1 = equipes.map(e => ({ id: e.id, nome: e.nome, cidade: e.cidade || '', logoBase64: e.logoBase64 || null }));
-  const confsAtualizado = confrontos.map(c => c.id === confrontoAtivo?.id ? { ...c, ...confrontoAtivo } : c);
+  const eqSimples = equipes.map(e => ({ id:e.id, nome:e.nome, cidade:e.cidade||'', logoBase64:e.logoBase64||null }));
+  const confsUp   = confrontos.map(c => c.id === confrontoAtivo?.id ? { ...c, ...confrontoAtivo } : c);
   localStorage.setItem(LIGA_KEY, JSON.stringify({
     nomeCompeticao: campeonato?.nome || 'Liga BJJ',
     local: campeonato?.local || '',
-    equipes: eq1,
-    atletas,
-    confrontos: confsAtualizado,
+    equipes: eqSimples, atletas, confrontos: confsUp,
     faixaAtiva: confrontoAtivo?.faixa || 'branca',
     ligaConfig
   }));
