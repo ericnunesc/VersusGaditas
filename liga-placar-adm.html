@@ -144,18 +144,24 @@ import {
   onLogin, logout, buscarCampeonato,
   listarLigaEquipes, listarLigaAtletas,
   listarLigaConfrontos, atualizarLigaConfronto,
-  atualizarLigaAtleta, listarLigaAtletas as getAtletas
+  atualizarLigaAtleta, buscarLigaConfig
 } from './js/firebase.js';
 
 const params = new URLSearchParams(location.search);
 const campeonatoId = params.get('id');
 if (!campeonatoId) location.replace('painel-admin.html');
 
-const CATEGORIAS = ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'];
+const CATS_DEFAULT = ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'];
 const FAIXAS_LABEL = { branca:'Branca', azul:'Azul', roxa:'Roxa', marrom:'Marrom', preta:'Preta' };
+const LIGA_KEY = `gaditas_liga_${campeonatoId}`;
 
 let campeonato, equipes = [], atletas = [], confrontos = [];
 let confrontoAtivo = null;
+let ligaConfig = { categorias: CATS_DEFAULT, temAbsoluto: false };
+
+function getCategorias() {
+  return [...(ligaConfig.categorias || CATS_DEFAULT), ...(ligaConfig.temAbsoluto ? ['Absoluto'] : [])];
+}
 
 onLogin(user => {
   if (!user) { location.replace('login-admin.html'); return; }
@@ -174,11 +180,18 @@ async function iniciar() {
   document.getElementById('lnk-tv').href = `liga-tv.html?id=${campeonatoId}`;
   document.getElementById('lnk-placar').href = `liga-placar-publico.html?id=${campeonatoId}`;
 
-  [equipes, atletas, confrontos] = await Promise.all([
+  const [eqs, ats, confs, cfg] = await Promise.all([
     listarLigaEquipes(campeonatoId),
-    getAtletas(campeonatoId),
-    listarLigaConfrontos(campeonatoId)
+    listarLigaAtletas(campeonatoId),
+    listarLigaConfrontos(campeonatoId),
+    buscarLigaConfig(campeonatoId)
   ]);
+  equipes = eqs; atletas = ats; confrontos = confs;
+
+  // Merge config: Firestore > localStorage > default
+  const existingState = JSON.parse(localStorage.getItem(LIGA_KEY) || '{}');
+  if (cfg) ligaConfig = cfg;
+  else if (existingState.ligaConfig) ligaConfig = existingState.ligaConfig;
 
   // Verificar se já tem algum ao vivo
   const aoVivo = confrontos.find(c => c.status === 'ao_vivo');
@@ -213,7 +226,7 @@ window.iniciarAoVivo = async function() {
   confrontoAtivo = confrontos.find(c => c.id === id);
   if (!confrontoAtivo) return;
   const resultado = {
-    categorias: CATEGORIAS.map(cat => ({ categoria: cat, vencedor: null, finalizacao: false })),
+    categorias: getCategorias().map(cat => ({ categoria: cat, vencedor: null, finalizacao: false })),
     vitoriasEq1: 0, vitoriasEq2: 0
   };
   await atualizarLigaConfronto(campeonatoId, id, { status: 'ao_vivo', resultado });
@@ -240,7 +253,7 @@ function mostrarControleAoVivo() {
 function renderCatsLive() {
   const c = confrontoAtivo;
   const eq1 = nomeEquipe(c.equipe1Id), eq2 = nomeEquipe(c.equipe2Id);
-  const cats = c.resultado?.categorias || CATEGORIAS.map(cat => ({ categoria: cat, vencedor: null, finalizacao: false }));
+  const cats = c.resultado?.categorias || getCategorias().map(cat => ({ categoria: cat, vencedor: null, finalizacao: false }));
 
   document.getElementById('cats-live').innerHTML = cats.map((cr, idx) => {
     const at1 = atletas.find(a => a.equipeId === c.equipe1Id && a.faixa === c.faixa && a.categoria === cr.categoria);
@@ -359,13 +372,14 @@ window.encerrarSemResultado = async function() {
 function salvarEstado() {
   const eq1 = equipes.map(e => ({ id: e.id, nome: e.nome, cidade: e.cidade || '' }));
   const confsAtualizado = confrontos.map(c => c.id === confrontoAtivo?.id ? { ...c, ...confrontoAtivo } : c);
-  localStorage.setItem(`gaditas_liga_${campeonatoId}`, JSON.stringify({
+  localStorage.setItem(LIGA_KEY, JSON.stringify({
     nomeCompeticao: campeonato?.nome || 'Liga BJJ',
     local: campeonato?.local || '',
     equipes: eq1,
     atletas,
     confrontos: confsAtualizado,
-    faixaAtiva: confrontoAtivo?.faixa || 'branca'
+    faixaAtiva: confrontoAtivo?.faixa || 'branca',
+    ligaConfig
   }));
 }
 </script>

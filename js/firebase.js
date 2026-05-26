@@ -184,6 +184,15 @@ export async function deletarLigaConfronto(campeonatoId, confrontoId) {
   await deleteDoc(doc(db, "campeonatos", campeonatoId, "liga-confrontos", confrontoId));
 }
 
+// Liga Config (categorias selecionadas + absoluto)
+export async function salvarLigaConfig(campeonatoId, config) {
+  await setDoc(doc(db, "campeonatos", campeonatoId, "liga-config", "principal"), config);
+}
+export async function buscarLigaConfig(campeonatoId) {
+  const snap = await getDoc(doc(db, "campeonatos", campeonatoId, "liga-config", "principal"));
+  return snap.exists() ? snap.data() : null;
+}
+
 // Liga Histórico (Hall of Fame)
 export async function salvarLigaHistorico(campeonatoId, dados) {
   return await addDoc(collection(db, "campeonatos", campeonatoId, "liga-historico"), {

@@ -134,9 +134,9 @@
 const params = new URLSearchParams(location.search);
 const campeonatoId = params.get('id');
 const LIGA_KEY = `gaditas_liga_${campeonatoId}`;
-const CATEGORIAS = ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'];
 const FAIXAS_LABEL = { branca:'Branca', azul:'Azul', roxa:'Roxa', marrom:'Marrom', preta:'Preta' };
 const FAIXAS_COR = { branca:'#6B7280', azul:'#3B8BFF', roxa:'#9B59B6', marrom:'#92400E', preta:'#1A1A1A' };
+const CATS_DEFAULT = ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'];
 
 let faixaAtiva = null;
 
@@ -164,6 +164,9 @@ function carregar() {
   const estado = JSON.parse(raw);
   document.getElementById('comp-nome').textContent = '⚽ ' + (estado.nomeCompeticao || 'Liga BJJ');
   document.getElementById('comp-nome-sub').textContent = estado.nomeCompeticao || 'Liga BJJ';
+
+  const cfg = estado.ligaConfig || {};
+  const CATEGORIAS = [...(cfg.categorias || CATS_DEFAULT), ...(cfg.temAbsoluto ? ['Absoluto'] : [])];
 
   const equipes = estado.equipes || [];
   const confrontos = estado.confrontos || [];

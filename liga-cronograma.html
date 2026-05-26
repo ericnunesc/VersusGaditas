@@ -135,7 +135,7 @@ const params = new URLSearchParams(location.search);
 const cid = params.get('id');
 const KEY = `gaditas_liga_${cid}`;
 const FL = { branca:'Branca', azul:'Azul', roxa:'Roxa', marrom:'Marrom', preta:'Preta' };
-const CATS = ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'];
+const CATS_DEFAULT = ['Pena', 'Leve', 'Médio', 'Meio-Pesado', 'Pesado'];
 
 let faixaAtiva = null;
 
@@ -155,6 +155,8 @@ function render() {
   }
 
   const est = JSON.parse(raw);
+  const cfg = est.ligaConfig || {};
+  const CATS = [...(cfg.categorias || CATS_DEFAULT), ...(cfg.temAbsoluto ? ['Absoluto'] : [])];
   const equipes=est.equipes||[], confrontos=est.confrontos||[], atletas=est.atletas||[];
   document.getElementById('comp-nome').textContent='⚽ '+(est.nomeCompeticao||'Liga BJJ');
   document.getElementById('comp-sub').textContent=est.nomeCompeticao||'Liga BJJ';
@@ -214,13 +216,12 @@ function render() {
           badge=`<span class="badge b-done">✅ Concluído</span>`;
           const cats=m.resultado.categorias||[];
           catHtml=`<div class="cat-results" style="grid-column:1/-1">${
-            CATS.map(cat=>{
-              const cr=cats.find(x=>x.categoria===cat);
-              if(!cr||!cr.vencedor) return `<span class="cr cr-pend">${cat}: ?</span>`;
-              if(cr.vencedor==='empate') return `<span class="cr cr-emp">${cat}: Emp</span>`;
+            cats.map(cr=>{
+              if(!cr||!cr.vencedor) return `<span class="cr cr-pend">${cr.categoria}: ?</span>`;
+              if(cr.vencedor==='empate') return `<span class="cr cr-emp">${cr.categoria}: Emp</span>`;
               const nome=(cr.vencedor==='1'?eq1:eq2).split(' ')[0];
               const cls=cr.vencedor==='1'?'cr-1':'cr-2';
-              return `<span class="cr ${cls}">${cat}: ${nome}${cr.finalizacao?' 🔒':''}</span>`;
+              return `<span class="cr ${cls}">${cr.categoria}: ${nome}${cr.finalizacao?' 🔒':''}</span>`;
             }).join('')
           }</div>`;
         } else if(m.status==='ao_vivo'&&m.resultado){
