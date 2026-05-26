@@ -661,7 +661,7 @@ function renderInscricoes() {
           <div class="insc-codigo-label">Código de Acesso</div>
           <div class="insc-codigo-val">${eq.codigoAcesso || '—'}</div>
         </div>
-        <button class="btn-copiar" onclick="copiarLink('${portalLink}', '${eq.codigoAcesso}')">📋 Copiar Link</button>
+        <button class="btn-copiar" onclick="copiarLink('${portalLink}', '${eq.codigoAcesso}', this)">📋 Copiar Link</button>
       </div>`;
       actionsHtml = `<button class="btn-rejeitar btn-xs" onclick="rejeitarEquipe('${eq.id}')">Revogar</button>`;
     } else {
@@ -725,12 +725,24 @@ window.rejeitarEquipe = async function(id) {
   } catch(e) { alert('Erro: ' + e.message); }
 };
 
-window.copiarLink = function(link, codigo) {
+window.copiarLink = function(link, codigo, btn) {
   const texto = `Portal da Equipe — Liga BJJ\n\nLink: ${link}\nCódigo de Acesso: ${codigo}\n\nAcesse o link, digite o e-mail cadastrado e o código acima para entrar na sua área.`;
+  const feedbackBtn = orig => {
+    if (!btn) return;
+    btn.textContent = '✅ Copiado!';
+    btn.disabled = true;
+    setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 2200);
+  };
   navigator.clipboard.writeText(texto).then(() => {
-    alert('✅ Link e código copiados!\n\nCole no WhatsApp ou e-mail para enviar ao representante da equipe.');
+    feedbackBtn('📋 Copiar Link');
   }).catch(() => {
-    prompt('Copie o texto abaixo:', texto);
+    // Fallback sem modal bloqueante
+    const ta = document.createElement('textarea');
+    ta.value = texto; ta.style.cssText = 'position:fixed;top:-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); feedbackBtn('📋 Copiar Link'); }
+    catch { feedbackBtn('⚠️ Copie manualmente'); }
+    document.body.removeChild(ta);
   });
 };
 
@@ -807,18 +819,44 @@ function renderEquipes() {
         </div>
       </div>` : '';
 
+    const logoThumb = eq.logoBase64
+      ? `<img src="${eq.logoBase64}" style="width:38px;height:38px;object-fit:contain;border-radius:6px;border:1px solid #E2E8F0;flex-shrink:0;">`
+      : `<div style="width:38px;height:38px;border:2px dashed #E2E8F0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;color:#CBD5E1;">🏅</div>`;
+
+    const logoUploadSection = `
+      <div style="margin-bottom:12px;border:1px solid #F1F5F9;border-radius:8px;padding:11px 13px;background:#FAFBFC;">
+        <div style="font-size:0.67rem;font-weight:700;color:#8A9CB0;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">🖼️ Logo da Equipe</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          ${eq.logoBase64
+            ? `<img src="${eq.logoBase64}" style="width:56px;height:56px;object-fit:contain;border-radius:8px;border:1px solid #E2E8F0;">`
+            : `<div style="width:56px;height:56px;border:2px dashed #CBD5E1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#CBD5E1;">🏅</div>`
+          }
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0;">
+              📷 ${eq.logoBase64 ? 'Trocar Logo' : 'Adicionar Logo'}
+              <input type="file" accept="image/*" style="display:none" onchange="trocarLogoEquipe('${eq.id}', this)">
+            </label>
+            ${eq.logoBase64 ? `<button class="btn btn-danger btn-xs" onclick="removerLogoEquipe('${eq.id}')">🗑️ Remover</button>` : ''}
+          </div>
+        </div>
+      </div>`;
+
     return `<div class="equipe-card">
       <div class="equipe-head" onclick="toggleEquipe('eq-body-${eq.id}')">
-        <div>
-          <div class="equipe-nome">${eq.nome}</div>
-          <div class="equipe-sub">${eq.cidade||'—'} · ${preenchidas}/${totalCats} categoria(s) em ${FAIXAS_LABEL[faixaSelecionada]}${ligaConfig.temAbsoluto && capitao ? ' · 🏆 Capitão: '+capitao.nome.split(' ')[0] : ''}</div>
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+          ${logoThumb}
+          <div style="min-width:0;">
+            <div class="equipe-nome">${eq.nome}</div>
+            <div class="equipe-sub">${eq.cidade||'—'} · ${preenchidas}/${totalCats} categoria(s) em ${FAIXAS_LABEL[faixaSelecionada]}${ligaConfig.temAbsoluto && capitao ? ' · 🏆 Capitão: '+capitao.nome.split(' ')[0] : ''}</div>
+          </div>
         </div>
-        <div style="display:flex;gap:7px;align-items:center;">
+        <div style="display:flex;gap:7px;align-items:center;flex-shrink:0;">
           <button class="btn btn-danger btn-xs" onclick="removerEquipe(event,'${eq.id}','${eq.nome.replace(/'/g,"\\'")}')">🗑️</button>
           <span style="font-size:0.8rem;color:#8A9CB0;">▼</span>
         </div>
       </div>
       <div class="equipe-body" id="eq-body-${eq.id}">
+        ${logoUploadSection}
         ${catSections}
         ${absSection}
         <button class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="abrirModalAtleta('${eq.id}','${eq.nome.replace(/'/g,"\\'")}',null)">➕ Adicionar Atleta (outra categoria)</button>
@@ -1313,6 +1351,67 @@ window.removerHoF = async function(id) {
   if (!confirm('Remover este registro?')) return;
   try { await deletarLigaHistorico(campeonatoId, id); historico = historico.filter(h => h.id !== id); renderHoF(); }
   catch(e) { alert('Erro: ' + e.message); }
+};
+
+// ── Imagem / Logo Equipe ──────────────────────────────────────
+function resizeImage(file, maxW, maxH, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW || h > maxH) {
+          const ratio = Math.min(maxW/w, maxH/h);
+          w = Math.round(w * ratio); h = Math.round(h * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality || 0.78));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+window.trocarLogoEquipe = async function(equipeId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const label = input.closest('label');
+  const origText = label ? label.childNodes[0]?.textContent?.trim() : null;
+  if (label) label.style.opacity = '0.5';
+  try {
+    const logoBase64 = await resizeImage(file, 500, 400, 0.78);
+    await atualizarLigaEquipe(campeonatoId, equipeId, { logoBase64 });
+    const eq = equipes.find(e => e.id === equipeId);
+    if (eq) eq.logoBase64 = logoBase64;
+    salvarEstado();
+    renderEquipes();
+    // Reabrir o body após re-render
+    const body = document.getElementById('eq-body-' + equipeId);
+    if (body) body.classList.add('open');
+  } catch(e) {
+    alert('Erro ao processar imagem: ' + e.message);
+    if (label) label.style.opacity = '';
+  }
+};
+
+window.removerLogoEquipe = async function(equipeId) {
+  if (!confirm('Remover o logo desta equipe?')) return;
+  try {
+    await atualizarLigaEquipe(campeonatoId, equipeId, { logoBase64: null });
+    const eq = equipes.find(e => e.id === equipeId);
+    if (eq) eq.logoBase64 = null;
+    salvarEstado();
+    renderEquipes();
+    const body = document.getElementById('eq-body-' + equipeId);
+    if (body) body.classList.add('open');
+  } catch(e) { alert('Erro: ' + e.message); }
 };
 
 // ── localStorage (páginas públicas) ──────────────────────────
