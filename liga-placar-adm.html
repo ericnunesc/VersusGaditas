@@ -370,7 +370,7 @@ window.encerrarSemResultado = async function() {
 };
 
 function salvarEstado() {
-  const eq1 = equipes.map(e => ({ id: e.id, nome: e.nome, cidade: e.cidade || '' }));
+  const eq1 = equipes.map(e => ({ id: e.id, nome: e.nome, cidade: e.cidade || '', logoBase64: e.logoBase64 || null }));
   const confsAtualizado = confrontos.map(c => c.id === confrontoAtivo?.id ? { ...c, ...confrontoAtivo } : c);
   localStorage.setItem(LIGA_KEY, JSON.stringify({
     nomeCompeticao: campeonato?.nome || 'Liga BJJ',

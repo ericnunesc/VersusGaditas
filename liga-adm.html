@@ -1215,9 +1215,12 @@ function renderClassificacao() {
       <thead><tr><th>Pos</th><th>Equipe</th><th>J</th><th>V</th><th>E</th><th>D</th><th>Pts</th><th>Cat.V</th><th>Aprov.</th></tr></thead>
       <tbody>${ranking.map((s,i) => {
         const aprov = s.j>0 ? ((s.pts/(s.j*3))*100).toFixed(0) : 0;
+        const logoHtml = s.equipe.logoBase64
+          ? `<img src="${s.equipe.logoBase64}" style="height:28px;width:28px;object-fit:contain;border-radius:4px;vertical-align:middle;margin-right:7px;">`
+          : `<span style="display:inline-block;width:28px;height:28px;background:#F1F5F9;border-radius:4px;vertical-align:middle;margin-right:7px;text-align:center;line-height:28px;font-size:0.9rem;">🏅</span>`;
         return `<tr>
           <td><strong>${medals[i]||(i+1)+'º'}</strong></td>
-          <td><strong>${s.equipe.nome}</strong><br><span style="font-size:0.68rem;color:#8A9CB0">${s.equipe.cidade||''}</span></td>
+          <td style="display:flex;align-items:center;gap:0;min-width:160px">${logoHtml}<div><strong>${s.equipe.nome}</strong><br><span style="font-size:0.68rem;color:#8A9CB0">${s.equipe.cidade||''}</span></div></td>
           <td>${s.j}</td><td style="color:#10B981;font-weight:700">${s.v}</td>
           <td style="color:#F59E0B;font-weight:700">${s.emp}</td><td style="color:#EF4444;font-weight:700">${s.d}</td>
           <td><strong style="color:#C9A03D;font-size:1rem">${s.pts}</strong></td><td>${s.cv}</td>
@@ -1239,17 +1242,26 @@ function renderClassificacao() {
       <div style="font-size:0.72rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">${cat}${cat==='Absoluto'?' 🏆 (Capitães)':''}</div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>Pos</th><th>Atleta</th><th>Equipe</th>${cat!=='Absoluto'?'<th>Cat.</th>':''}<th>Pts</th><th>V</th><th>E</th><th>D</th><th>Fin.</th></tr></thead>
-        <tbody>${ats.map((a,i)=>`<tr>
-          <td>${medals[i]||(i+1)+'º'}</td>
-          <td><strong>${a.nome}</strong></td>
-          <td>${nomeEquipe(a.equipeId)}</td>
-          ${cat!=='Absoluto'?`<td>${a.categoria}</td>`:''}
-          <td><strong style="color:#C9A03D">${a.pontos||0}</strong></td>
-          <td style="color:#10B981">${a.vitorias||0}</td>
-          <td style="color:#F59E0B">${a.empates||0}</td>
-          <td style="color:#EF4444">${a.derrotas||0}</td>
-          <td>🔒 ${a.finalizacoes||0}</td>
-        </tr>`).join('')}</tbody>
+        <tbody>${ats.map((a,i)=>{
+          const fotoHtml = a.fotoBase64
+            ? `<img src="${a.fotoBase64}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:7px;border:2px solid #E2E8F0;">`
+            : `<span style="display:inline-flex;width:30px;height:30px;border-radius:50%;background:#F1F5F9;border:2px solid #E2E8F0;align-items:center;justify-content:center;font-size:0.8rem;vertical-align:middle;margin-right:7px;">👤</span>`;
+          const eq = equipes.find(e=>e.id===a.equipeId);
+          const logoMini = eq?.logoBase64
+            ? `<img src="${eq.logoBase64}" style="height:16px;width:16px;object-fit:contain;border-radius:2px;vertical-align:middle;margin-right:4px;">`
+            : '';
+          return `<tr>
+            <td>${medals[i]||(i+1)+'º'}</td>
+            <td style="display:flex;align-items:center">${fotoHtml}<strong>${a.nome}</strong></td>
+            <td>${logoMini}${nomeEquipe(a.equipeId)}</td>
+            ${cat!=='Absoluto'?`<td>${a.categoria}</td>`:''}
+            <td><strong style="color:#C9A03D">${a.pontos||0}</strong></td>
+            <td style="color:#10B981">${a.vitorias||0}</td>
+            <td style="color:#F59E0B">${a.empates||0}</td>
+            <td style="color:#EF4444">${a.derrotas||0}</td>
+            <td>🔒 ${a.finalizacoes||0}</td>
+          </tr>`;
+        }).join('')}</tbody>
       </table></div>
     </div>`;
   });
@@ -1305,7 +1317,7 @@ window.removerHoF = async function(id) {
 
 // ── localStorage (páginas públicas) ──────────────────────────
 function salvarEstado() {
-  const eqSimples = equipes.map(e => ({ id:e.id, nome:e.nome, cidade:e.cidade||'', capitaes:e.capitaes||{} }));
+  const eqSimples = equipes.map(e => ({ id:e.id, nome:e.nome, cidade:e.cidade||'', capitaes:e.capitaes||{}, logoBase64:e.logoBase64||null }));
   localStorage.setItem(`gaditas_liga_${campeonatoId}`, JSON.stringify({
     nomeCompeticao: campeonato?.nome||'Liga BJJ',
     local: campeonato?.local||'',

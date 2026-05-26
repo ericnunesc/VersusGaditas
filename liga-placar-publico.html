@@ -227,15 +227,20 @@ function render() {
     html += `<div class="section-title">📊 Classificação — ${FL[faixaTab]||faixaTab}</div>
     <div class="standings-card">
       <div class="st-row header-row"><span>#</span><span>Equipe</span><span style="text-align:center">V</span><span style="text-align:center">E</span><span style="text-align:center">D</span><span style="text-align:center">J</span><span>Pts</span></div>
-      ${ranked.map((s,i)=>`<div class="st-row ${i===0?'st-1':i===1?'st-2':''}">
-        <span class="st-pos">${medals[i]||(i+1)+'º'}</span>
-        <span class="st-nome">${s.eq.nome}</span>
-        <span class="st-num st-v">${s.v}</span>
-        <span class="st-num" style="color:var(--laranja)">${s.emp}</span>
-        <span class="st-num st-d">${s.d}</span>
-        <span class="st-num">${s.j}</span>
-        <span class="st-pts">${s.pts}</span>
-      </div>`).join('')}
+      ${ranked.map((s,i)=>{
+        const logoHtml = s.eq.logoBase64
+          ? `<img src="${s.eq.logoBase64}" style="width:22px;height:22px;object-fit:contain;border-radius:3px;flex-shrink:0;">`
+          : '';
+        return `<div class="st-row ${i===0?'st-1':i===1?'st-2':''}">
+          <span class="st-pos">${medals[i]||(i+1)+'º'}</span>
+          <span class="st-nome" style="display:flex;align-items:center;gap:6px">${logoHtml}${s.eq.nome}</span>
+          <span class="st-num st-v">${s.v}</span>
+          <span class="st-num" style="color:var(--laranja)">${s.emp}</span>
+          <span class="st-num st-d">${s.d}</span>
+          <span class="st-num">${s.j}</span>
+          <span class="st-pts">${s.pts}</span>
+        </div>`;
+      }).join('')}
     </div>`;
   }
 

@@ -303,15 +303,20 @@ function carregar() {
     const medals = ['🥇','🥈','🥉'];
     html += `<div class="standings-mini">
       <div class="standings-header">📊 CLASSIFICAÇÃO — FAIXA ${(FAIXAS_LABEL[faixaAtiva]||faixaAtiva).toUpperCase()}</div>
-      ${ranked.map((s,i) => `<div class="standings-row">
-        <span class="srank">${medals[i]||((i+1)+'º')}</span>
-        <span class="snome">${s.eq.nome}</span>
-        <span class="snum snum-v">${s.v}</span>
-        <span class="snum">${s.emp}</span>
-        <span class="snum" style="color:var(--vermelho)">${s.d}</span>
-        <span class="snum">${s.j}</span>
-        <span class="spts">${s.pts} pts</span>
-      </div>`).join('')}
+      ${ranked.map((s,i) => {
+        const logoHtml = s.eq.logoBase64
+          ? `<img src="${s.eq.logoBase64}" style="width:22px;height:22px;object-fit:contain;border-radius:3px;flex-shrink:0;">`
+          : `<span style="width:22px;height:22px;background:rgba(255,255,255,0.06);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;">🏅</span>`;
+        return `<div class="standings-row">
+          <span class="srank">${medals[i]||((i+1)+'º')}</span>
+          <span class="snome" style="display:flex;align-items:center;gap:6px">${logoHtml}${s.eq.nome}</span>
+          <span class="snum snum-v">${s.v}</span>
+          <span class="snum">${s.emp}</span>
+          <span class="snum" style="color:var(--vermelho)">${s.d}</span>
+          <span class="snum">${s.j}</span>
+          <span class="spts">${s.pts} pts</span>
+        </div>`;
+      }).join('')}
     </div>`;
   }
 

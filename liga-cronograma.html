@@ -271,15 +271,20 @@ function render() {
     html+=`<div class="table-card">
       <div class="table-card-header">📊 CLASSIFICAÇÃO — ${(FL[faixaAtiva]||faixaAtiva).toUpperCase()}</div>
       <div class="trow th"><span>#</span><span>Equipe</span><span>V</span><span>E</span><span>D</span><span>J</span><span>Pts</span></div>
-      ${ranked.map((s,i)=>`<div class="trow ${i===0?'tr-gold':i===1?'tr-silver':''}">
-        <span class="tr-pos">${medals[i]||(i+1)+'º'}</span>
-        <span class="tr-nome">${s.eq.nome}</span>
-        <span class="tr-n tr-v">${s.v}</span>
-        <span class="tr-n" style="color:var(--laranja)">${s.emp}</span>
-        <span class="tr-n tr-d">${s.d}</span>
-        <span class="tr-n">${s.j}</span>
-        <span class="tr-pts">${s.pts}</span>
-      </div>`).join('')}
+      ${ranked.map((s,i)=>{
+        const logoHtml = s.eq.logoBase64
+          ? `<img src="${s.eq.logoBase64}" style="width:20px;height:20px;object-fit:contain;border-radius:3px;flex-shrink:0;">`
+          : '';
+        return `<div class="trow ${i===0?'tr-gold':i===1?'tr-silver':''}">
+          <span class="tr-pos">${medals[i]||(i+1)+'º'}</span>
+          <span class="tr-nome" style="display:flex;align-items:center;gap:6px">${logoHtml}${s.eq.nome}</span>
+          <span class="tr-n tr-v">${s.v}</span>
+          <span class="tr-n" style="color:var(--laranja)">${s.emp}</span>
+          <span class="tr-n tr-d">${s.d}</span>
+          <span class="tr-n">${s.j}</span>
+          <span class="tr-pts">${s.pts}</span>
+        </div>`;
+      }).join('')}
     </div>`;
   }
 
