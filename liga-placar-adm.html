@@ -317,6 +317,7 @@ function updateFightDOM(idx) {
   if (p1) p1.textContent=d.pun1; if (p2) p2.textContent=d.pun2;
   if (ph1) { ph1.textContent=getPunHint(d.pun1); ph1.className='pun-hint '+getPunClass(d.pun1); }
   if (ph2) { ph2.textContent=getPunHint(d.pun2); ph2.className='pun-hint '+getPunClass(d.pun2); }
+  syncLutaViva();
 }
 
 // ── Auth ──────────────────────────────────────────────────────
@@ -768,6 +769,7 @@ window.iniciarLuta = function(idx) {
   }
   lutaData[idx] = { pts1:0, pts2:0, van1:0, van2:0, pun1:0, pun2:0, status:'ativa' };
   timerSecs[idx] = tempoLuta;
+  syncLutaViva();
   renderCatsLive();
   setTimeout(() => document.getElementById(`cat-${idx}`)?.scrollIntoView({ behavior:'smooth', block:'nearest' }), 60);
 };
@@ -778,6 +780,7 @@ window.reabrirLuta = function(idx) {
   timerSecs[idx] = tempoLuta;
   confrontoAtivo.resultado.categorias[idx].vencedor = null;
   recalcularScore();
+  syncLutaViva();
   renderCatsLive();
 };
 
@@ -860,6 +863,24 @@ window.encerrarSemResultado = async function() {
 };
 
 // ── localStorage ──────────────────────────────────────────────
+function buildLutaViva() {
+  const lv = {};
+  Object.keys(lutaData).forEach(k => {
+    lv[k] = { ...lutaData[k], timer: timerSecs[k] ?? 0 };
+  });
+  return lv;
+}
+
+function syncLutaViva() {
+  try {
+    const raw = localStorage.getItem(LIGA_KEY);
+    if (!raw) return;
+    const est = JSON.parse(raw);
+    est.lutaViva = buildLutaViva();
+    localStorage.setItem(LIGA_KEY, JSON.stringify(est));
+  } catch(e) {}
+}
+
 function salvarEstado() {
   const eqSimples = equipes.map(e => ({ id:e.id, nome:e.nome, cidade:e.cidade||'', logoBase64:e.logoBase64||null }));
   const confsUp   = confrontos.map(c => c.id === confrontoAtivo?.id ? { ...c, ...confrontoAtivo } : c);
@@ -868,7 +889,8 @@ function salvarEstado() {
     local: campeonato?.local || '',
     equipes: eqSimples, atletas, confrontos: confsUp,
     faixaAtiva: confrontoAtivo?.faixa || 'branca',
-    ligaConfig
+    ligaConfig,
+    lutaViva: buildLutaViva()
   }));
 }
 </script>

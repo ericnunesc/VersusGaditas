@@ -81,6 +81,14 @@
     .empty .icon{font-size:2.8rem;margin-bottom:12px;opacity:0.4;}
     .empty h3{font-family:'Oswald',sans-serif;font-size:1rem;margin-bottom:6px;letter-spacing:1px;}
 
+    /* Luta ao vivo — placar inline */
+    .cat-mini-row.ativa{background:rgba(0,230,138,0.04);border-radius:7px;padding:8px 6px;margin:2px 0;}
+    .clive-pts{font-family:'Oswald',sans-serif;font-size:1.55rem;font-weight:900;line-height:1;min-width:28px;text-align:center;}
+    .clive-pts.lead{color:var(--verde);}
+    .clive-sep{font-size:1rem;color:var(--txt-fraco);padding:0 2px;}
+    .clive-det{font-size:0.58rem;color:var(--txt-fraco);margin-top:3px;text-align:center;letter-spacing:0.3px;}
+    .clive-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--verde);margin-right:4px;animation:blink 0.9s infinite;vertical-align:middle;}
+
     .footer{text-align:center;margin-top:24px;font-size:0.6rem;color:var(--txt-fraco);letter-spacing:1px;text-transform:uppercase;}
   </style>
 </head>
@@ -143,6 +151,8 @@ function render() {
     faixaTab = av?.faixa || est.faixaAtiva || faixas[0] || 'branca';
   }
 
+  const lutaViva = est.lutaViva || {};
+
   function nEq(id){ return equipes.find(e=>e.id===id)?.nome||'?'; }
 
   // Ao vivo desta faixa
@@ -182,11 +192,36 @@ function render() {
             <div class="pt-cidade">${equipes.find(e=>e.id===aoVivo.equipe2Id)?.cidade||'Visit.'}</div>
           </div>
         </div>
-        <div class="cats-mini">${cats.map(cr=>{
+        <div class="cats-mini">${cats.map((cr,idx)=>{
           const at1=atletas.find(a=>a.equipeId===aoVivo.equipe1Id&&a.faixa===faixaTab&&a.categoria===cr.categoria);
           const at2=atletas.find(a=>a.equipeId===aoVivo.equipe2Id&&a.faixa===faixaTab&&a.categoria===cr.categoria);
           const n1=at1?.nome||(eq1.split(' ')[0]);
           const n2=at2?.nome||(eq2.split(' ')[0]);
+
+          // Luta em andamento → mostrar placar ao vivo
+          const lv = lutaViva[idx];
+          if (!cr.vencedor && lv?.status === 'ativa') {
+            const p1l = lv.pts1 > lv.pts2, p2l = lv.pts2 > lv.pts1;
+            const mm = Math.floor((lv.timer||0)/60), ss = (lv.timer||0)%60;
+            const tmr = mm+':'+ss.toString().padStart(2,'0');
+            return `<div class="cat-mini-row ativa">
+              <span class="cat-mini-nome">${cr.categoria}</span>
+              <div class="cat-mini-res" style="flex-direction:column;gap:2px;">
+                <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+                  <span class="cat-mini-at" style="${p1l?'color:var(--verde);font-weight:700':''}">${n1}</span>
+                  <div style="display:flex;align-items:center;">
+                    <span class="clive-pts${p1l?' lead':''}">${lv.pts1}</span>
+                    <span class="clive-sep">×</span>
+                    <span class="clive-pts${p2l?' lead':''}">${lv.pts2}</span>
+                  </div>
+                  <span class="cat-mini-at" style="${p2l?'color:var(--verde);font-weight:700':''}">${n2}</span>
+                </div>
+                <div class="clive-det"><span class="clive-dot"></span>ao vivo · van ${lv.van1}-${lv.van2} · pun ${lv.pun1}-${lv.pun2} · ⏱ ${tmr}</div>
+              </div>
+            </div>`;
+          }
+
+          // Categoria com resultado ou pendente — exibição padrão
           let badge='<span class="cat-mini-badge cb-pend">⏳</span>';
           let n1s=`<span class="cat-mini-at">${n1}</span>`, n2s=`<span class="cat-mini-at">${n2}</span>`;
           if(cr.vencedor==='1'){ badge=`<span class="cat-mini-badge cb-1">${cr.finalizacao?'🔒 Sub':'🥇 Casa'}</span>`; n1s=`<strong class="cat-mini-at" style="color:var(--azul)">${n1}</strong>`; }
