@@ -168,10 +168,10 @@
       // ── Busca competições do cliente ──────────────────────
       const campsSnap = await getDocs(
         query(collection(db, 'campeonatos'),
-              where('clienteId', '==', cliente.id),
-              orderBy('criadoEm', 'desc'))
+              where('clienteId', '==', cliente.id))
       );
-      const camps = campsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const camps = campsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (b.criadoEm?.seconds || 0) - (a.criadoEm?.seconds || 0));
 
       renderGrid(camps);
 
