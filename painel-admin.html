@@ -203,6 +203,41 @@
         </div>
       </div>
 
+      <!-- Evento Único -->
+      <div class="plano-card">
+        <div class="plano-card-titulo">🎯 Liga — Evento Único</div>
+        <div class="plano-card-sub">Cobrado por evento avulso · Sem mensalidade</div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Starter</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-eu-sta-max" value="50"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-sta-preco" value="99"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Pro</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-eu-pro-max" value="150"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-pro-preco" value="179"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Elite</span>
+            <span class="plano-tier-lim" style="color:#C9A03D;font-weight:600">ilimitado</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-eli-preco" value="299"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-save-row">
+          <span class="plano-saved-msg" id="saved-evento-unico">✅ Salvo!</span>
+          <button class="btn-salvar-plano" onclick="salvarPlanosEventoUnico()">💾 Salvar</button>
+        </div>
+      </div>
+
       <!-- Liga Academia -->
       <div class="plano-card">
         <div class="plano-card-titulo">🏫 Liga Academia — Interno</div>
@@ -424,6 +459,10 @@
       pequeno: { atletasMax:100,  preco:197 }, medio:  { atletasMax:300,  preco:347 },
       grande:  { atletasMax:600,  preco:597 }, mega:   { atletasMax:9999, preco:897 }
     },
+    eventoUnico: {
+      starter: { atletasMax:50,   preco:99  }, pro:    { atletasMax:150,  preco:179 },
+      elite:   { atletasMax:9999, preco:299 }
+    },
     ligaAcademia: {
       starter: { atletasMax:30,   preco:59  }, pro:    { atletasMax:100,  preco:99  },
       elite:   { atletasMax:9999, preco:159 }
@@ -630,6 +669,7 @@
   function preencherPlanos() {
     const p = planosConfig;
     const c  = p.chaveamento   || PLANOS_DEFAULT.chaveamento;
+    const eu = p.eventoUnico   || PLANOS_DEFAULT.eventoUnico;
     const la = p.ligaAcademia  || PLANOS_DEFAULT.ligaAcademia;
     const li = p.ligaInter     || PLANOS_DEFAULT.ligaInter;
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
@@ -640,6 +680,11 @@
     set('p-c-grd-max',   c.grande?.atletasMax   ?? 600);
     set('p-c-grd-preco', c.grande?.preco        ?? 597);
     set('p-c-meg-preco', c.mega?.preco          ?? 897);
+    set('p-eu-sta-max',  eu.starter?.atletasMax ?? 50);
+    set('p-eu-sta-preco',eu.starter?.preco      ?? 99);
+    set('p-eu-pro-max',  eu.pro?.atletasMax     ?? 150);
+    set('p-eu-pro-preco',eu.pro?.preco          ?? 179);
+    set('p-eu-eli-preco',eu.elite?.preco        ?? 299);
     set('p-la-sta-max',  la.starter?.atletasMax ?? 30);
     set('p-la-sta-preco',la.starter?.preco      ?? 59);
     set('p-la-pro-max',  la.pro?.atletasMax     ?? 100);
@@ -673,6 +718,16 @@
       mega:    { atletasMax:9999,                                           preco:+document.getElementById('p-c-meg-preco').value }
     };
     await salvarPlanos(planosConfig); showSaved('saved-chav');
+  };
+
+  window.salvarPlanosEventoUnico = async function() {
+    if (!planosConfig) planosConfig = JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+    planosConfig.eventoUnico = {
+      starter: { atletasMax:+document.getElementById('p-eu-sta-max').value,  preco:+document.getElementById('p-eu-sta-preco').value },
+      pro:     { atletasMax:+document.getElementById('p-eu-pro-max').value,  preco:+document.getElementById('p-eu-pro-preco').value },
+      elite:   { atletasMax:9999,                                             preco:+document.getElementById('p-eu-eli-preco').value }
+    };
+    await salvarPlanos(planosConfig); showSaved('saved-evento-unico');
   };
 
   window.salvarPlanosLigaAcademia = async function() {
