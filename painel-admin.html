@@ -409,11 +409,28 @@
 
     <div id="c-tier-row" style="display:none">
       <label>Tier / Plano de Academia</label>
-      <select id="c-tier">
-        <option value="starter">Starter (até 30 atletas)</option>
-        <option value="pro">Pro (até 100 atletas)</option>
-        <option value="elite">Elite (ilimitado)</option>
+      <select id="c-tier" onchange="atualizarLinkAssinatura()">
+        <option value="starter">Starter (até 30 atletas) — R$59/mês</option>
+        <option value="pro">Pro (até 100 atletas) — R$99/mês</option>
+        <option value="elite">Elite (ilimitado) — R$119/mês</option>
       </select>
+    </div>
+
+    <div id="c-link-row" style="display:none;margin-top:4px;">
+      <label>Link de Assinatura</label>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input type="text" id="c-link-display" readonly
+          style="flex:1;background:#F8FAFC;font-size:0.73rem;color:#1A2C3E;border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;cursor:pointer;"
+          onclick="this.select()">
+        <button onclick="copiarLinkAssinatura()"
+          style="background:#C9A03D;border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;white-space:nowrap;font-weight:600;">
+          📋 Copiar
+        </button>
+      </div>
+      <a id="c-link-whatsapp" href="#" target="_blank"
+        style="display:inline-block;margin-top:6px;font-size:0.72rem;color:#25D366;font-weight:600;text-decoration:none;">
+        📲 Enviar por WhatsApp
+      </a>
     </div>
 
     <label>Status</label>
@@ -823,12 +840,42 @@
     document.getElementById('c-inicio').value = dados?.inicio || new Date().toISOString().split('T')[0];
     document.getElementById('modal-cliente-titulo').textContent = dados ? 'Editar Cliente' : 'Novo Cliente';
     onTipoClienteChange();
+    if (document.getElementById('c-tipo').value === 'ligaAcademia') atualizarLinkAssinatura();
     document.getElementById('modal-cliente-bg').classList.add('open');
+  };
+
+  // Links de assinatura InfinitePay por tier
+  const PLANOS_LINKS = {
+    starter: 'https://invoice.infinitepay.io/plans/grupo_lotta/DU64bZpy2w',
+    pro:     'https://invoice.infinitepay.io/plans/grupo_lotta/vfGO2BUdWL',
+    elite:   'https://invoice.infinitepay.io/plans/grupo_lotta/aB2vLeYaNF'
   };
 
   window.onTipoClienteChange = function() {
     const tipo = document.getElementById('c-tipo').value;
-    document.getElementById('c-tier-row').style.display = tipo === 'ligaAcademia' ? 'block' : 'none';
+    const isLiga = tipo === 'ligaAcademia';
+    document.getElementById('c-tier-row').style.display = isLiga ? 'block' : 'none';
+    document.getElementById('c-link-row').style.display = isLiga ? 'block' : 'none';
+    if (isLiga) atualizarLinkAssinatura();
+  };
+
+  window.atualizarLinkAssinatura = function() {
+    const tier = document.getElementById('c-tier').value;
+    const link = PLANOS_LINKS[tier] || '';
+    document.getElementById('c-link-display').value = link;
+    const nome = document.getElementById('c-nome').value.trim() || 'sua academia';
+    const msg  = encodeURIComponent(`Olá! Segue o link para assinar o plano ${tier.charAt(0).toUpperCase()+tier.slice(1)} da Gaditas Torneios:\n${link}`);
+    document.getElementById('c-link-whatsapp').href = `https://wa.me/?text=${msg}`;
+  };
+
+  window.copiarLinkAssinatura = function() {
+    const link = document.getElementById('c-link-display').value;
+    if (!link) return;
+    navigator.clipboard.writeText(link).then(() => {
+      const btn = event.target;
+      btn.textContent = '✅ Copiado!';
+      setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+    });
   };
 
   window.fecharModalCliente = function() {
