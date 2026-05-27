@@ -1,10 +1,23 @@
 const admin = require('firebase-admin');
 
 // ── Firebase Admin (singleton) ─────────────────────────────────
-if (!admin.apps.length) {
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (raw) admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)) });
+function initFirebase() {
+  if (admin.apps.length) return;
+  try {
+    // Tenta base64 primeiro (gerado pelo certutil do Windows)
+    const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
+    if (b64) {
+      const clean = b64.replace(/-----[^-]+-----/g, '').replace(/[\r\n\s]/g, '');
+      const json  = Buffer.from(clean, 'base64').toString('utf8');
+      admin.initializeApp({ credential: admin.credential.cert(JSON.parse(json)) });
+      return;
+    }
+    // Fallback: JSON direto
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (raw) admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)) });
+  } catch(e) { console.error('[initFirebase]', e.message); }
 }
+initFirebase();
 const db        = admin.apps.length ? admin.firestore() : null;
 const authAdmin = admin.apps.length ? admin.auth()      : null;
 

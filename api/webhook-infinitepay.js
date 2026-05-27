@@ -1,16 +1,22 @@
 const admin = require('firebase-admin');
 
 // ── Firebase Admin (singleton) ────────────────────────────────
-if (!admin.apps.length) {
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!raw) {
-    console.error('FIREBASE_SERVICE_ACCOUNT env var não definida');
-  } else {
-    admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(raw))
-    });
-  }
+function initFirebase() {
+  if (admin.apps.length) return;
+  try {
+    const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
+    if (b64) {
+      const clean = b64.replace(/-----[^-]+-----/g, '').replace(/[\r\n\s]/g, '');
+      const json  = Buffer.from(clean, 'base64').toString('utf8');
+      admin.initializeApp({ credential: admin.credential.cert(JSON.parse(json)) });
+      return;
+    }
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (raw) admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)) });
+    else console.error('[initFirebase] Nenhuma variável de credencial encontrada');
+  } catch(e) { console.error('[initFirebase]', e.message); }
 }
+initFirebase();
 
 const db = admin.apps.length ? admin.firestore() : null;
 
