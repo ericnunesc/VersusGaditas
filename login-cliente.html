@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Portal do Cliente · Gaditas Torneios</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:#F5F7FA; color:#1A2C3E;
+           min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+
+    .card {
+      background:#fff; border:1px solid #E2E8F0; border-radius:20px;
+      padding:40px 36px; width:100%; max-width:400px;
+      box-shadow:0 4px 24px rgba(0,0,0,0.06);
+    }
+    .logo { text-align:center; margin-bottom:28px; }
+    .logo span { font-size:2.8rem; display:block; margin-bottom:8px; }
+    .logo h1 { font-size:1.1rem; font-weight:800; letter-spacing:1px; color:#1A2C3E; }
+    .logo p  { font-size:0.75rem; color:#8A9CB0; margin-top:3px; }
+
+    h2 { font-size:1rem; font-weight:700; margin-bottom:20px; color:#1A2C3E; }
+
+    label { display:block; font-size:0.78rem; font-weight:600; margin-bottom:4px; margin-top:14px; color:#1A2C3E; }
+    input { width:100%; border:1px solid #E2E8F0; border-radius:10px; padding:11px 14px;
+            font-size:0.88rem; outline:none; background:#fff; }
+    input:focus { border-color:#C9A03D; }
+
+    .btn-entrar { width:100%; background:#C9A03D; border:none; color:#fff; padding:13px;
+                  border-radius:40px; font-size:0.9rem; font-weight:700; cursor:pointer; margin-top:22px; }
+    .btn-entrar:hover { background:#A0822E; }
+    .btn-entrar:disabled { opacity:0.6; cursor:not-allowed; }
+
+    .erro { background:#FEF2F2; border:1px solid #FECACA; color:#B91C1C;
+            border-radius:10px; padding:10px 14px; font-size:0.8rem; margin-top:14px; display:none; }
+
+    .link-esqueci { display:block; text-align:center; margin-top:14px;
+                    font-size:0.75rem; color:#8A9CB0; text-decoration:none; }
+    .link-esqueci:hover { color:#C9A03D; }
+
+    .divider { text-align:center; margin-top:24px; padding-top:20px;
+               border-top:1px solid #F1F5F9; font-size:0.72rem; color:#8A9CB0; }
+    .divider a { color:#C9A03D; text-decoration:none; font-weight:600; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <span>🏆</span>
+    <h1>GADITAS TORNEIOS</h1>
+    <p>Portal do Cliente</p>
+  </div>
+
+  <h2>Entrar na sua conta</h2>
+
+  <label>Email</label>
+  <input type="email" id="email" placeholder="seu@email.com" autocomplete="email">
+
+  <label>Senha</label>
+  <input type="password" id="senha" placeholder="••••••••" autocomplete="current-password">
+
+  <div class="erro" id="erro"></div>
+
+  <button class="btn-entrar" id="btn-entrar">Entrar</button>
+
+  <a href="#" class="link-esqueci" id="link-esqueci">Esqueci minha senha</a>
+
+  <div class="divider">É administrador? <a href="login-admin.html">Acesse aqui</a></div>
+</div>
+
+<script type="module">
+  import { login, onLogin } from './js/firebase.js';
+  import { getAuth, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+  // Se já logado, vai direto para o portal
+  onLogin(user => {
+    if (user) window.location.replace('portal-cliente.html');
+  });
+
+  const btnEntrar = document.getElementById('btn-entrar');
+  const erroEl    = document.getElementById('erro');
+
+  function mostrarErro(msg) {
+    erroEl.textContent = msg;
+    erroEl.style.display = 'block';
+  }
+
+  btnEntrar.addEventListener('click', async () => {
+    erroEl.style.display = 'none';
+    const email = document.getElementById('email').value.trim();
+    const senha = document.getElementById('senha').value;
+
+    if (!email || !senha) { mostrarErro('Preencha email e senha.'); return; }
+
+    btnEntrar.textContent = 'Entrando...';
+    btnEntrar.disabled = true;
+
+    try {
+      await login(email, senha);
+      // onLogin vai redirecionar
+    } catch(e) {
+      const msgs = {
+        'auth/user-not-found':    'Email não cadastrado.',
+        'auth/wrong-password':    'Senha incorreta.',
+        'auth/invalid-credential':'Email ou senha incorretos.',
+        'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos.',
+        'auth/invalid-email':     'Email inválido.'
+      };
+      mostrarErro(msgs[e.code] || 'Erro ao entrar. Tente novamente.');
+    } finally {
+      btnEntrar.textContent = 'Entrar';
+      btnEntrar.disabled = false;
+    }
+  });
+
+  // Enter para logar
+  document.getElementById('senha').addEventListener('keydown', e => {
+    if (e.key === 'Enter') btnEntrar.click();
+  });
+
+  // Esqueci a senha
+  document.getElementById('link-esqueci').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    if (!email) { mostrarErro('Digite seu email acima primeiro.'); return; }
+    try {
+      const auth = getAuth();
+      await sendPasswordResetEmail(auth, email, {
+        url: 'https://competicaobjj.vercel.app/portal-cliente.html'
+      });
+      erroEl.style.display = 'none';
+      alert(`✅ Email de redefinição enviado para ${email}`);
+    } catch(e) {
+      mostrarErro('Não foi possível enviar o email. Verifique se o email está correto.');
+    }
+  });
+</script>
+</body>
+</html>

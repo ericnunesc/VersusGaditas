@@ -822,7 +822,10 @@
         <span class="cliente-status-badge ${BADGE_STATUS[c.status]||'cs-inativo'}">${LABEL_STATUS[c.status]||c.status}</span>
         <div class="cliente-valor">${valorCliente(c)}</div>
         <div class="cliente-acoes">
-          <button class="btn-sm" onclick="editarCliente('${c.id}')">✏️ Editar</button>
+          <button class="btn-sm ${c.uid?'':'primary'}" onclick="criarAcessoCliente('${c.id}','${c.nome.replace(/'/g,"\\'")}')">
+            ${c.uid ? '✉️ Reenviar acesso' : '🔑 Criar acesso'}
+          </button>
+          <button class="btn-sm" onclick="editarCliente('${c.id}')">✏️</button>
           <button class="btn-sm danger" onclick="excluirCliente('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>
         </div>
       </div>`).join('');
@@ -904,6 +907,32 @@
       fecharModalCliente(); carregarClientes();
     } catch(e) { alert('Erro: ' + e.message); }
     finally { btn.textContent = 'Salvar'; btn.disabled = false; }
+  };
+
+  window.criarAcessoCliente = async function(id, nome) {
+    const btn = event.target.closest('button');
+    const txtOriginal = btn.textContent.trim();
+    btn.textContent = '⏳ Aguarde...'; btn.disabled = true;
+    try {
+      const res  = await fetch('/api/criar-conta-cliente', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clienteId: id })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
+      // Copia link para clipboard
+      await navigator.clipboard.writeText(data.resetLink).catch(()=>{});
+
+      // Mostra modal simples com o link
+      const msg = `✅ Acesso criado para ${data.email}\n\nLink copiado! Cole e envie para o cliente definir a senha:\n\n${data.resetLink}\n\nApós definir a senha, o cliente acessa:\nhttps://competicaobjj.vercel.app/login-cliente.html`;
+      alert(msg);
+      carregarClientes();
+    } catch(e) {
+      alert('Erro: ' + e.message);
+      btn.textContent = txtOriginal; btn.disabled = false;
+    }
   };
 
   window.editarCliente = function(id) {

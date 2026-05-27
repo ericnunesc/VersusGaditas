@@ -1,0 +1,61 @@
+const admin = require('firebase-admin');
+
+// ── Firebase Admin (singleton) ─────────────────────────────────
+if (!admin.apps.length) {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (raw) admin.initializeApp({ credential: admin.credential.cert(JSON.parse(raw)) });
+}
+const db        = admin.apps.length ? admin.firestore() : null;
+const authAdmin = admin.apps.length ? admin.auth()      : null;
+
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+  if (!db) return res.status(500).json({ error: 'Firebase não inicializado' });
+
+  const { clienteId } = req.body || {};
+  if (!clienteId) return res.status(400).json({ error: 'clienteId obrigatório' });
+
+  try {
+    // ── Busca dados do cliente ───────────────────────────────
+    const clienteDoc = await db.collection('clientes').doc(clienteId).get();
+    if (!clienteDoc.exists) return res.status(404).json({ error: 'Cliente não encontrado' });
+
+    const cliente = clienteDoc.data();
+    if (!cliente.email) return res.status(400).json({ error: 'Cliente sem email cadastrado. Adicione o email primeiro.' });
+
+    // ── Cria ou recupera usuário Firebase Auth ───────────────
+    let uid;
+    try {
+      const existing = await authAdmin.getUserByEmail(cliente.email);
+      uid = existing.uid;
+      console.log('[criar-conta] Usuário já existe:', uid);
+    } catch {
+      const newUser = await authAdmin.createUser({
+        email:         cliente.email,
+        displayName:   cliente.nome,
+        emailVerified: false
+      });
+      uid = newUser.uid;
+      console.log('[criar-conta] Novo usuário criado:', uid);
+    }
+
+    // ── Salva UID no Firestore ───────────────────────────────
+    await db.collection('clientes').doc(clienteId).update({ uid });
+
+    // ── Gera link de definição de senha ─────────────────────
+    const resetLink = await authAdmin.generatePasswordResetLink(cliente.email, {
+      url: 'https://competicaobjj.vercel.app/portal-cliente.html'
+    });
+
+    return res.status(200).json({
+      success:   true,
+      uid,
+      email:     cliente.email,
+      resetLink
+    });
+
+  } catch (err) {
+    console.error('[criar-conta-cliente]', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
