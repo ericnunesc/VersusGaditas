@@ -386,6 +386,34 @@
   </div>
 </div>
 
+<!-- MODAL: LINK DE ACESSO -->
+<div class="modal-bg" id="modal-link-bg">
+  <div class="modal" style="max-width:500px">
+    <h3>✅ Acesso criado!</h3>
+    <p style="font-size:0.82rem;color:#8A9CB0;margin-bottom:14px">Copie o link abaixo e envie para o cliente definir sua senha:</p>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <input type="text" id="modal-link-input" readonly
+        style="flex:1;background:#F8FAFC;font-size:0.72rem;cursor:pointer;"
+        onclick="this.select()">
+      <button onclick="copiarLinkModal()"
+        style="background:#C9A03D;border:none;color:#fff;padding:9px 16px;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap"
+        id="btn-copiar-modal">📋 Copiar</button>
+    </div>
+    <a id="modal-link-whatsapp" href="#" target="_blank"
+      style="display:inline-block;margin-top:10px;font-size:0.78rem;color:#25D366;font-weight:600;text-decoration:none;">
+      📲 Enviar por WhatsApp
+    </a>
+    <p style="font-size:0.72rem;color:#8A9CB0;margin-top:12px;">
+      Após definir a senha, o cliente acessa:<br>
+      <a href="https://competicaobjj.vercel.app/login-cliente.html" target="_blank"
+        style="color:#C9A03D;">competicaobjj.vercel.app/login-cliente.html</a>
+    </p>
+    <div class="modal-footer">
+      <button class="btn-salvar" onclick="document.getElementById('modal-link-bg').classList.remove('open')">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: CLIENTE -->
 <div class="modal-bg" id="modal-cliente-bg">
   <div class="modal">
@@ -909,6 +937,18 @@
     finally { btn.textContent = 'Salvar'; btn.disabled = false; }
   };
 
+  window.copiarLinkModal = function() {
+    const inp = document.getElementById('modal-link-input');
+    inp.select();
+    navigator.clipboard.writeText(inp.value).then(() => {
+      const btn = document.getElementById('btn-copiar-modal');
+      btn.textContent = '✅ Copiado!';
+      setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+    }).catch(() => {
+      document.execCommand('copy');
+    });
+  };
+
   window.criarAcessoCliente = async function(id, nome) {
     const btn = event.target.closest('button');
     const txtOriginal = btn.textContent.trim();
@@ -922,12 +962,13 @@
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
 
-      // Copia link para clipboard
-      await navigator.clipboard.writeText(data.resetLink).catch(()=>{});
-
-      // Mostra modal simples com o link
-      const msg = `✅ Acesso criado para ${data.email}\n\nLink copiado! Cole e envie para o cliente definir a senha:\n\n${data.resetLink}\n\nApós definir a senha, o cliente acessa:\nhttps://competicaobjj.vercel.app/login-cliente.html`;
-      alert(msg);
+      // Mostra modal com link selecionável
+      const inp = document.getElementById('modal-link-input');
+      inp.value = data.resetLink;
+      const wa = encodeURIComponent(`Olá! Acesse o link para criar sua senha no Gaditas Torneios:\n${data.resetLink}\n\nApós criar a senha, entre em: https://competicaobjj.vercel.app/login-cliente.html`);
+      document.getElementById('modal-link-whatsapp').href = `https://wa.me/?text=${wa}`;
+      document.getElementById('modal-link-bg').classList.add('open');
+      setTimeout(() => { inp.select(); navigator.clipboard.writeText(data.resetLink).catch(()=>{}); }, 100);
       carregarClientes();
     } catch(e) {
       alert('Erro: ' + e.message);
