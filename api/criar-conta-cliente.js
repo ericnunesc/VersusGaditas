@@ -21,11 +21,6 @@ initFirebase();
 const db        = admin.apps.length ? admin.firestore() : null;
 const authAdmin = admin.apps.length ? admin.auth()      : null;
 
-// ── Firebase Web API Key (para envio automático de e-mail) ─────
-// Valor: mesma chave `apiKey` do arquivo js/firebase.js
-// Pode ser sobrescrita pela env var FIREBASE_API_KEY
-const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyA0HOHKPd9gCpJx0pnFWaKdLU-1WJks-gA';
-
 const PORTAL_URL = 'https://competicaobjj.vercel.app/login-cliente.html';
 
 module.exports = async function handler(req, res) {
@@ -67,42 +62,20 @@ module.exports = async function handler(req, res) {
     await db.collection('clientes').doc(clienteId).update({ uid });
 
     // ── Gera link de definição de senha ─────────────────────
+    // Nota: NÃO chamamos sendOobCode separadamente pois ele geraria
+    // um novo token, invalidando o link retornado aqui.
+    // O admin envia o link manualmente via modal (copiar / WhatsApp).
     const resetLink = await authAdmin.generatePasswordResetLink(email, {
       url: PORTAL_URL
     });
-
-    // ── Envia e-mail automaticamente via Firebase Auth ───────
-    let emailEnviado = false;
-    try {
-      const resp = await fetch(
-        `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${FIREBASE_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            requestType: 'PASSWORD_RESET',
-            email,
-            continueUrl: PORTAL_URL
-          })
-        }
-      );
-      const data = await resp.json();
-      if (data.email) {
-        emailEnviado = true;
-        console.log('[criar-conta] E-mail de redefinição enviado para:', email);
-      } else {
-        console.warn('[criar-conta] Resposta inesperada ao enviar e-mail:', JSON.stringify(data));
-      }
-    } catch (emailErr) {
-      console.warn('[criar-conta] Falha ao enviar e-mail automático:', emailErr.message);
-    }
+    console.log('[criar-conta] Link de redefinição gerado para:', email);
 
     return res.status(200).json({
       success:      true,
       uid,
       email,
       resetLink,
-      emailEnviado,
+      emailEnviado: false,
       isNew
     });
 
