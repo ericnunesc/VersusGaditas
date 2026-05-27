@@ -332,7 +332,21 @@
       };
 
       if (campeonatoId && window._fbSalvarInscricao) {
-        await window._fbSalvarInscricao(campeonatoId, payload);
+        // Firestore tem limite de ~1MB por documento.
+        // Comprovante em base64 pode ser grande; retenta sem ele se necessário.
+        try {
+          await window._fbSalvarInscricao(campeonatoId, payload);
+        } catch(e) {
+          const isTooBig = e?.code === 'invalid-argument' ||
+                           (e?.message||'').toLowerCase().includes('exceeds') ||
+                           (e?.message||'').toLowerCase().includes('400');
+          if (isTooBig && payload.comprovante) {
+            console.warn('Documento grande, reenviando sem comprovante…');
+            await window._fbSalvarInscricao(campeonatoId, { ...payload, comprovante: null });
+          } else {
+            throw e;
+          }
+        }
       } else {
         // fallback localStorage (modo offline)
         payload.id = uid();
@@ -384,7 +398,7 @@
     document.getElementById('comprovante').addEventListener('change', function(e) {
       var file = e.target.files[0];
       if (!file) return;
-      redimensionarImagem(file, 800, function(base64) {
+      redimensionarImagem(file, 600, function(base64) {
         comprovanteBase64 = base64;
         document.getElementById('comprovanteImg').src = base64;
         document.getElementById('comprovantePreview').style.display = 'block';
@@ -442,7 +456,13 @@
         $("successBox").style.display = "block";
         $("successBox").scrollIntoView({behavior:"smooth", block:"center"});
       } catch(err) {
-        $("erroForm").textContent = "Erro ao enviar inscrição. Tente novamente.";
+        console.error("Erro inscrição:", err);
+        const msg = err?.code === 'permission-denied'
+          ? "Sem permissão para enviar inscrições. Verifique as regras do Firestore."
+          : err?.message
+          ? "Erro: " + err.message
+          : "Erro ao enviar inscrição. Tente novamente.";
+        $("erroForm").textContent = msg;
       } finally {
         btn.textContent = "✅ FINALIZAR INSCRIÇÃO";
         btn.disabled = false;
