@@ -354,6 +354,10 @@
       <option value="encerrado">🔒 Encerrado</option>
     </select>
 
+    <label>Logo / Marca da Organização <span style="font-weight:400;color:#8A9CB0">(URL da imagem)</span></label>
+    <input type="text" id="f-marca" placeholder="https://exemplo.com/logo.png">
+    <p style="font-size:0.68rem;color:#8A9CB0;margin-top:4px;">Logo exibida nas páginas públicas do evento (cabeçalho, inscrição, placar). Cole a URL de uma imagem hospedada.</p>
+
     <label>Cartaz do evento</label>
     <div id="cartaz-preview-box" class="cartaz-preview" style="display:none">
       <img id="cartaz-preview-img" src="">
@@ -590,6 +594,7 @@
     document.getElementById('f-status').value    = dados?.status   || 'breve';
     document.getElementById('f-emoji').value     = dados?.emoji    || '🥋';
     document.getElementById('f-escopo').value    = dados?.escopo   || 'academia';
+    document.getElementById('f-marca').value     = dados?.marca    || '';
     document.getElementById('f-cartaz').value    = '';
     document.getElementById('modal-titulo').textContent = dados ? 'Editar Campeonato' : 'Novo Campeonato';
     selecionarEmoji(dados?.emoji || '🥋');
@@ -679,6 +684,7 @@
       status:    document.getElementById('f-status').value,
       emoji:     document.getElementById('f-emoji').value,
       cartaz:    cartazBase64 || null,
+      marca:     document.getElementById('f-marca').value.trim() || null,
     };
     if (tipo === 'liga') {
       dados.escopo    = document.getElementById('f-escopo').value;
@@ -961,6 +967,14 @@
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
+
+      // Atualiza título do modal conforme e-mail foi enviado ou não
+      const h3 = document.querySelector('#modal-link-bg h3');
+      if (h3) h3.textContent = data.emailEnviado ? '✅ Acesso criado e e-mail enviado!' : '✅ Acesso criado!';
+      const subp = document.querySelector('#modal-link-bg p');
+      if (subp) subp.textContent = data.emailEnviado
+        ? `E-mail enviado automaticamente para ${data.email}. O link abaixo é o mesmo, caso precise reenviar:`
+        : 'Copie o link abaixo e envie para o cliente definir sua senha:';
 
       // Mostra modal com link selecionável
       const inp = document.getElementById('modal-link-input');

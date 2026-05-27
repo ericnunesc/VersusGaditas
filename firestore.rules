@@ -1,0 +1,89 @@
+rules_version = '2';
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  Gaditas Torneios — Regras de Segurança do Firestore
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//
+//  SETUP INICIAL — Adicionar o UID do admin:
+//  1. Acesse Firebase Console → Authentication → Users
+//  2. Copie o UID do seu usuário admin
+//  3. Vá em Firestore → Crie a coleção "admins"
+//  4. Crie um documento com ID = UID do admin, campo: { "email": "seu@email.com" }
+//  5. Repita para cada usuário admin adicional
+//
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Admin = UID está na coleção 'admins'
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Cliente autenticado que é dono deste doc (uid no campo uid)
+    function isOwner(resource) {
+      return isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // ── Admins (gerenciar via Firebase Console) ────────────
+    match /admins/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false; // Gerenciar manualmente pelo Console
+    }
+
+    // ── Campeonatos ────────────────────────────────────────
+    // Leitura pública: páginas de inscrição, atletas, placar
+    // Escrita: apenas admins autenticados
+    match /campeonatos/{campId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+
+      // Subcoleções: atletas, inscricoes, config, chaves, etc.
+      match /inscricoes/{docId} {
+        // Qualquer pessoa pode criar inscrição (formulário público)
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if isAdmin();
+      }
+
+      match /atletas/{docId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+
+      match /{subcol}/{docId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+    }
+
+    // ── Clientes ───────────────────────────────────────────
+    // Admin: leitura e escrita total
+    // Cliente: só lê o próprio documento (campo uid == request.auth.uid)
+    match /clientes/{clienteId} {
+      allow read: if isAdmin() || isOwner(resource);
+      allow write: if isAdmin();
+    }
+
+    // ── Planos (configuração de preços) ────────────────────
+    // Leitura pública (landing page pode exibir preços)
+    // Escrita apenas pelo admin
+    match /planos/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Demais coleções (fallback) ─────────────────────────
+    match /{document=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+  }
+}

@@ -21,6 +21,13 @@ initFirebase();
 const db        = admin.apps.length ? admin.firestore() : null;
 const authAdmin = admin.apps.length ? admin.auth()      : null;
 
+// ── Firebase Web API Key (para envio automático de e-mail) ─────
+// Valor: mesma chave `apiKey` do arquivo js/firebase.js
+// Pode ser sobrescrita pela env var FIREBASE_API_KEY
+const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyA0HOHKPd9gCpJx0pnFWaKdLU-1WJks-gA';
+
+const PORTAL_URL = 'https://competicaobjj.vercel.app/login-cliente.html';
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   if (!db) return res.status(500).json({ error: 'Firebase não inicializado' });
@@ -36,19 +43,23 @@ module.exports = async function handler(req, res) {
     const cliente = clienteDoc.data();
     if (!cliente.email) return res.status(400).json({ error: 'Cliente sem email cadastrado. Adicione o email primeiro.' });
 
+    const email = cliente.email.toLowerCase().trim();
+
     // ── Cria ou recupera usuário Firebase Auth ───────────────
     let uid;
+    let isNew = false;
     try {
-      const existing = await authAdmin.getUserByEmail(cliente.email);
+      const existing = await authAdmin.getUserByEmail(email);
       uid = existing.uid;
       console.log('[criar-conta] Usuário já existe:', uid);
     } catch {
       const newUser = await authAdmin.createUser({
-        email:         cliente.email,
+        email,
         displayName:   cliente.nome,
         emailVerified: false
       });
       uid = newUser.uid;
+      isNew = true;
       console.log('[criar-conta] Novo usuário criado:', uid);
     }
 
@@ -56,15 +67,43 @@ module.exports = async function handler(req, res) {
     await db.collection('clientes').doc(clienteId).update({ uid });
 
     // ── Gera link de definição de senha ─────────────────────
-    const resetLink = await authAdmin.generatePasswordResetLink(cliente.email, {
-      url: 'https://competicaobjj.vercel.app/portal-cliente.html'
+    const resetLink = await authAdmin.generatePasswordResetLink(email, {
+      url: PORTAL_URL
     });
 
+    // ── Envia e-mail automaticamente via Firebase Auth ───────
+    let emailEnviado = false;
+    try {
+      const resp = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${FIREBASE_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requestType: 'PASSWORD_RESET',
+            email,
+            continueUrl: PORTAL_URL
+          })
+        }
+      );
+      const data = await resp.json();
+      if (data.email) {
+        emailEnviado = true;
+        console.log('[criar-conta] E-mail de redefinição enviado para:', email);
+      } else {
+        console.warn('[criar-conta] Resposta inesperada ao enviar e-mail:', JSON.stringify(data));
+      }
+    } catch (emailErr) {
+      console.warn('[criar-conta] Falha ao enviar e-mail automático:', emailErr.message);
+    }
+
     return res.status(200).json({
-      success:   true,
+      success:      true,
       uid,
-      email:     cliente.email,
-      resetLink
+      email,
+      resetLink,
+      emailEnviado,
+      isNew
     });
 
   } catch (err) {
