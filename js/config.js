@@ -1,7 +1,7 @@
 // ==================== CONFIGURAÇÕES GLOBAIS ====================
 const CONFIG = {
   VERSAO: '3.3.0',
-  NOME_APP: 'Gaditas Torneios - CBJJ/IBJJF',
+  NOME_APP: 'Competição BJJ - CBJJ/IBJJF',
   ANO_ATUAL: new Date().getFullYear()
 };
 

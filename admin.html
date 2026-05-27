@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Gaditas Torneios - Sistema CBJJ</title>
+    <title>COMPETIÇÃO BJJ - Sistema CBJJ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -419,7 +419,7 @@
             <div class="logo-area">
                 <span class="logo-icon">🏆</span>
                 <div>
-                    <h1>GADITAS TORNEIOS</h1>
+                    <h1>COMPETIÇÃO BJJ</h1>
                     <p>Sistema oficial CBJJ/IBJJF</p>
                 </div>
             </div>
@@ -514,7 +514,7 @@
                     <div class="config-section"><h4>🏟️ ÁREAS (TATAMES)</h4><div class="config-buttons"><button onclick="configurarAreas()" class="btn-primary">Configurar Áreas</button></div><div id="lista-areas" style="margin-top:10px;"></div></div>
                     <div class="config-section"><h4>💾 Backup</h4><div class="config-buttons"><button onclick="exportarDados()" class="btn-secondary">📤 Exportar</button><button onclick="importarDados()" class="btn-secondary">📥 Importar</button><button onclick="resetarAno()" class="btn-danger">🔄 Resetar</button></div></div>
                     <div class="config-section"><h4>🎨 Aparência</h4><label class="checkbox"><input type="checkbox" id="tema-escuro"> Modo Escuro</label></div>
-                    <div class="config-section"><h4>ℹ️ Sobre</h4><p><strong>Gaditas Torneios</strong> - Sistema Oficial CBJJ/IBJJF<br>Versão 3.0.0</p></div>
+                    <div class="config-section"><h4>ℹ️ Sobre</h4><p><strong>COMPETIÇÃO BJJ</strong> - Sistema Oficial CBJJ/IBJJF<br>Versão 3.0.0</p></div>
                 </div></div>
             </div>
         </div>
@@ -544,7 +544,7 @@
 // ==================== CONFIGURAÇÕES GLOBAIS ====================
 const CONFIG = {
   VERSAO: '3.0.0',
-  NOME_APP: 'Gaditas Torneios - CBJJ/IBJJF',
+  NOME_APP: 'COMPETIÇÃO BJJ - CBJJ/IBJJF',
   ANO_ATUAL: new Date().getFullYear()
 };
 
@@ -1920,7 +1920,7 @@ function atualizarRankingFull() {
 
 // ==================== INICIALIZAÇÃO ====================
 document.addEventListener("DOMContentLoaded", () => {
-    console.log('🚀 Gaditas Torneios - iniciando...');
+    console.log('🚀 COMPETIÇÃO BJJ - iniciando...');
 
     // Carregar dados salvos
     carregarDados();
@@ -2030,7 +2030,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    mostrarToast('Gaditas Torneios v3.0.0 - Sistema CBJJ', 'sucesso');
+    mostrarToast('COMPETIÇÃO BJJ v3.0.0 - Sistema CBJJ', 'sucesso');
 });
 
 // Expor funções globais usadas pelo HTML via onclick

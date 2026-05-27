@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel Admin - Gaditas Torneios</title>
+  <title>Painel Admin - COMPETIÇÃO BJJ</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Inter',-apple-system,sans-serif; background:#F5F7FA; color:#1A2C3E; }
@@ -125,7 +125,7 @@
 <header>
   <div class="header-logo">
     <span style="font-size:1.6rem">🏆</span>
-    <div><h1>GADITAS TORNEIOS</h1><p>Painel Administrativo</p></div>
+    <div><h1>COMPETIÇÃO BJJ</h1><p>Painel Administrativo</p></div>
   </div>
   <div class="header-right">
     <span class="user-email" id="user-email"></span>
@@ -901,7 +901,7 @@
     const link = PLANOS_LINKS[tier] || '';
     document.getElementById('c-link-display').value = link;
     const nome = document.getElementById('c-nome').value.trim() || 'sua academia';
-    const msg  = encodeURIComponent(`Olá! Segue o link para assinar o plano ${tier.charAt(0).toUpperCase()+tier.slice(1)} da Gaditas Torneios:\n${link}`);
+    const msg  = encodeURIComponent(`Olá! Segue o link para assinar o plano ${tier.charAt(0).toUpperCase()+tier.slice(1)} da COMPETIÇÃO BJJ:\n${link}`);
     document.getElementById('c-link-whatsapp').href = `https://wa.me/?text=${msg}`;
   };
 
@@ -979,7 +979,7 @@
       // Mostra modal com link selecionável
       const inp = document.getElementById('modal-link-input');
       inp.value = data.resetLink;
-      const wa = encodeURIComponent(`Olá! Acesse o link para criar sua senha no Gaditas Torneios:\n${data.resetLink}\n\nApós criar a senha, entre em: https://competicaobjj.vercel.app/login-cliente.html`);
+      const wa = encodeURIComponent(`Olá! Acesse o link para criar sua senha no COMPETIÇÃO BJJ:\n${data.resetLink}\n\nApós criar a senha, entre em: https://competicaobjj.vercel.app/login-cliente.html`);
       document.getElementById('modal-link-whatsapp').href = `https://wa.me/?text=${wa}`;
       document.getElementById('modal-link-bg').classList.add('open');
       setTimeout(() => { inp.select(); navigator.clipboard.writeText(data.resetLink).catch(()=>{}); }, 100);

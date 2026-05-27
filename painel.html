@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Gaditas Torneios - Sistema CBJJ</title>
+    <title>COMPETIÇÃO BJJ - Sistema CBJJ</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -462,7 +462,7 @@
     try {
       const camp = await buscarCampeonato(campeonatoId);
       if (camp) {
-        document.title = `${camp.nome} — Gaditas Torneios`;
+        document.title = `${camp.nome} — COMPETIÇÃO BJJ`;
         const sub = document.querySelector('.logo-area p');
         if (sub) sub.textContent = camp.nome;
       }
@@ -492,7 +492,7 @@
             <div class="logo-area">
                 <span class="logo-icon">🏆</span>
                 <div>
-                    <h1>GADITAS TORNEIOS</h1>
+                    <h1>COMPETIÇÃO BJJ</h1>
                     <p>Sistema oficial CBJJ/IBJJF</p>
                 </div>
             </div>
@@ -817,7 +817,7 @@
 
                         <div class="config-section">
                             <h4>ℹ️ Sobre</h4>
-                            <p><strong>Gaditas Torneios</strong> - Sistema Oficial CBJJ/IBJJF<br>Versão 3.2.1</p>
+                            <p><strong>COMPETIÇÃO BJJ</strong> - Sistema Oficial CBJJ/IBJJF<br>Versão 3.2.1</p>
                         </div>
                     </div>
                 </div>
@@ -914,7 +914,7 @@
     <script>
     const CONFIG = {
       VERSAO: '3.0.0',
-      NOME_APP: 'Gaditas Torneios - CBJJ/IBJJF',
+      NOME_APP: 'COMPETIÇÃO BJJ - CBJJ/IBJJF',
       ANO_ATUAL: new Date().getFullYear()
     };
 

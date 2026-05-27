@@ -212,7 +212,7 @@ function atualizarDashboard() {
 // ==================== INICIALIZAÇÃO ====================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Gaditas Torneios v3.0.0 iniciando...');
+    console.log('🚀 Competição BJJ v3.0.0 iniciando...');
     
     try { if (typeof carregarDados === 'function') carregarDados(); } catch (e) { console.error(e); }
     try { if (typeof carregarTabelasReferencia === 'function') carregarTabelasReferencia(); } catch (e) { console.error(e); }
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    if (typeof mostrarToast === 'function') mostrarToast('✅ Gaditas Torneios v3.0.0', 'sucesso');
+    if (typeof mostrarToast === 'function') mostrarToast('✅ Competição BJJ v3.0.0', 'sucesso');
 });
 
 // ==================== EXPORTAR ====================
