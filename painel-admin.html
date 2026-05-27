@@ -205,7 +205,7 @@
 
       <!-- Liga Academia -->
       <div class="plano-card">
-        <div class="plano-card-titulo">🏫 Liga Academia — Estadual</div>
+        <div class="plano-card-titulo">🏫 Liga Academia — Interno</div>
         <div class="plano-card-sub">Academias com liga interna entre seus próprios alunos · Assinatura mensal</div>
 
         <div class="plano-tier">
@@ -240,7 +240,7 @@
 
       <!-- Liga Inter -->
       <div class="plano-card">
-        <div class="plano-card-titulo">⚔️ Liga Inter-Academias — Brasileiro</div>
+        <div class="plano-card-titulo">⚔️ Liga Inter-Academias — Externo</div>
         <div class="plano-card-sub">Liga entre academias gerenciada por você · Cobrança por inscrição</div>
 
         <div class="plano-tier">
@@ -307,8 +307,8 @@
         <div class="modal-section-title">⚽ Configuração da Liga</div>
         <label>Escopo</label>
         <select id="f-escopo">
-          <option value="academia">🏫 Liga Academia — Estadual (academia paga mensalidade)</option>
-          <option value="inter">⚔️ Liga Inter-Academias — Brasileiro (inscrição por equipe/atleta)</option>
+          <option value="academia">🏫 Liga Academia — Interno (academia paga mensalidade)</option>
+          <option value="inter">⚔️ Liga Inter-Academias — Externo (inscrição por equipe/atleta)</option>
         </select>
         <label>Cliente vinculado <span style="font-weight:400;color:#8A9CB0">(opcional)</span></label>
         <select id="f-cliente">
@@ -373,8 +373,8 @@
     <label>Tipo de Plano *</label>
     <select id="c-tipo" onchange="onTipoClienteChange()">
       <option value="chaveamento">🥋 Chaveamento — Por Evento</option>
-      <option value="ligaAcademia">🏫 Liga Academia — Estadual (mensalidade)</option>
-      <option value="ligaInter">⚔️ Liga Inter-Academias — Brasileiro</option>
+      <option value="ligaAcademia">🏫 Liga Academia — Interno (mensalidade)</option>
+      <option value="ligaInter">⚔️ Liga Inter-Academias — Externo</option>
     </select>
 
     <div id="c-tier-row" style="display:none">
@@ -473,7 +473,7 @@
           ? `<span style="background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">👤 ${cliMap[c.clienteId]}</span> `
           : '';
         const tagEscopo = isLiga && c.escopo
-          ? `<span style="background:${c.escopo==='academia'?'#F0FDF4':'#FFF7ED'};color:${c.escopo==='academia'?'#166534':'#C2410C'};padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">${c.escopo==='academia'?'🏫 Estadual':'⚔️ Brasileiro'}</span> `
+          ? `<span style="background:${c.escopo==='academia'?'#F0FDF4':'#FFF7ED'};color:${c.escopo==='academia'?'#166534':'#C2410C'};padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">${c.escopo==='academia'?'🏫 Interno':'⚔️ Externo'}</span> `
           : '';
         const acoes = isLiga
           ? `<a href="liga-adm.html?id=${c.id}" class="btn-sm primary">⚽ Admin Liga</a>
