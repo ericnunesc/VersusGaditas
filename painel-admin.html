@@ -462,7 +462,7 @@
         return;
       }
       const cliMap = {};
-      cli.forEach(c => { cliMap[c.id] = c.nome; });
+      clientesData.forEach(c => { cliMap[c.id] = c.nome; });
       grid.innerHTML = camps.map(c => {
         const data    = c.data ? new Date(c.data+'T12:00').toLocaleDateString('pt-BR') : '—';
         const banner  = c.cartaz
