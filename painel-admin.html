@@ -203,45 +203,13 @@
         </div>
       </div>
 
-      <!-- Evento Único -->
-      <div class="plano-card">
-        <div class="plano-card-titulo">🎯 Liga — Evento Único</div>
-        <div class="plano-card-sub">Cobrado por evento avulso · Sem mensalidade</div>
-
-        <div class="plano-tier">
-          <div class="plano-tier-head">
-            <span class="plano-tier-label">Starter</span>
-            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-eu-sta-max" value="50"> atletas</span>
-          </div>
-          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-sta-preco" value="99"><span class="plano-suffix">/ evento</span></div>
-        </div>
-
-        <div class="plano-tier">
-          <div class="plano-tier-head">
-            <span class="plano-tier-label">Pro</span>
-            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-eu-pro-max" value="150"> atletas</span>
-          </div>
-          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-pro-preco" value="179"><span class="plano-suffix">/ evento</span></div>
-        </div>
-
-        <div class="plano-tier">
-          <div class="plano-tier-head">
-            <span class="plano-tier-label">Elite</span>
-            <span class="plano-tier-lim" style="color:#C9A03D;font-weight:600">ilimitado</span>
-          </div>
-          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-eli-preco" value="299"><span class="plano-suffix">/ evento</span></div>
-        </div>
-
-        <div class="plano-save-row">
-          <span class="plano-saved-msg" id="saved-evento-unico">✅ Salvo!</span>
-          <button class="btn-salvar-plano" onclick="salvarPlanosEventoUnico()">💾 Salvar</button>
-        </div>
-      </div>
-
       <!-- Liga Academia -->
       <div class="plano-card">
         <div class="plano-card-titulo">🏫 Liga Academia — Interno</div>
-        <div class="plano-card-sub">Academias com liga interna entre seus próprios alunos · Assinatura mensal</div>
+        <div class="plano-card-sub">Liga interna entre os próprios alunos da academia</div>
+
+        <!-- Por Mês -->
+        <div style="font-size:0.7rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.8px;margin:12px 0 8px">📅 Assinatura Mensal</div>
 
         <div class="plano-tier">
           <div class="plano-tier-head">
@@ -265,6 +233,33 @@
             <span class="plano-tier-lim" style="color:#C9A03D;font-weight:600">ilimitado + logo/cores</span>
           </div>
           <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-la-eli-preco" value="159"><span class="plano-suffix">/ mês</span></div>
+        </div>
+
+        <!-- Por Evento -->
+        <div style="font-size:0.7rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.8px;margin:16px 0 8px;padding-top:14px;border-top:1px solid #F1F5F9">🎯 Evento Único</div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Starter</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-eu-sta-max" value="50"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-sta-preco" value="99"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Pro</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-eu-pro-max" value="150"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-pro-preco" value="179"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Elite</span>
+            <span class="plano-tier-lim" style="color:#C9A03D;font-weight:600">ilimitado</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-eli-preco" value="299"><span class="plano-suffix">/ evento</span></div>
         </div>
 
         <div class="plano-save-row">
@@ -720,22 +715,17 @@
     await salvarPlanos(planosConfig); showSaved('saved-chav');
   };
 
-  window.salvarPlanosEventoUnico = async function() {
-    if (!planosConfig) planosConfig = JSON.parse(JSON.stringify(PLANOS_DEFAULT));
-    planosConfig.eventoUnico = {
-      starter: { atletasMax:+document.getElementById('p-eu-sta-max').value,  preco:+document.getElementById('p-eu-sta-preco').value },
-      pro:     { atletasMax:+document.getElementById('p-eu-pro-max').value,  preco:+document.getElementById('p-eu-pro-preco').value },
-      elite:   { atletasMax:9999,                                             preco:+document.getElementById('p-eu-eli-preco').value }
-    };
-    await salvarPlanos(planosConfig); showSaved('saved-evento-unico');
-  };
-
   window.salvarPlanosLigaAcademia = async function() {
     if (!planosConfig) planosConfig = JSON.parse(JSON.stringify(PLANOS_DEFAULT));
     planosConfig.ligaAcademia = {
       starter: { atletasMax:+document.getElementById('p-la-sta-max').value,  preco:+document.getElementById('p-la-sta-preco').value },
       pro:     { atletasMax:+document.getElementById('p-la-pro-max').value,  preco:+document.getElementById('p-la-pro-preco').value },
       elite:   { atletasMax:9999,                                             preco:+document.getElementById('p-la-eli-preco').value }
+    };
+    planosConfig.eventoUnico = {
+      starter: { atletasMax:+document.getElementById('p-eu-sta-max').value,  preco:+document.getElementById('p-eu-sta-preco').value },
+      pro:     { atletasMax:+document.getElementById('p-eu-pro-max').value,  preco:+document.getElementById('p-eu-pro-preco').value },
+      elite:   { atletasMax:9999,                                             preco:+document.getElementById('p-eu-eli-preco').value }
     };
     await salvarPlanos(planosConfig); showSaved('saved-liga-acad');
   };
