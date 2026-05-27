@@ -92,7 +92,7 @@
 
 <header>
   <div class="header-logo">
-    <span style="font-size:1.8rem">🏆</span>
+    <img src="images/logo-budoflow.png" alt="BudoFlow" style="height:38px;width:auto;border-radius:50%;flex-shrink:0;">
     <div>
       <h1>COMPETIÇÃO BJJ</h1>
       <p>Portal do Cliente</p>
@@ -185,7 +185,7 @@
   function renderGrid(camps) {
     const grid = document.getElementById('grid');
     if (!camps.length) {
-      grid.innerHTML = `<div class="vazio"><span>🏆</span>Nenhuma competição encontrada.<br><small>O administrador irá criar e vincular suas competições em breve.</small></div>`;
+      grid.innerHTML = `<div class="vazio"><img src="images/logo-budoflow.png" alt="BudoFlow" style="height:68px;width:auto;border-radius:50%;display:block;margin:0 auto;">Nenhuma competição encontrada.<br><small>O administrador irá criar e vincular suas competições em breve.</small></div>`;
       return;
     }
 

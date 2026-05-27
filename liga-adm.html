@@ -1245,7 +1245,7 @@ function renderClassificacao() {
   const fl = FAIXAS_LABEL[faixaSelecionada];
   const ranking = calcularClassificacao(faixaSelecionada);
   const el = document.getElementById('classificacao-content');
-  if (!ranking.length) { el.innerHTML=`<div class="vazio"><span>🏆</span>Nenhuma equipe para ${fl}.</div>`; return; }
+  if (!ranking.length) { el.innerHTML=`<div class="vazio"><img src="images/logo-budoflow.png" alt="BudoFlow" style="height:68px;width:auto;border-radius:50%;display:block;margin:0 auto;">Nenhuma equipe para ${fl}.</div>`; return; }
   const medals = ['🥇','🥈','🥉'];
   let html = `<div class="card">
     <div class="card-header"><h3>🏆 Classificação — ${fl}</h3></div>
