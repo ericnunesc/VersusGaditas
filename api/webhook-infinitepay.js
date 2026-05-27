@@ -17,9 +17,9 @@ const db = admin.apps.length ? admin.firestore() : null;
 // ── Mapeamento plan_id → tier ─────────────────────────────────
 // Planos criados na InfinitePay (grupo_lotta)
 const PLAN_MAP = {
-  'aB2vLeYaNF': 'elite',    // Liga Interno Elite  — R$119/mês
-  'vfGO2BUdWL': 'pro',      // Liga Interno Pro    — R$99/mês
-  'DU64bZpy2w': 'starter'   // Liga Interno Starter — R$59/mês
+  'aB2vLeYaNF': 'starter',  // Liga Interno Starter — R$59/mês
+  'vfGO2BUdWL': 'pro',      // Liga Interno Pro     — R$99/mês
+  'DU64bZpy2w': 'elite'     // Liga Interno Elite   — R$159/mês
 };
 
 // ── Helper: extrai campo de caminhos alternativos ─────────────
