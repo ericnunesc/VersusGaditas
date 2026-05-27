@@ -613,8 +613,10 @@
              <a href="liga-tv.html?id=${c.id}" target="_blank" class="btn-sm">📺 TV</a>
              <button class="btn-sm" onclick="editar('${c.id}')">✏️</button>
              <button class="btn-sm danger" onclick="excluir('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>`
-          : `<a href="painel.html?id=${c.id}" class="btn-sm primary">⚙️ Gerenciar</a>
-             <a href="adm-inscricoes.html?id=${c.id}" class="btn-sm">📋 Inscrições</a>
+          : `<a href="adm-inscricoes.html?id=${c.id}" class="btn-sm primary">📋 Inscrições / Aprovações</a>
+             <a href="adm-chaveamento.html?id=${c.id}" class="btn-sm" style="background:#1A2C3E;color:#fff;border-color:#1A2C3E">🥊 Chaveamento</a>
+             <a href="placar-adm.html?id=${c.id}" class="btn-sm" style="background:#10B981;color:#fff;border-color:#10B981">🎙️ Placar</a>
+             <a href="inscricao.html?id=${c.id}" target="_blank" class="btn-sm">📝 Inscrição</a>
              <a href="atletas-publico.html?id=${c.id}" target="_blank" class="btn-sm">👥 Atletas</a>
              <button class="btn-sm" onclick="editar('${c.id}')">✏️</button>
              <button class="btn-sm danger" onclick="excluir('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>`;

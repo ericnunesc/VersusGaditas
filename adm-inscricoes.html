@@ -77,7 +77,7 @@
         <p>Aprovação de atletas</p>
       </div>
     </div>
-    <a href="painel.html" class="btn btn-back">← Voltar</a>
+    <a href="painel-admin.html" class="btn btn-back">← Voltar</a>
   </div>
 
   <div class="contador">
@@ -110,7 +110,13 @@
     document.getElementById('lista').innerHTML = '<div style="padding:40px;text-align:center;color:red">Campeonato não especificado. Acesse pelo painel admin.</div>';
   } else {
     buscarCampeonato(campeonatoId).then(c => {
-      if (c) document.title = `Inscrições — ${c.nome}`;
+      if (c) {
+        document.title = `Inscrições — ${c.nome}`;
+        const h1 = document.querySelector('.logo h1');
+        const sub = document.querySelector('.logo p');
+        if (h1) h1.textContent = 'Inscrições';
+        if (sub) sub.textContent = c.nome;
+      }
     });
   }
 
@@ -246,7 +252,9 @@
   };
 
   window.rejeitar = async function(id) {
-    if (!confirm('Rejeitar esta inscrição?')) return;
+    const insc = todasInscricoes.find(x => x.id === id);
+    const nome = insc?.nome || 'este atleta';
+    if (!window.confirm(`Rejeitar a inscrição de ${nome}?`)) return;
     if (!campeonatoId) return;
     try {
       await atualizarInscricao(campeonatoId, id, { status: 'rejeitado' });
