@@ -453,8 +453,10 @@
   async function carregarCampeonatos() {
     const grid = document.getElementById('grid');
     try {
-      const [camps, cli] = await Promise.all([listarCampeonatos(), listarClientes()]);
-      campsData = camps; clientesData = cli;
+      // Carrega campeonatos e clientes independentemente — erro nos clientes não derruba tudo
+      const camps = await listarCampeonatos();
+      try { clientesData = await listarClientes(); } catch(e) { console.warn('Clientes indisponível:', e.message); clientesData = []; }
+      campsData = camps;
       if (!camps.length) {
         grid.innerHTML = `<div class="vazio"><span>🏆</span>Nenhum campeonato ainda.<br>Crie o primeiro!</div>`;
         return;
@@ -614,8 +616,13 @@
 
   // ── Planos ───────────────────────────────────────────────
   async function carregarPlanos() {
-    const snap = await buscarPlanos();
-    planosConfig = snap || JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+    try {
+      const snap = await buscarPlanos();
+      planosConfig = snap || JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+    } catch(e) {
+      console.warn('Planos indisponível:', e.message);
+      planosConfig = JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+    }
     preencherPlanos();
     atualizarExemplo();
   }
@@ -690,10 +697,19 @@
   // ── Clientes ─────────────────────────────────────────────
   async function carregarClientes() {
     if (!planosConfig) {
-      const snap = await buscarPlanos();
-      planosConfig = snap || JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+      try {
+        const snap = await buscarPlanos();
+        planosConfig = snap || JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+      } catch(e) { planosConfig = JSON.parse(JSON.stringify(PLANOS_DEFAULT)); }
     }
-    clientesData = await listarClientes();
+    try {
+      clientesData = await listarClientes();
+    } catch(e) {
+      console.warn('Clientes indisponível (verifique regras do Firestore):', e.message);
+      clientesData = [];
+      document.getElementById('clientes-list').innerHTML =
+        `<div class="clientes-vazio">⚠️ Sem acesso à coleção <code>clientes</code>.<br><small>Atualize as regras do Firestore — veja as instruções abaixo.</small></div>`;
+    }
     renderClientes();
   }
 
