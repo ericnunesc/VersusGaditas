@@ -352,6 +352,11 @@
       <option value="liga">⚽ Liga (Pontos Corridos)</option>
     </select>
 
+    <label>Cliente responsável <span style="font-weight:400;color:#8A9CB0">(opcional — dá acesso pelo portal)</span></label>
+    <select id="f-cliente">
+      <option value="">— Sem cliente vinculado —</option>
+    </select>
+
     <div id="liga-extra" style="display:none">
       <div class="modal-section">
         <div class="modal-section-title">⚽ Configuração da Liga</div>
@@ -359,10 +364,6 @@
         <select id="f-escopo">
           <option value="academia">🏫 Liga Academia — Interno (academia paga mensalidade)</option>
           <option value="inter">⚔️ Liga Inter-Academias — Externo (inscrição por equipe/atleta)</option>
-        </select>
-        <label>Cliente vinculado <span style="font-weight:400;color:#8A9CB0">(opcional)</span></label>
-        <select id="f-cliente">
-          <option value="">— Sem cliente vinculado —</option>
         </select>
       </div>
     </div>
@@ -705,10 +706,10 @@
       emoji:     document.getElementById('f-emoji').value,
       cartaz:    cartazBase64 || null,
       marca:     document.getElementById('f-marca').value.trim() || null,
+      clienteId: document.getElementById('f-cliente').value || null,
     };
     if (tipo === 'liga') {
-      dados.escopo    = document.getElementById('f-escopo').value;
-      dados.clienteId = document.getElementById('f-cliente').value || null;
+      dados.escopo = document.getElementById('f-escopo').value;
     }
     const id = document.getElementById('f-id').value;
     try {

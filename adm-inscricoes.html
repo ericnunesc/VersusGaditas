@@ -68,9 +68,6 @@
   </style>
 </head>
 <body>
-<script src="js/auth.js"></script>
-<script>verificarAuth();</script>
-
 <div class="app">
   <div class="top-bar">
     <div class="logo">
@@ -323,7 +320,7 @@
       iniciar();
     } else {
       document.getElementById('lista').innerHTML =
-        '<div style="padding:40px;text-align:center;color:red">Sessão expirada. <a href="login-admin.html">Fazer login novamente</a></div>';
+        '<div style="padding:40px;text-align:center;color:red">Sessão expirada. <a href="login-admin.html">Login admin</a> · <a href="login-cliente.html">Login cliente</a></div>';
     }
   });
 </script>
