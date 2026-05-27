@@ -89,8 +89,20 @@
     .cs-pendente { background:#FEF9C3; color:#92400E; }
     .cs-inativo { background:#F1F5F9; color:#64748B; }
     .cliente-valor { font-weight:700; color:#C9A03D; font-size:0.88rem; min-width:110px; text-align:right; white-space:nowrap; }
-    .cliente-acoes { display:flex; gap:6px; align-items:center; }
+    .cliente-acoes { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
     .clientes-vazio { text-align:center; padding:40px 20px; color:#8A9CB0; background:#fff; border:1px solid #E2E8F0; border-radius:12px; }
+    .cliente-pagamento { font-size:0.68rem; color:#8A9CB0; margin-top:3px; display:flex; align-items:center; gap:4px; }
+    .cliente-pagamento.atrasado { color:#DC2626; font-weight:600; }
+    .filtro-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+    .filtro-btn { padding:5px 14px; border-radius:40px; border:1px solid #E2E8F0; background:#fff; font-size:0.75rem; font-weight:600; cursor:pointer; color:#64748B; transition:all 0.2s; }
+    .filtro-btn:hover { border-color:#1A2C3E; color:#1A2C3E; }
+    .filtro-btn.active { background:#1A2C3E; color:#fff; border-color:#1A2C3E; }
+    .filtro-btn.pend { }
+    .filtro-btn.pend.active { background:#D97706; border-color:#D97706; }
+    .btn-cobrar { background:#25D366; border:none; color:#fff; padding:5px 11px; border-radius:40px; font-size:0.72rem; font-weight:700; cursor:pointer; white-space:nowrap; }
+    .btn-cobrar:hover { background:#1da85c; }
+    .receita-total { font-size:1.1rem; font-weight:700; color:#059669; }
+    .alerta-pendente { background:#FEF9C3; border:1px solid #FDE68A; border-radius:10px; padding:10px 14px; font-size:0.78rem; color:#92400E; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
 
     /* ── Modais ── */
     .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center; padding:16px; }
@@ -304,6 +316,14 @@
       <button class="btn-novo" onclick="abrirModalCliente()">+ Novo Cliente</button>
     </div>
     <div class="resumo-bar" id="resumo-clientes"></div>
+    <div id="alerta-pendentes"></div>
+    <div class="filtro-bar">
+      <span style="font-size:0.72rem;color:#8A9CB0;font-weight:600;">Filtrar:</span>
+      <button class="filtro-btn active" onclick="setFiltro('')">Todos</button>
+      <button class="filtro-btn" onclick="setFiltro('ativo')">✅ Ativos</button>
+      <button class="filtro-btn pend" onclick="setFiltro('pendente')">⏳ Pendentes</button>
+      <button class="filtro-btn" onclick="setFiltro('inativo')">🔴 Inativos</button>
+    </div>
     <div id="clientes-list"><div class="clientes-vazio">Carregando clientes...</div></div>
   </div>
 
@@ -824,6 +844,37 @@
   const BADGE_STATUS = { ativo:'cs-ativo', pendente:'cs-pendente', inativo:'cs-inativo' };
   const LABEL_STATUS = { ativo:'✅ Ativo', pendente:'⏳ Pendente', inativo:'🔴 Inativo' };
 
+  let filtroStatus = '';
+
+  window.setFiltro = function(status) {
+    filtroStatus = status;
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+    const idx = ['','ativo','pendente','inativo'].indexOf(status);
+    document.querySelectorAll('.filtro-btn')[idx]?.classList.add('active');
+    renderListaClientes();
+  };
+
+  // Converte Firestore Timestamp ou string para Date
+  function tsToDate(ts) {
+    if (!ts) return null;
+    if (ts.seconds) return new Date(ts.seconds * 1000);
+    if (ts.toDate)  return ts.toDate();
+    return new Date(ts);
+  }
+
+  function formatarData(ts) {
+    const d = tsToDate(ts);
+    if (!d || isNaN(d)) return null;
+    return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  // Quantos dias desde o último pagamento
+  function diasDesde(ts) {
+    const d = tsToDate(ts);
+    if (!d || isNaN(d)) return null;
+    return Math.floor((Date.now() - d.getTime()) / 86400000);
+  }
+
   function renderClientes() {
     const ativos    = clientesData.filter(c => c.status === 'ativo').length;
     const pendentes = clientesData.filter(c => c.status === 'pendente').length;
@@ -837,32 +888,81 @@
       <div class="resumo-stat"><h4 style="color:#059669">${ativos}</h4><p>Ativos</p></div>
       <div class="resumo-stat"><h4 style="color:#D97706">${pendentes}</h4><p>Pendentes</p></div>
       <div class="resumo-stat"><h4 style="color:#64748B">${inativos}</h4><p>Inativos</p></div>
-      ${mrr > 0 ? `<div class="resumo-stat"><h4>R$ ${mrr}</h4><p>MRR Ligas</p></div>` : ''}
+      ${mrr > 0 ? `<div class="resumo-stat"><div class="receita-total">R$ ${mrr}</div><p>MRR / mês</p></div>` : ''}
+      ${mrr > 0 ? `<div class="resumo-stat"><div class="receita-total">R$ ${mrr * 12}</div><p>Projeção anual</p></div>` : ''}
     `;
 
-    if (!clientesData.length) {
+    // Alerta de pendentes
+    const alertaEl = document.getElementById('alerta-pendentes');
+    if (pendentes > 0) {
+      alertaEl.innerHTML = `<div class="alerta-pendente">⚠️ <strong>${pendentes} cliente${pendentes>1?'s':''} com pagamento pendente.</strong> Use o botão 💬 Cobrar para enviar lembrete via WhatsApp.</div>`;
+    } else {
+      alertaEl.innerHTML = '';
+    }
+
+    renderListaClientes();
+  }
+
+  function renderListaClientes() {
+    const lista = filtroStatus
+      ? clientesData.filter(c => c.status === filtroStatus)
+      : clientesData;
+
+    if (!lista.length) {
       document.getElementById('clientes-list').innerHTML =
-        `<div class="clientes-vazio">👥 Nenhum cliente cadastrado.<br><small>Clique em "+ Novo Cliente" para começar.</small></div>`;
+        filtroStatus
+          ? `<div class="clientes-vazio">Nenhum cliente com status "${LABEL_STATUS[filtroStatus]||filtroStatus}".</div>`
+          : `<div class="clientes-vazio">👥 Nenhum cliente cadastrado.<br><small>Clique em "+ Novo Cliente" para começar.</small></div>`;
       return;
     }
 
-    document.getElementById('clientes-list').innerHTML = clientesData.map(c => `
-      <div class="cliente-row">
-        <div class="cliente-info-block">
-          <div class="cliente-nome">${c.nome}</div>
-          <div class="cliente-plano-info">${LABEL_TIPO[c.tipo]||c.tipo}${c.tier?' · '+LABEL_TIER[c.tier]:''}${c.inicio?' · desde '+new Date(c.inicio+'T12:00').toLocaleDateString('pt-BR'):''}${c.email?' · '+c.email:''}${c.tel?' · '+c.tel:''}</div>
-          ${c.obs ? `<div class="cliente-obs">${c.obs}</div>` : ''}
-        </div>
-        <span class="cliente-status-badge ${BADGE_STATUS[c.status]||'cs-inativo'}">${LABEL_STATUS[c.status]||c.status}</span>
-        <div class="cliente-valor">${valorCliente(c)}</div>
-        <div class="cliente-acoes">
-          <button class="btn-sm ${c.uid?'':'primary'}" onclick="criarAcessoCliente('${c.id}','${c.nome.replace(/'/g,"\\'")}')">
-            ${c.uid ? '✉️ Reenviar acesso' : '🔑 Criar acesso'}
-          </button>
-          <button class="btn-sm" onclick="editarCliente('${c.id}')">✏️</button>
-          <button class="btn-sm danger" onclick="excluirCliente('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>
-        </div>
-      </div>`).join('');
+    document.getElementById('clientes-list').innerHTML = lista.map(c => {
+      // Info de pagamento
+      const ultimoPag   = formatarData(c.ultimoPagamento);
+      const diasPag     = diasDesde(c.ultimoPagamento);
+      const atrasado    = c.status !== 'ativo' && diasPag !== null && diasPag > 30;
+      const pagInfoHtml = ultimoPag
+        ? `<div class="cliente-pagamento ${atrasado?'atrasado':''}">
+             💳 Último pagamento: ${ultimoPag}${diasPag !== null ? ` (${diasPag}d atrás)` : ''}
+           </div>`
+        : `<div class="cliente-pagamento">💳 Nenhum pagamento registrado</div>`;
+
+      // Botão cobrar (para pendentes/inativos com tel ou email)
+      const podeCobrar = (c.status === 'pendente' || c.status === 'inativo') && (c.tel || c.email);
+      const nomeSeguro = c.nome.replace(/'/g,"\\'");
+      const telNum     = (c.tel||'').replace(/\D/g,'');
+      const tierLabel  = LABEL_TIER[c.tier] || '';
+      const valorPag   = valorCliente(c);
+      const msgCobrar  = encodeURIComponent(
+        `Olá, ${c.nome}! Tudo bem?\n\nPassando para avisar que identificamos uma pendência no seu plano *${tierLabel || LABEL_TIPO[c.tipo]||c.tipo}* — ${valorPag} — na plataforma *COMPETIÇÃO BJJ*.\n\nPor favor, regularize para continuar com acesso completo. Qualquer dúvida, estou à disposição! 🙏`
+      );
+      const linkCobrar = telNum
+        ? `https://wa.me/55${telNum}?text=${msgCobrar}`
+        : `https://wa.me/?text=${msgCobrar}`;
+      const btnCobrar  = podeCobrar
+        ? `<a href="${linkCobrar}" target="_blank" class="btn-cobrar">💬 Cobrar</a>`
+        : '';
+
+      return `
+        <div class="cliente-row">
+          <div class="cliente-info-block">
+            <div class="cliente-nome">${c.nome}</div>
+            <div class="cliente-plano-info">${LABEL_TIPO[c.tipo]||c.tipo}${c.tier?' · '+LABEL_TIER[c.tier]:''}${c.inicio?' · desde '+new Date(c.inicio+'T12:00').toLocaleDateString('pt-BR'):''}${c.email?' · '+c.email:''}${c.tel?' · '+c.tel:''}</div>
+            ${pagInfoHtml}
+            ${c.obs ? `<div class="cliente-obs">${c.obs}</div>` : ''}
+          </div>
+          <span class="cliente-status-badge ${BADGE_STATUS[c.status]||'cs-inativo'}">${LABEL_STATUS[c.status]||c.status}</span>
+          <div class="cliente-valor">${valorCliente(c)}</div>
+          <div class="cliente-acoes">
+            ${btnCobrar}
+            <button class="btn-sm ${c.uid?'':'primary'}" onclick="criarAcessoCliente('${c.id}','${nomeSeguro}')">
+              ${c.uid ? '✉️ Reenviar' : '🔑 Criar acesso'}
+            </button>
+            <button class="btn-sm" onclick="editarCliente('${c.id}')">✏️</button>
+            <button class="btn-sm danger" onclick="excluirCliente('${c.id}','${nomeSeguro}')">🗑️</button>
+          </div>
+        </div>`;
+    }).join('');
   }
 
   window.abrirModalCliente = function(dados) {
