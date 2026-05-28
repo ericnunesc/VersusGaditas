@@ -212,7 +212,7 @@ export async function deletarLigaHistorico(campeonatoId, historicoId) {
   await deleteDoc(doc(db, "campeonatos", campeonatoId, "liga-historico", historicoId));
 }
 
-// ── Planos ──────────────────────────────────────────────
+// ── Planos (coleção de planos individuais) ───────────────
 export async function listarPlanos() {
   const snap = await getDocs(query(collection(db, 'planos'), orderBy('criadoEm', 'desc')));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -220,6 +220,30 @@ export async function listarPlanos() {
 export async function buscarPlano(id) {
   const snap = await getDoc(doc(db, 'planos', id));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+// ── Planos config (documento único de configuração de preços) ──
+export async function salvarPlanos(dados) {
+  await setDoc(doc(db, 'config-global', 'planos'), dados);
+}
+export async function buscarPlanos() {
+  const snap = await getDoc(doc(db, 'config-global', 'planos'));
+  return snap.exists() ? snap.data() : null;
+}
+
+// ── Clientes ─────────────────────────────────────────────
+export async function criarCliente(dados) {
+  return await addDoc(collection(db, 'clientes'), { ...dados, criadoEm: serverTimestamp() });
+}
+export async function listarClientes() {
+  const snap = await getDocs(query(collection(db, 'clientes'), orderBy('criadoEm', 'desc')));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+export async function atualizarCliente(id, dados) {
+  await updateDoc(doc(db, 'clientes', id), dados);
+}
+export async function deletarCliente(id) {
+  await deleteDoc(doc(db, 'clientes', id));
 }
 
 export { db, auth, onSnapshot, collection, doc, query, where, orderBy, signInAnonymously };
