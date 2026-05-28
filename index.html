@@ -1,831 +1,199 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>COMPETIÇÃO BJJ — Sistema BJJ para Academias e Federações</title>
-  <meta name="description" content="Sistema completo para torneios e ligas de Jiu-Jitsu Brasileiro. Chaveamento automático CBJJ/IBJJF, inscrições online, placar ao vivo e muito mais.">
+  <title>Campeonatos BJJ - Gaditas Torneios</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Inter',-apple-system,sans-serif; color:#1A2C3E; background:#fff; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:#F5F7FA; color:#1A2C3E; min-height:100vh; }
 
-    /* ── Header ── */
     header {
-      background:#1A2C3E; color:#fff;
-      padding:13px 28px;
-      display:flex; align-items:center; justify-content:space-between;
-      position:sticky; top:0; z-index:200; flex-wrap:wrap; gap:10px;
-      box-shadow:0 2px 12px rgba(0,0,0,0.2);
+      background:#1A2C3E;
+      color:#fff;
+      padding:20px 32px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:12px;
     }
-    .header-logo { display:flex; align-items:center; gap:10px; text-decoration:none; color:#fff; }
-    .header-logo h1 { font-size:1rem; font-weight:800; letter-spacing:1px; }
-    .header-logo p { font-size:0.62rem; color:#8A9CB0; }
-    .header-nav { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .btn-h { padding:7px 15px; border-radius:40px; font-size:0.78rem; font-weight:600; cursor:pointer; text-decoration:none; border:none; transition:all 0.2s; }
-    .btn-h.outline { border:1px solid rgba(255,255,255,0.25); color:#CBD5E1; background:transparent; }
-    .btn-h.outline:hover { border-color:#C9A03D; color:#C9A03D; }
-    .btn-h.gold { background:#C9A03D; color:#fff; }
-    .btn-h.gold:hover { background:#A0822E; }
-    .btn-h.green { background:#25D366; color:#fff; }
-    .btn-h.green:hover { background:#1da85c; }
-
-    /* ── Hero ── */
+    .header-logo { display:flex; align-items:center; gap:12px; }
+    .header-logo h1 { font-size:1.2rem; font-weight:700; letter-spacing:1px; }
+    .header-logo p { font-size:0.7rem; color:#8A9CB0; margin-top:2px; }
     .hero {
-      background:linear-gradient(135deg, #0E1E2D 0%, #1A2C3E 55%, #20364F 100%);
-      color:#fff; padding:90px 24px 80px; text-align:center;
-      position:relative; overflow:hidden;
+      background:linear-gradient(135deg,#1A2C3E 0%,#2A4060 100%);
+      color:#fff;
+      text-align:center;
+      padding:60px 20px 50px;
     }
-    .hero::before {
-      content:''; position:absolute; inset:0;
-      background:radial-gradient(ellipse at 65% 25%, rgba(201,160,61,0.14) 0%, transparent 60%);
-    }
-    .hero-inner { position:relative; z-index:1; max-width:820px; margin:0 auto; }
-    .hero-badge {
-      display:inline-block;
-      background:rgba(201,160,61,0.18); border:1px solid rgba(201,160,61,0.4);
-      color:#E8C06A; padding:5px 16px; border-radius:40px;
-      font-size:0.7rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
-      margin-bottom:26px;
-    }
-    .hero h2 {
-      font-size:clamp(1.9rem, 5.5vw, 3.4rem); font-weight:800; line-height:1.15;
-      margin-bottom:22px;
-    }
-    .hero h2 em { color:#C9A03D; font-style:normal; }
-    .hero-sub {
-      font-size:clamp(0.9rem, 2.2vw, 1.12rem); color:#94A3B8;
-      max-width:560px; margin:0 auto 38px; line-height:1.75;
-    }
-    .hero-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-    .btn-big {
-      padding:14px 30px; border-radius:40px; font-size:0.95rem; font-weight:700;
-      cursor:pointer; text-decoration:none; display:inline-block; transition:all 0.2s;
-    }
-    .btn-big:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.25); }
-    .btn-big.wa { background:#25D366; color:#fff; }
-    .btn-big.outline-w { background:transparent; border:2px solid rgba(255,255,255,0.3); color:#fff; }
-    .hero-tags {
-      margin-top:56px; display:flex; gap:20px; justify-content:center;
-      flex-wrap:wrap; opacity:0.55;
-      font-size:0.68rem; color:#94A3B8; align-items:center;
-      text-transform:uppercase; letter-spacing:1px;
-    }
-    .hero-tags span.dot { opacity:0.4; }
+    .hero h2 { font-size:2rem; font-weight:800; margin-bottom:12px; }
+    .hero p { font-size:1rem; color:#8A9CB0; max-width:500px; margin:0 auto; }
 
-    /* ── Section helpers ── */
-    .sec-wrap { padding:80px 24px; }
-    .sec-alt { background:#F5F7FA; }
-    .sec-inner { max-width:1100px; margin:0 auto; }
-    .sec-title { text-align:center; font-size:clamp(1.45rem, 3.5vw, 2.1rem); font-weight:800; margin-bottom:10px; }
-    .sec-sub { text-align:center; color:#64748B; font-size:0.92rem; margin-bottom:52px; line-height:1.65; max-width:600px; margin-left:auto; margin-right:auto; }
+    .app { max-width:1100px; margin:0 auto; padding:32px 20px; }
 
-    /* ── Type cards ── */
-    .type-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:20px; }
-    .type-card {
-      background:#fff; border:1px solid #E2E8F0; border-radius:16px;
-      padding:30px 24px; text-align:center; transition:all 0.2s;
-    }
-    .type-card:hover { transform:translateY(-5px); box-shadow:0 14px 36px rgba(0,0,0,0.08); border-color:#C9A03D; }
-    .type-icon { font-size:2.8rem; margin-bottom:14px; display:block; }
-    .type-name { font-size:1.05rem; font-weight:800; margin-bottom:8px; }
-    .type-desc { font-size:0.82rem; color:#64748B; line-height:1.65; }
+    .busca-box { display:flex; gap:10px; margin-bottom:28px; flex-wrap:wrap; }
+    .busca-box input { flex:1; min-width:200px; border:1px solid #E2E8F0; border-radius:10px; padding:11px 16px; font-size:0.88rem; outline:none; background:#fff; }
+    .busca-box input:focus { border-color:#C9A03D; }
+    .busca-box select { border:1px solid #E2E8F0; border-radius:10px; padding:11px 14px; font-size:0.85rem; background:#fff; outline:none; cursor:pointer; }
 
-    /* ── Inclusions ── */
-    .inc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(235px, 1fr)); gap:14px; }
-    .inc-item {
-      display:flex; gap:11px; align-items:flex-start;
-      padding:16px; background:#fff; border-radius:12px; border:1px solid #E2E8F0;
-    }
-    .inc-icon { font-size:1.3rem; flex-shrink:0; margin-top:1px; }
-    .inc-text { font-size:0.82rem; font-weight:700; line-height:1.5; color:#1A2C3E; }
-    .inc-text small { font-weight:400; color:#64748B; display:block; margin-top:2px; }
+    .titulo-secao { font-size:0.72rem; font-weight:700; color:#8A9CB0; text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; }
 
-    /* ── Pricing ── */
-    .pricing-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:34px; justify-content:center; }
-    .ptab {
-      padding:9px 20px; border-radius:40px; font-size:0.8rem; font-weight:700;
-      cursor:pointer; border:1px solid #E2E8F0; background:#fff; color:#64748B;
-      transition:all 0.2s;
-    }
-    .ptab:hover { border-color:#1A2C3E; color:#1A2C3E; }
-    .ptab.active { background:#1A2C3E; color:#fff; border-color:#1A2C3E; }
-    .pricing-panel { display:none; }
-    .pricing-panel.active { display:block; }
-    .tiers-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:18px; }
-    .tier-card {
-      background:#fff; border:2px solid #E2E8F0; border-radius:16px;
-      padding:26px 20px; text-align:center; position:relative; transition:all 0.2s;
-    }
-    .tier-card:hover { box-shadow:0 8px 28px rgba(0,0,0,0.08); }
-    .tier-card.feat { border-color:#C9A03D; box-shadow:0 0 0 4px rgba(201,160,61,0.1); }
-    .tier-badge {
-      position:absolute; top:-12px; left:50%; transform:translateX(-50%);
-      background:#C9A03D; color:#fff; padding:3px 16px; border-radius:20px;
-      font-size:0.62rem; font-weight:800; white-space:nowrap; letter-spacing:0.5px; text-transform:uppercase;
-    }
-    .tier-name { font-weight:800; font-size:1rem; margin-bottom:4px; }
-    .tier-lim { font-size:0.72rem; color:#64748B; margin-bottom:16px; }
-    .tier-price .amt { font-size:2.2rem; font-weight:800; color:#1A2C3E; line-height:1; }
-    .tier-price .per { font-size:0.72rem; color:#64748B; margin-top:4px; }
-    .tier-feats { list-style:none; text-align:left; margin-top:16px; }
-    .tier-feats li {
-      font-size:0.75rem; padding:5px 0; border-bottom:1px solid #F1F5F9; color:#475569;
-      display:flex; align-items:center; gap:6px;
-    }
-    .tier-feats li:last-child { border:none; }
-    .tier-feats li::before { content:'✅'; font-size:0.7rem; flex-shrink:0; }
-    .tier-cta {
-      margin-top:20px; display:block; padding:11px;
-      border-radius:40px; font-size:0.82rem; font-weight:700;
-      text-decoration:none; transition:background 0.2s; text-align:center;
-    }
-    .tier-cta.gold { background:#C9A03D; color:#fff; }
-    .tier-cta.gold:hover { background:#A0822E; }
-    .tier-cta.wa { background:#25D366; color:#fff; }
-    .tier-cta.wa:hover { background:#1da85c; }
-    .pricing-note { text-align:center; margin-top:18px; font-size:0.76rem; color:#94A3B8; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
 
-    /* ── Liga Inter box ── */
-    .inter-box {
-      background:linear-gradient(135deg, #1A2C3E, #243650);
-      color:#fff; border-radius:16px; padding:36px;
-      display:flex; align-items:center; justify-content:space-between;
-      flex-wrap:wrap; gap:24px;
+    .card-camp {
+      background:#fff;
+      border:1px solid #E2E8F0;
+      border-radius:16px;
+      overflow:hidden;
+      transition:transform 0.2s, box-shadow 0.2s;
+      text-decoration:none;
+      color:inherit;
+      display:block;
     }
-    .inter-box-left h3 { font-size:1.15rem; font-weight:800; margin-bottom:8px; }
-    .inter-box-left p { font-size:0.83rem; color:#94A3B8; max-width:480px; line-height:1.65; }
-    .inter-feats { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
-    .inter-feat { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); padding:4px 12px; border-radius:20px; font-size:0.7rem; color:#CBD5E1; }
-    .inter-box-right { text-align:right; flex-shrink:0; }
-    .inter-price-val { font-size:1.8rem; font-weight:800; color:#C9A03D; line-height:1.1; }
-    .inter-price-val small { font-size:0.9rem; }
-    .inter-price-plus { font-size:0.82rem; color:#94A3B8; margin-top:4px; }
+    .card-camp:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.08); border-color:#C9A03D; }
 
-    /* ── Events ── */
-    .grid-ev { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:18px; }
-    .ev-card {
-      background:#fff; border:1px solid #E2E8F0; border-radius:14px;
-      overflow:hidden; transition:all 0.2s; display:block; text-decoration:none; color:inherit;
+    .card-banner {
+      background:linear-gradient(135deg,#1A2C3E,#2A4060);
+      height:160px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:2.5rem;
+      overflow:hidden;
+      position:relative;
     }
-    .ev-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.08); border-color:#C9A03D; }
-    .ev-banner {
-      height:120px; background:linear-gradient(135deg,#1A2C3E,#2A4060);
-      display:flex; align-items:center; justify-content:center;
-      font-size:2.5rem; position:relative; overflow:hidden;
-    }
-    .ev-banner img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
-    .ev-banner .emo { position:relative; z-index:1; }
-    .ev-body { padding:14px 16px; }
-    .ev-pill { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.64rem; font-weight:700; margin-bottom:6px; }
-    .ev-pill.ativo { background:#DCFCE7; color:#166534; }
-    .ev-pill.breve { background:#FEF9C3; color:#92400E; }
-    .ev-pill.enc { background:#F1F5F9; color:#64748B; }
-    .ev-nome { font-weight:700; font-size:0.9rem; margin-bottom:4px; }
-    .ev-info { font-size:0.72rem; color:#64748B; margin-bottom:10px; line-height:1.5; }
-    .ev-links { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-    .ev-link { display:block; text-align:center; padding:7px 5px; border:1px solid #E2E8F0; border-radius:8px; font-size:0.7rem; font-weight:600; color:#1A2C3E; text-decoration:none; transition:all 0.2s; }
-    .ev-link:hover { border-color:#C9A03D; color:#C9A03D; }
-    .ev-link.prim { background:#C9A03D; color:#fff; border-color:#C9A03D; grid-column:1/-1; }
-    .ev-link.prim:hover { background:#A0822E; }
+    .card-banner img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+    .card-banner .emoji-sobre { position:relative; z-index:1; }
+    .card-body { padding:18px; }
+    .card-nome { font-weight:700; font-size:1rem; margin-bottom:6px; }
+    .card-info { font-size:0.78rem; color:#8A9CB0; display:flex; flex-direction:column; gap:3px; margin-bottom:12px; }
+    .card-info span { display:flex; align-items:center; gap:6px; }
+    .card-footer { display:flex; flex-direction:column; gap:10px; padding:14px 18px; border-top:1px solid #F1F5F9; }
+    .card-footer-top { display:flex; justify-content:space-between; align-items:center; }
+    .status-pill { padding:4px 12px; border-radius:20px; font-size:0.7rem; font-weight:700; }
+    .status-ativo { background:#DCFCE7; color:#166534; }
+    .status-encerrado { background:#F1F5F9; color:#64748B; }
+    .status-breve { background:#FEF9C3; color:#92400E; }
+    .btn-inscricao { background:#C9A03D; color:#fff; border:none; padding:8px 18px; border-radius:40px; font-size:0.8rem; font-weight:700; cursor:pointer; text-decoration:none; }
+    .btn-inscricao:hover { background:#A0822E; }
+    .links-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
+    .btn-link-card { display:block; text-align:center; padding:7px 6px; border:1px solid #E2E8F0; border-radius:8px; font-size:0.75rem; font-weight:600; color:#1A2C3E; text-decoration:none; transition:all 0.2s; background:#fff; }
+    .btn-link-card:hover { border-color:#C9A03D; color:#C9A03D; background:#FFFDF5; }
+    .badge-liga-home { background:#EFF6FF; color:#1D4ED8; padding:3px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; }
 
-    /* ── CTA section ── */
-    .cta-sec {
-      background:linear-gradient(135deg, #0E1E2D 0%, #1A2C3E 100%);
-      color:#fff; text-align:center; padding:90px 24px;
-    }
-    .cta-sec h2 { font-size:clamp(1.7rem, 4vw, 2.5rem); font-weight:800; margin-bottom:16px; }
-    .cta-sec p { color:#94A3B8; font-size:0.95rem; max-width:480px; margin:0 auto 38px; line-height:1.65; }
-    .cta-phone { margin-top:20px; font-size:0.8rem; color:#475569; }
+    .vazio { text-align:center; padding:60px 20px; color:#8A9CB0; }
+    .vazio span { font-size:3rem; display:block; margin-bottom:12px; opacity:0.3; }
 
-    /* ── Footer ── */
-    footer {
-      background:#0E1E2D; color:#475569;
-      padding:22px 28px;
-      display:flex; align-items:center; justify-content:space-between;
-      flex-wrap:wrap; gap:12px; font-size:0.75rem;
-    }
-    footer a { color:#64748B; text-decoration:none; }
-    footer a:hover { color:#C9A03D; }
+    .loading { text-align:center; padding:60px; color:#8A9CB0; }
 
-    /* ── WhatsApp FAB ── */
-    .wa-fab {
-      position:fixed; bottom:22px; right:22px;
-      background:#25D366; color:#fff;
-      border-radius:50px; padding:13px 20px;
-      font-size:0.88rem; font-weight:700; text-decoration:none;
-      box-shadow:0 4px 22px rgba(37,211,102,0.45);
-      display:flex; align-items:center; gap:8px; z-index:300;
-      transition:all 0.2s;
-    }
-    .wa-fab:hover { transform:scale(1.05); box-shadow:0 6px 30px rgba(37,211,102,0.55); }
-
-    /* ── Mockup browser frames ── */
-    .mock-browser {
-      border-radius:10px; overflow:hidden;
-      box-shadow:0 20px 60px rgba(0,0,0,0.5);
-      border:1px solid rgba(255,255,255,0.08);
-    }
-    .mock-chrome {
-      background:#2D3748; padding:7px 10px;
-      display:flex; align-items:center; gap:8px;
-    }
-    .mock-dots { display:flex; gap:4px; flex-shrink:0; }
-    .md { width:8px; height:8px; border-radius:50%; display:inline-block; }
-    .md.r { background:#EF4444; }
-    .md.y { background:#F59E0B; }
-    .md.g { background:#22C55E; }
-    .mock-url {
-      flex:1; background:#1A202C; border-radius:4px;
-      padding:3px 8px; font-size:0.55rem; color:#718096;
-      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-    }
-
-    .loading { text-align:center; padding:40px; color:#94A3B8; grid-column:1/-1; }
-    .vazio-ev { text-align:center; padding:40px; color:#94A3B8; grid-column:1/-1; }
-
-    @media(max-width:640px) {
-      .header-logo h1 { font-size:0.88rem; }
-      .inter-box-right { text-align:left; width:100%; }
-      .hero { padding:60px 20px 55px; }
-    }
+    @media(max-width:600px){ .hero h2 { font-size:1.4rem; } .links-grid { grid-template-columns:repeat(2,1fr); } }
   </style>
 </head>
 <body>
 
-<!-- WhatsApp FAB -->
-<a href="https://wa.me/5579981392088?text=Olá! Quero saber mais sobre o COMPETIÇÃO BJJ." target="_blank" class="wa-fab">
-  💬 WhatsApp
-</a>
-
-<!-- ── Header ───────────────────────────── -->
 <header>
-  <a href="index.html" class="header-logo">
-    <img src="images/logo-budoflow.png" alt="BudoFlow" style="height:38px;width:auto;border-radius:50%;flex-shrink:0;">
+  <div class="header-logo">
+    <span style="font-size:2rem">🏆</span>
     <div>
-      <h1>COMPETIÇÃO BJJ</h1>
-      <p>Sistema BJJ · CBJJ / IBJJF</p>
+      <h1>GADITAS TORNEIOS</h1>
+      <p>Sistema oficial CBJJ/IBJJF</p>
     </div>
-  </a>
-  <nav class="header-nav">
-    <a href="portal-cliente.html" class="btn-h outline">👤 Portal</a>
-    <a href="login-admin.html" class="btn-h outline">⚙️ Admin</a>
-    <a href="https://wa.me/5579981392088" target="_blank" class="btn-h green">💬 WhatsApp</a>
-  </nav>
+  </div>
 </header>
 
-<!-- ── Hero ──────────────────────────────── -->
-<section class="hero">
-  <div class="hero-inner">
-    <div class="hero-badge">🥋 Plataforma Oficial · CBJJ / IBJJF</div>
-    <h2>O sistema completo para<br><em>torneios e ligas</em> de BJJ</h2>
-    <p class="hero-sub">
-      Do chaveamento automático ao placar ao vivo — tudo em um só lugar.
-      Pensado para academias, federações e organizadores de Jiu-Jitsu.
-    </p>
-    <div class="hero-btns">
-      <a href="https://wa.me/5579981392088?text=Olá! Quero saber mais sobre o COMPETIÇÃO BJJ." target="_blank" class="btn-big wa">💬 Falar no WhatsApp</a>
-      <a href="#planos" class="btn-big outline-w">Ver Planos ↓</a>
-    </div>
-    <div class="hero-tags">
-      <span>✅ Chaveamento automático</span>
-      <span class="dot">·</span>
-      <span>✅ Inscrições online</span>
-      <span class="dot">·</span>
-      <span>✅ Placar ao vivo</span>
-      <span class="dot">·</span>
-      <span>✅ TV Display</span>
-      <span class="dot">·</span>
-      <span>✅ Portal do cliente</span>
-    </div>
+<div class="hero">
+  <h2>Campeonatos de Jiu-Jitsu</h2>
+  <p>Encontre seu campeonato, consulte sua categoria e faça sua inscrição</p>
+</div>
+
+<div class="app">
+  <div class="busca-box">
+    <input type="text" id="busca" placeholder="🔍 Buscar campeonato..." oninput="filtrar()">
+    <select id="filtro-status" onchange="filtrar()">
+      <option value="">Todos os status</option>
+      <option value="ativo">Abertos</option>
+      <option value="breve">Em breve</option>
+      <option value="encerrado">Encerrados</option>
+    </select>
   </div>
-</section>
 
-<!-- ── Para cada tipo de competição ────── -->
-<section class="sec-wrap sec-alt">
-  <div class="sec-inner">
-    <h2 class="sec-title">Para cada tipo de competição</h2>
-    <p class="sec-sub">Seja um torneio eliminatório, uma liga mensal ou inter-academias — temos a solução certa.</p>
-    <div class="type-grid">
-      <div class="type-card">
-        <span class="type-icon">🥋</span>
-        <div class="type-name">Chaveamento</div>
-        <div class="type-desc">Torneios com eliminação simples. Geração automática de chaves CBJJ, cronograma de lutas por área e placar ao vivo para TV.</div>
-      </div>
-      <div class="type-card">
-        <span class="type-icon">🏫</span>
-        <div class="type-name">Liga Interna</div>
-        <div class="type-desc">Liga de pontos corridos entre os alunos da sua academia. Mantém o engajamento durante o ano com assinatura mensal.</div>
-      </div>
-      <div class="type-card">
-        <span class="type-icon">⚔️</span>
-        <div class="type-name">Liga Inter-Academias</div>
-        <div class="type-desc">Campeonato entre equipes de academias diferentes. Portal exclusivo por equipe, inscrições e classificação em tempo real.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Incluso em todos os planos ─────── -->
-<section class="sec-wrap">
-  <div class="sec-inner">
-    <h2 class="sec-title">Tudo que você precisa, incluso</h2>
-    <p class="sec-sub">Sem cobranças extras por recurso. Todos os planos têm acesso completo à plataforma.</p>
-    <div class="inc-grid">
-      <div class="inc-item">
-        <span class="inc-icon">🥋</span>
-        <div class="inc-text">Chaveamento automático CBJJ/IBJJF
-          <small>Byes, potências de 2, shuffle de atletas</small></div>
-      </div>
-      <div class="inc-item">
-        <span class="inc-icon">📝</span>
-        <div class="inc-text">Inscrições online 24h
-          <small>Link público + QR Code de inscrição</small></div>
-      </div>
-      <div class="inc-item">
-        <span class="inc-icon">📺</span>
-        <div class="inc-text">Placar ao vivo — TV Display
-          <small>Tela profissional para projeção no evento</small></div>
-      </div>
-      <div class="inc-item">
-        <span class="inc-icon">📅</span>
-        <div class="inc-text">Cronograma automático de lutas
-          <small>Geração e publicação instantânea</small></div>
-      </div>
-      <div class="inc-item">
-        <span class="inc-icon">👥</span>
-        <div class="inc-text">Lista pública de atletas
-          <small>Categorias, faixas, academias — público e admin</small></div>
-      </div>
-      <div class="inc-item">
-        <span class="inc-icon">🔐</span>
-        <div class="inc-text">Portal exclusivo do cliente
-          <small>Acesso seguro para gerenciar suas competições</small></div>
-      </div>
-      <div class="inc-item">
-        <span class="inc-icon">📱</span>
-        <div class="inc-text">100% responsivo + PWA
-          <small>Funciona no celular, tablet e computador</small></div>
-      </div>
-      <div class="inc-item">
-        <span class="inc-icon">🔄</span>
-        <div class="inc-text">Sincronização em tempo real
-          <small>Atualizações instantâneas entre dispositivos</small></div>
-      </div>
-      <div class="inc-item">
-        <span class="inc-icon">💬</span>
-        <div class="inc-text">Suporte via WhatsApp
-          <small>Atendimento direto pelo (79) 98139-2088</small></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Telas do sistema ───────────────── -->
-<section class="sec-wrap" style="background:#0E1E2D; overflow:hidden;">
-  <div class="sec-inner">
-    <h2 class="sec-title" style="color:#fff;">Interface pensada para o evento ao vivo</h2>
-    <p class="sec-sub" style="color:#64748B;">Telas rápidas, claras e sem complicação — do chaveamento ao placar na TV.</p>
-
-    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:24px; align-items:start;">
-
-      <!-- ── Mockup 1: Placar ao vivo ── -->
-      <div>
-        <div class="mock-browser">
-          <div class="mock-chrome">
-            <div class="mock-dots"><span class="md r"></span><span class="md y"></span><span class="md g"></span></div>
-            <div class="mock-url">placar-adm.html</div>
-          </div>
-          <div style="background:#0B1929; padding:12px; border-radius:0 0 10px 10px;">
-            <div style="color:#475569; font-size:0.48rem; text-align:center; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px;">
-              Adulto Masculino · Faixa Azul · Até 76kg · Semifinal
-            </div>
-            <div style="display:flex; gap:6px; align-items:center;">
-              <div style="flex:1; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); border-radius:8px; padding:10px 8px; text-align:center;">
-                <div style="color:#93C5FD; font-size:0.45rem; font-weight:700; letter-spacing:1px;">AZUL</div>
-                <div style="color:#fff; font-size:0.68rem; font-weight:700; margin:3px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">João Silva</div>
-                <div style="color:#60A5FA; font-size:2rem; font-weight:900; line-height:1;">4</div>
-                <div style="display:flex; gap:3px; justify-content:center; margin-top:5px;">
-                  <span style="background:rgba(59,130,246,0.3); border-radius:3px; padding:1px 5px; font-size:0.42rem; color:#93C5FD;">VAN 1</span>
-                  <span style="background:rgba(239,68,68,0.2); border-radius:3px; padding:1px 5px; font-size:0.42rem; color:#FCA5A5;">PUN 0</span>
-                </div>
-              </div>
-              <div style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:5px; flex-shrink:0;">
-                <div style="color:#C9A03D; font-size:1.3rem; font-weight:900; font-variant-numeric:tabular-nums; letter-spacing:-1px;">05:00</div>
-                <div style="background:#22C55E; color:#fff; border-radius:20px; padding:2px 7px; font-size:0.4rem; font-weight:700; white-space:nowrap;">● AO VIVO</div>
-                <div style="color:#475569; font-size:0.38rem; text-transform:uppercase; letter-spacing:0.5px;">VS</div>
-              </div>
-              <div style="flex:1; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.25); border-radius:8px; padding:10px 8px; text-align:center;">
-                <div style="color:#FCA5A5; font-size:0.45rem; font-weight:700; letter-spacing:1px;">VERMELHO</div>
-                <div style="color:#fff; font-size:0.68rem; font-weight:700; margin:3px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Carlos M.</div>
-                <div style="color:#F87171; font-size:2rem; font-weight:900; line-height:1;">2</div>
-                <div style="display:flex; gap:3px; justify-content:center; margin-top:5px;">
-                  <span style="background:rgba(59,130,246,0.3); border-radius:3px; padding:1px 5px; font-size:0.42rem; color:#93C5FD;">VAN 0</span>
-                  <span style="background:rgba(239,68,68,0.2); border-radius:3px; padding:1px 5px; font-size:0.42rem; color:#FCA5A5;">PUN 1</span>
-                </div>
-              </div>
-            </div>
-            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-top:10px;">
-              <button style="background:#1D4ED8; color:#fff; border:none; border-radius:6px; padding:5px 4px; font-size:0.44rem; cursor:default;">+2 Derrubada</button>
-              <button style="background:#7C3AED; color:#fff; border:none; border-radius:6px; padding:5px 4px; font-size:0.44rem; cursor:default;">+3 Passagem</button>
-              <button style="background:#DC2626; color:#fff; border:none; border-radius:6px; padding:5px 4px; font-size:0.44rem; cursor:default;">🏆 Submissão</button>
-            </div>
-          </div>
-        </div>
-        <div style="color:#64748B; font-size:0.78rem; text-align:center; margin-top:10px; font-weight:600;">🎙️ Pontuação ao vivo</div>
-      </div>
-
-      <!-- ── Mockup 2: Chaveamento ── -->
-      <div>
-        <div class="mock-browser">
-          <div class="mock-chrome">
-            <div class="mock-dots"><span class="md r"></span><span class="md y"></span><span class="md g"></span></div>
-            <div class="mock-url">adm-chaveamento.html</div>
-          </div>
-          <div style="background:#F5F7FA; padding:10px; border-radius:0 0 10px 10px;">
-            <div style="background:#1A2C3E; color:#fff; border-radius:8px; padding:7px 10px; font-size:0.5rem; font-weight:700; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-              <span>🥋 Adulto Masc · Azul · -76kg</span>
-              <span style="background:#C9A03D; padding:2px 8px; border-radius:20px; font-size:0.42rem;">8 atletas</span>
-            </div>
-            <!-- Bracket visual -->
-            <div style="display:flex; gap:4px; align-items:center; overflow:hidden;">
-              <!-- Round 1 -->
-              <div style="display:flex; flex-direction:column; gap:4px; flex-shrink:0;">
-                <div style="background:#fff; border:1px solid #E2E8F0; border-radius:5px; padding:4px 7px; font-size:0.44rem; font-weight:600; white-space:nowrap;">João S.</div>
-                <div style="background:#DCFCE7; border:1px solid #BBF7D0; border-radius:5px; padding:4px 7px; font-size:0.44rem; font-weight:600; color:#166534;">✓ Carlos M.</div>
-                <div style="background:#fff; border:1px solid #E2E8F0; border-radius:5px; padding:4px 7px; font-size:0.44rem; font-weight:600; white-space:nowrap;">Lucas R.</div>
-                <div style="background:#fff; border:1px solid #E2E8F0; border-radius:5px; padding:4px 7px; font-size:0.44rem; font-weight:600; white-space:nowrap;">Pedro H.</div>
-                <div style="background:#F1F5F9; border:1px solid #E2E8F0; border-radius:5px; padding:4px 7px; font-size:0.44rem; color:#94A3B8;">BYE</div>
-                <div style="background:#fff; border:1px solid #E2E8F0; border-radius:5px; padding:4px 7px; font-size:0.44rem; font-weight:600; white-space:nowrap;">Ana B.</div>
-                <div style="background:#fff; border:1px solid #E2E8F0; border-radius:5px; padding:4px 7px; font-size:0.44rem; font-weight:600; white-space:nowrap;">Rafael V.</div>
-                <div style="background:#fff; border:1px solid #E2E8F0; border-radius:5px; padding:4px 7px; font-size:0.44rem; font-weight:600; white-space:nowrap;">Bruno A.</div>
-              </div>
-              <!-- Arrow -->
-              <div style="color:#C9A03D; font-size:0.7rem; flex-shrink:0;">→</div>
-              <!-- Semifinal -->
-              <div style="display:flex; flex-direction:column; justify-content:space-around; flex:1; gap:4px;">
-                <div style="background:#FEF9C3; border:1px solid #FDE68A; border-radius:5px; padding:5px 7px; font-size:0.44rem; font-weight:600; color:#92400E; white-space:nowrap;">Carlos M.</div>
-                <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:5px; padding:5px 7px; font-size:0.44rem; font-weight:600; color:#1D4ED8; white-space:nowrap;">Pedro H.</div>
-                <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:5px; padding:5px 7px; font-size:0.44rem; font-weight:600; color:#1D4ED8; white-space:nowrap;">Ana B.</div>
-                <div style="background:#F1F5F9; border:1px solid #E2E8F0; border-radius:5px; padding:5px 7px; font-size:0.44rem; color:#64748B; white-space:nowrap;">— a definir</div>
-              </div>
-              <!-- Arrow -->
-              <div style="color:#C9A03D; font-size:0.7rem; flex-shrink:0;">→</div>
-              <!-- Final -->
-              <div style="display:flex; flex-direction:column; justify-content:center; gap:4px;">
-                <div style="background:#C9A03D; border-radius:5px; padding:6px 8px; font-size:0.44rem; font-weight:700; color:#fff; white-space:nowrap; text-align:center;">🏆 FINAL</div>
-                <div style="background:#F1F5F9; border:1px dashed #CBD5E1; border-radius:5px; padding:6px 8px; font-size:0.44rem; color:#94A3B8; white-space:nowrap; text-align:center;">— a definir</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div style="color:#64748B; font-size:0.78rem; text-align:center; margin-top:10px; font-weight:600;">🥊 Chaveamento automático</div>
-      </div>
-
-      <!-- ── Mockup 3: Portal do cliente ── -->
-      <div>
-        <div class="mock-browser">
-          <div class="mock-chrome">
-            <div class="mock-dots"><span class="md r"></span><span class="md y"></span><span class="md g"></span></div>
-            <div class="mock-url">portal-cliente.html</div>
-          </div>
-          <div style="background:#F5F7FA; padding:10px; border-radius:0 0 10px 10px;">
-            <!-- Plano bar -->
-            <div style="background:#fff; border:1px solid #E2E8F0; border-radius:8px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:1.1rem;">🏫</span>
-                <div>
-                  <div style="font-size:0.52rem; font-weight:700;">Academia Exemplo</div>
-                  <div style="font-size:0.42rem; color:#8A9CB0;">Liga Academia · Pro · contato@academia.com</div>
-                </div>
-              </div>
-              <span style="background:#DCFCE7; color:#166534; padding:2px 8px; border-radius:20px; font-size:0.42rem; font-weight:700;">✅ Ativo</span>
-            </div>
-            <!-- Competições -->
-            <div style="font-size:0.42rem; color:#8A9CB0; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Suas Competições</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-              <div style="background:#fff; border:1px solid #E2E8F0; border-radius:8px; overflow:hidden;">
-                <div style="background:linear-gradient(135deg,#1A2C3E,#2A4060); height:36px; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">⚽</div>
-                <div style="padding:6px;">
-                  <div style="background:#DCFCE7; color:#166534; display:inline-block; padding:1px 6px; border-radius:20px; font-size:0.38rem; font-weight:700; margin-bottom:3px;">✅ Aberta</div>
-                  <div style="font-size:0.48rem; font-weight:700; margin-bottom:2px;">Liga Janeiro</div>
-                  <div style="font-size:0.38rem; color:#8A9CB0; margin-bottom:5px;">📅 Jan 2025</div>
-                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px;">
-                    <div style="background:#C9A03D; color:#fff; border-radius:4px; padding:3px 2px; font-size:0.38rem; text-align:center; font-weight:700;">⚽ Gerenciar</div>
-                    <div style="border:1px solid #E2E8F0; border-radius:4px; padding:3px 2px; font-size:0.38rem; text-align:center; color:#1A2C3E;">📺 TV</div>
-                  </div>
-                </div>
-              </div>
-              <div style="background:#fff; border:1px solid #E2E8F0; border-radius:8px; overflow:hidden;">
-                <div style="background:linear-gradient(135deg,#1A2C3E,#2A4060); height:36px; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">⚽</div>
-                <div style="padding:6px;">
-                  <div style="background:#FEF9C3; color:#92400E; display:inline-block; padding:1px 6px; border-radius:20px; font-size:0.38rem; font-weight:700; margin-bottom:3px;">🕐 Em breve</div>
-                  <div style="font-size:0.48rem; font-weight:700; margin-bottom:2px;">Liga Fevereiro</div>
-                  <div style="font-size:0.38rem; color:#8A9CB0; margin-bottom:5px;">📅 Fev 2025</div>
-                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px;">
-                    <div style="background:#C9A03D; color:#fff; border-radius:4px; padding:3px 2px; font-size:0.38rem; text-align:center; font-weight:700;">⚽ Gerenciar</div>
-                    <div style="border:1px solid #E2E8F0; border-radius:4px; padding:3px 2px; font-size:0.38rem; text-align:center; color:#1A2C3E;">📅 Cron.</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div style="color:#64748B; font-size:0.78rem; text-align:center; margin-top:10px; font-weight:600;">🔐 Portal exclusivo do cliente</div>
-      </div>
-
-    </div><!-- /grid -->
-  </div>
-</section>
-
-<!-- ── Planos e preços ─────────────────── -->
-<section class="sec-wrap sec-alt" id="planos">
-  <div class="sec-inner">
-    <h2 class="sec-title">Planos e Preços</h2>
-    <p class="sec-sub">Escolha o modelo que se adapta à sua necessidade. Sem taxas ocultas.</p>
-
-    <div class="pricing-tabs">
-      <button class="ptab active" data-tab="chaveamento" onclick="showPricing('chaveamento')">🥋 Chaveamento</button>
-      <button class="ptab" data-tab="liga-mensal" onclick="showPricing('liga-mensal')">🏫 Liga Mensal</button>
-      <button class="ptab" data-tab="liga-evento" onclick="showPricing('liga-evento')">🎯 Evento Único</button>
-      <button class="ptab" data-tab="liga-inter" onclick="showPricing('liga-inter')">⚔️ Liga Inter</button>
-    </div>
-
-    <!-- CHAVEAMENTO -->
-    <div class="pricing-panel active" id="panel-chaveamento">
-      <div class="tiers-grid">
-        <div class="tier-card">
-          <div class="tier-name">Pequeno</div>
-          <div class="tier-lim">Até 100 atletas</div>
-          <div class="tier-price"><div class="amt">R$197</div><div class="per">por evento</div></div>
-          <ul class="tier-feats">
-            <li>Chaveamento automático CBJJ</li>
-            <li>Inscrições online</li>
-            <li>Placar ao vivo</li>
-            <li>TV Display profissional</li>
-            <li>Cronograma público</li>
-          </ul>
-          <a href="https://wa.me/5579981392088?text=Olá! Quero contratar o plano Chaveamento Pequeno (até 100 atletas — R$197)." target="_blank" class="tier-cta wa">Contratar via WhatsApp</a>
-        </div>
-        <div class="tier-card feat">
-          <div class="tier-badge">Mais popular</div>
-          <div class="tier-name">Médio</div>
-          <div class="tier-lim">Até 300 atletas</div>
-          <div class="tier-price"><div class="amt">R$347</div><div class="per">por evento</div></div>
-          <ul class="tier-feats">
-            <li>Tudo do Pequeno</li>
-            <li>Múltiplas áreas de luta</li>
-            <li>Sequência de lutas por área</li>
-            <li>Gestão de equipes</li>
-            <li>Imprimir chaveamento</li>
-          </ul>
-          <a href="https://wa.me/5579981392088?text=Olá! Quero contratar o plano Chaveamento Médio (até 300 atletas — R$347)." target="_blank" class="tier-cta wa">Contratar via WhatsApp</a>
-        </div>
-        <div class="tier-card">
-          <div class="tier-name">Grande</div>
-          <div class="tier-lim">Até 600 atletas</div>
-          <div class="tier-price"><div class="amt">R$597</div><div class="per">por evento</div></div>
-          <ul class="tier-feats">
-            <li>Tudo do Médio</li>
-            <li>Suporte prioritário</li>
-            <li>Logo da organização</li>
-            <li>Relatório de atletas</li>
-          </ul>
-          <a href="https://wa.me/5579981392088?text=Olá! Quero contratar o plano Chaveamento Grande (até 600 atletas — R$597)." target="_blank" class="tier-cta wa">Contratar via WhatsApp</a>
-        </div>
-        <div class="tier-card">
-          <div class="tier-name">Mega Evento</div>
-          <div class="tier-lim">600+ atletas</div>
-          <div class="tier-price"><div class="amt">R$897</div><div class="per">por evento</div></div>
-          <ul class="tier-feats">
-            <li>Tudo do Grande</li>
-            <li>Sem limite de atletas</li>
-            <li>Atendimento VIP</li>
-            <li>Configuração assistida</li>
-          </ul>
-          <a href="https://wa.me/5579981392088?text=Olá! Quero contratar o plano Chaveamento Mega Evento (600+ atletas — R$897)." target="_blank" class="tier-cta wa">Contratar via WhatsApp</a>
-        </div>
-      </div>
-      <p class="pricing-note">💬 Pagamento via PIX, boleto ou cartão · Entre em contato para confirmar datas disponíveis</p>
-    </div>
-
-    <!-- LIGA MENSAL -->
-    <div class="pricing-panel" id="panel-liga-mensal">
-      <div class="tiers-grid">
-        <div class="tier-card">
-          <div class="tier-name">Starter</div>
-          <div class="tier-lim">Até 30 atletas</div>
-          <div class="tier-price"><div class="amt">R$59</div><div class="per">por mês · assinatura</div></div>
-          <ul class="tier-feats">
-            <li>Liga de pontos corridos</li>
-            <li>Inscrição de equipes</li>
-            <li>Cronograma de jogos</li>
-            <li>Classificação ao vivo</li>
-            <li>TV Display</li>
-          </ul>
-          <a href="https://invoice.infinitepay.io/plans/grupo_lotta/aB2vLeYaNF" target="_blank" class="tier-cta gold">Assinar — R$59/mês</a>
-        </div>
-        <div class="tier-card feat">
-          <div class="tier-badge">Recomendado</div>
-          <div class="tier-name">Pro</div>
-          <div class="tier-lim">Até 100 atletas</div>
-          <div class="tier-price"><div class="amt">R$99</div><div class="per">por mês · assinatura</div></div>
-          <ul class="tier-feats">
-            <li>Tudo do Starter</li>
-            <li>Portal privado por equipe</li>
-            <li>Placar ao vivo admin</li>
-            <li>Histórico de confrontos</li>
-            <li>Foto do atleta no portal</li>
-          </ul>
-          <a href="https://invoice.infinitepay.io/plans/grupo_lotta/vfGO2BUdWL" target="_blank" class="tier-cta gold">Assinar — R$99/mês</a>
-        </div>
-        <div class="tier-card">
-          <div class="tier-name">Elite</div>
-          <div class="tier-lim">Atletas ilimitados</div>
-          <div class="tier-price"><div class="amt">R$159</div><div class="per">por mês · assinatura</div></div>
-          <ul class="tier-feats">
-            <li>Tudo do Pro</li>
-            <li>Logo e cores da academia</li>
-            <li>Sem limite de atletas</li>
-            <li>Suporte prioritário</li>
-          </ul>
-          <a href="https://invoice.infinitepay.io/plans/grupo_lotta/DU64bZpy2w" target="_blank" class="tier-cta gold">Assinar — R$159/mês</a>
-        </div>
-      </div>
-      <p class="pricing-note">💳 Assinatura mensal via InfinitePay · PIX, cartão de crédito ou boleto · Cancele quando quiser</p>
-    </div>
-
-    <!-- EVENTO ÚNICO -->
-    <div class="pricing-panel" id="panel-liga-evento">
-      <div class="tiers-grid">
-        <div class="tier-card">
-          <div class="tier-name">Starter</div>
-          <div class="tier-lim">Até 50 atletas</div>
-          <div class="tier-price"><div class="amt">R$99</div><div class="per">por evento</div></div>
-          <ul class="tier-feats">
-            <li>Liga em evento único</li>
-            <li>Cronograma de jogos</li>
-            <li>Classificação ao vivo</li>
-            <li>TV Display</li>
-          </ul>
-          <a href="https://wa.me/5579981392088?text=Olá! Quero contratar o plano Liga Evento Único Starter (R$99)." target="_blank" class="tier-cta wa">Contratar via WhatsApp</a>
-        </div>
-        <div class="tier-card feat">
-          <div class="tier-badge">Mais popular</div>
-          <div class="tier-name">Pro</div>
-          <div class="tier-lim">Até 150 atletas</div>
-          <div class="tier-price"><div class="amt">R$179</div><div class="per">por evento</div></div>
-          <ul class="tier-feats">
-            <li>Tudo do Starter</li>
-            <li>Portal privado por equipe</li>
-            <li>Placar ao vivo admin</li>
-            <li>Histórico completo</li>
-          </ul>
-          <a href="https://wa.me/5579981392088?text=Olá! Quero contratar o plano Liga Evento Único Pro (R$179)." target="_blank" class="tier-cta wa">Contratar via WhatsApp</a>
-        </div>
-        <div class="tier-card">
-          <div class="tier-name">Elite</div>
-          <div class="tier-lim">Atletas ilimitados</div>
-          <div class="tier-price"><div class="amt">R$299</div><div class="per">por evento</div></div>
-          <ul class="tier-feats">
-            <li>Tudo do Pro</li>
-            <li>Logo e cores da academia</li>
-            <li>Sem limite de atletas</li>
-          </ul>
-          <a href="https://wa.me/5579981392088?text=Olá! Quero contratar o plano Liga Evento Único Elite (R$299)." target="_blank" class="tier-cta wa">Contratar via WhatsApp</a>
-        </div>
-      </div>
-      <p class="pricing-note">🎯 Sem mensalidade — pague apenas quando realizar o evento · Ideal para eventos esporádicos</p>
-    </div>
-
-    <!-- LIGA INTER -->
-    <div class="pricing-panel" id="panel-liga-inter">
-      <div class="inter-box">
-        <div class="inter-box-left">
-          <h3>⚔️ Liga Inter-Academias — Externo</h3>
-          <p>Organize uma liga entre academias da sua região. Você define as datas, cobra as inscrições e gerencia tudo pelo painel. Os preços são negociados conforme o porte da liga.</p>
-          <div class="inter-feats">
-            <span class="inter-feat">Portal exclusivo por academia</span>
-            <span class="inter-feat">Inscrições online</span>
-            <span class="inter-feat">Classificação ao vivo</span>
-            <span class="inter-feat">TV Display</span>
-            <span class="inter-feat">Cronograma público</span>
-            <span class="inter-feat">Foto e logo de equipe</span>
-          </div>
-        </div>
-        <div class="inter-box-right">
-          <div class="inter-price-val">R$ 300<small>/academia</small></div>
-          <div class="inter-price-plus">+ R$40 por atleta</div>
-          <a href="https://wa.me/5579981392088?text=Olá! Tenho interesse na Liga Inter-Academias. Pode me enviar uma proposta?" target="_blank"
-            style="display:inline-block;margin-top:14px;background:#25D366;color:#fff;padding:11px 22px;border-radius:40px;font-size:0.82rem;font-weight:700;text-decoration:none;">
-            💬 Solicitar proposta
-          </a>
-        </div>
-      </div>
-      <p class="pricing-note">Valores customizáveis conforme o número de academias e atletas · Entre em contato para uma proposta personalizada</p>
-    </div>
-  </div>
-</section>
-
-<!-- ── Competições ativas ──────────────── -->
-<section class="sec-wrap" id="events-section" style="display:none">
-  <div class="sec-inner">
-    <h2 class="sec-title">Competições Ativas</h2>
-    <p class="sec-sub">Inscreva-se nas competições abertas ou acompanhe ao vivo.</p>
-    <div class="grid-ev" id="grid-events"><div class="loading">Carregando...</div></div>
-  </div>
-</section>
-
-<!-- ── CTA Final ───────────────────────── -->
-<section class="cta-sec">
-  <h2>Pronto para transformar<br>seu torneio?</h2>
-  <p>Entre em contato pelo WhatsApp e comece em menos de 24 horas. Sem burocracia.</p>
-  <a href="https://wa.me/5579981392088?text=Olá! Quero saber mais sobre o COMPETIÇÃO BJJ." target="_blank" class="btn-big wa">
-    💬 Falar no WhatsApp
-  </a>
-  <div class="cta-phone">☎️ (79) 98139-2088 · Atendimento via WhatsApp</div>
-</section>
-
-<!-- ── Footer ─────────────────────────── -->
-<footer>
-  <div>
-    <strong style="color:#8A9CB0">🏆 COMPETIÇÃO BJJ</strong><br>
-    Sistema BJJ · CBJJ / IBJJF
-  </div>
-  <div style="display:flex; gap:18px; flex-wrap:wrap;">
-    <a href="#planos">Planos</a>
-    <a href="portal-cliente.html">Portal Cliente</a>
-    <a href="login-admin.html">Admin</a>
-    <a href="https://wa.me/5579981392088" target="_blank">WhatsApp</a>
-  </div>
-  <div>© 2025 COMPETIÇÃO BJJ</div>
-</footer>
-
-<!-- ── Scripts ─────────────────────────── -->
-<script>
-  function showPricing(tab) {
-    document.querySelectorAll('.ptab').forEach(el => {
-      el.classList.toggle('active', el.dataset.tab === tab);
-    });
-    document.querySelectorAll('.pricing-panel').forEach(el => el.classList.remove('active'));
-    document.getElementById('panel-' + tab).classList.add('active');
-  }
-
-  // Smooth scroll para âncoras
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) { e.preventDefault(); target.scrollIntoView({ behavior:'smooth', block:'start' }); }
-    });
-  });
-</script>
+  <div class="titulo-secao">Campeonatos disponíveis</div>
+  <div id="grid" class="grid"><div class="loading">Carregando campeonatos...</div></div>
+</div>
 
 <script type="module">
   import { listarCampeonatos } from './js/firebase.js';
 
-  async function carregarEventos() {
+  let todos = [];
+
+  async function carregar() {
     try {
-      const todos = await listarCampeonatos();
-      const ativos = todos.filter(c => c.status === 'ativo' || c.status === 'breve');
-      if (!ativos.length) return;
-
-      document.getElementById('events-section').style.display = 'block';
-      const grid = document.getElementById('grid-events');
-
-      grid.innerHTML = ativos.map(c => {
-        const data    = c.data ? new Date(c.data + 'T12:00').toLocaleDateString('pt-BR') : '—';
-        const isLiga  = c.tipo === 'liga';
-        const pillLbl = { ativo:'✅ Inscrições abertas', breve:'🕐 Em breve' }[c.status] || c.status;
-        const pillCls = { ativo:'ativo', breve:'breve' }[c.status] || 'enc';
-
-        const links = isLiga
-          ? `${c.status === 'ativo' ? `<a href="liga-inscricao.html?id=${c.id}" class="ev-link prim">📝 Inscrever Equipe</a>` : ''}
-             <a href="liga-cronograma.html?id=${c.id}" class="ev-link">📅 Calendário</a>
-             <a href="liga-placar-publico.html?id=${c.id}" class="ev-link">🏆 Placar</a>`
-          : `${c.status === 'ativo' ? `<a href="inscricao.html?id=${c.id}" class="ev-link prim">📝 Inscrever-se</a>` : ''}
-             <a href="atletas-publico.html?id=${c.id}" class="ev-link">👥 Atletas</a>
-             <a href="cronograma-lutas.html?id=${c.id}" class="ev-link">📅 Cronograma</a>`;
-
-        const banner = c.cartaz
-          ? `<img src="${c.cartaz}" alt="${c.nome}">`
-          : `<span class="emo">${c.emoji || '🥋'}</span>`;
-
-        return `
-          <div class="ev-card">
-            <div class="ev-banner">${banner}</div>
-            <div class="ev-body">
-              <span class="ev-pill ${pillCls}">${pillLbl}</span>
-              <div class="ev-nome">${c.nome}</div>
-              <div class="ev-info">📅 ${data}${c.local ? ` · 📍 ${c.local}` : ''}</div>
-              <div class="ev-links">${links}</div>
-            </div>
-          </div>`;
-      }).join('');
-    } catch (e) {
-      // Sem competições ativas — seção fica oculta
+      todos = await listarCampeonatos();
+      filtrar();
+    } catch(e) {
+      document.getElementById('grid').innerHTML =
+        `<div class="vazio"><span>⚠️</span>Erro ao carregar. Verifique a conexão.</div>`;
     }
   }
 
-  carregarEventos();
+  window.filtrar = function() {
+    const busca = document.getElementById('busca').value.toLowerCase();
+    const status = document.getElementById('filtro-status').value;
+    const visiveis = todos.filter(c =>
+      (!busca || c.nome.toLowerCase().includes(busca) || (c.local||'').toLowerCase().includes(busca)) &&
+      (!status || c.status === status)
+    );
+    renderizar(visiveis);
+  };
+
+  function renderizar(lista) {
+    const grid = document.getElementById('grid');
+    if (!lista.length) {
+      grid.innerHTML = `<div class="vazio" style="grid-column:1/-1"><span>🏆</span>Nenhum campeonato encontrado.</div>`;
+      return;
+    }
+    grid.innerHTML = lista.map(c => {
+      const data = c.data ? new Date(c.data).toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'}) : '—';
+      const statusLabel = {ativo:'✅ Inscrições abertas', breve:'🕐 Em breve', encerrado:'🔒 Encerrado'}[c.status] || c.status;
+      const statusClass = `status-${c.status || 'ativo'}`;
+      const isLiga = c.tipo === 'liga';
+      const podeInscrever = c.status === 'ativo' && !isLiga;
+      const linksGrid = isLiga
+        ? `${c.status === 'ativo' ? `<a href="liga-inscricao.html?id=${c.id}" class="btn-link-card" style="background:#C9A03D;color:#fff;border-color:#C9A03D;grid-column:1/-1">📝 Inscrever Equipe</a>` : ''}
+           <a href="liga-cronograma.html?id=${c.id}" class="btn-link-card">📅 Calendário</a>
+           <a href="liga-tv.html?id=${c.id}" class="btn-link-card" target="_blank">📺 TV Ao Vivo</a>
+           <a href="liga-placar-publico.html?id=${c.id}" class="btn-link-card" target="_blank">🏆 Placar</a>
+           <a href="liga-portal.html?id=${c.id}" class="btn-link-card">🔐 Portal Equipe</a>`
+        : `<a href="atletas-publico.html?id=${c.id}" class="btn-link-card">👥 Atletas</a>
+           <a href="cronograma-lutas.html?id=${c.id}" class="btn-link-card">📅 Cronograma</a>
+           <a href="tv-chaveamento.html?id=${c.id}" class="btn-link-card" target="_blank">📺 TV Lutas</a>
+           <a href="placar-publico.html?id=${c.id}" class="btn-link-card" target="_blank">🏆 Placar</a>`;
+      return `
+        <div class="card-camp">
+          <div class="card-banner">
+            ${c.cartaz ? `<img src="${c.cartaz}" alt="Cartaz ${c.nome}">` : `<span class="emoji-sobre">${c.emoji || '🥋'}</span>`}
+          </div>
+          <div class="card-body">
+            <div class="card-nome">${c.nome}${isLiga ? ' <span class="badge-liga-home">⚽ LIGA</span>' : ''}</div>
+            <div class="card-info">
+              <span>📅 ${data}</span>
+              ${c.local ? `<span>📍 ${c.local}</span>` : ''}
+              ${c.descricao ? `<span>📝 ${c.descricao}</span>` : ''}
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="card-footer-top">
+              <span class="status-pill ${statusClass}">${statusLabel}</span>
+              ${podeInscrever ? `<a href="inscricao.html?id=${c.id}" class="btn-inscricao">📝 Inscrever-se</a>` : ''}
+            </div>
+            <div class="links-grid">${linksGrid}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  carregar();
 </script>
 </body>
 </html>
