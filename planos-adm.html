@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Planos - Gaditas Torneios</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',-apple-system,sans-serif;background:#F5F7FA;color:#1A2C3E;}
+    header{background:#1A2C3E;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .hdr-logo{display:flex;align-items:center;gap:10px;}
+    .hdr-logo h1{font-size:0.95rem;font-weight:700;}
+    .hdr-logo p{font-size:0.65rem;color:#8A9CB0;}
+    .hdr-right{display:flex;align-items:center;gap:8px;}
+    .btn-back{background:transparent;border:1px solid #8A9CB0;color:#8A9CB0;padding:5px 13px;border-radius:40px;font-size:0.72rem;cursor:pointer;text-decoration:none;display:inline-block;}
+    .btn-back:hover{border-color:#C9A03D;color:#C9A03D;}
+    .btn-sair{background:transparent;border:1px solid #EF4444;color:#EF4444;padding:5px 13px;border-radius:40px;font-size:0.72rem;cursor:pointer;}
+    .btn-sair:hover{background:#EF4444;color:#fff;}
+
+    .app{max-width:1100px;margin:0 auto;padding:24px 18px 60px;}
+
+    .topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
+    .topo-txt h2{font-size:1.15rem;font-weight:700;}
+    .topo-txt p{font-size:0.78rem;color:#8A9CB0;margin-top:3px;}
+    .btn-novo{background:#C9A03D;border:none;color:#fff;padding:10px 22px;border-radius:40px;font-size:0.85rem;font-weight:600;cursor:pointer;}
+    .btn-novo:hover{background:#A0822E;}
+
+    /* Filtros */
+    .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+    .filtro-btn{padding:6px 16px;border-radius:20px;border:2px solid #E2E8F0;background:#fff;cursor:pointer;font-size:0.78rem;font-weight:600;color:#8A9CB0;transition:all 0.15s;}
+    .filtro-btn:hover,.filtro-btn.ativo{border-color:#C9A03D;color:#C9A03D;background:#FFFDF5;}
+
+    /* Grid */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;}
+    .vazio{text-align:center;padding:60px 20px;color:#8A9CB0;grid-column:1/-1;}
+    .vazio span{font-size:3rem;display:block;margin-bottom:12px;opacity:0.3;}
+
+    /* Card de plano */
+    .card-plano{background:#fff;border:1px solid #E2E8F0;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;}
+    .card-plano.inativo{opacity:0.6;}
+    .card-topo{padding:16px 18px 12px;border-bottom:1px solid #F1F5F9;}
+    .card-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:700;}
+    .badge-fed{background:#EFF6FF;color:#1E40AF;}
+    .badge-acad{background:#F0FDF4;color:#166534;}
+    .badge-liga{background:#FDF4FF;color:#7E22CE;}
+    .badge-ativo{background:#DCFCE7;color:#166534;}
+    .badge-inativo{background:#F1F5F9;color:#64748B;}
+    .card-nome{font-size:1rem;font-weight:700;margin-bottom:4px;}
+    .card-desc{font-size:0.75rem;color:#8A9CB0;}
+
+    /* Módulos */
+    .card-modulos{padding:12px 18px;border-bottom:1px solid #F1F5F9;}
+    .modulos-titulo{font-size:0.7rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
+    .modulos-grid{display:flex;flex-wrap:wrap;gap:5px;}
+    .mod-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:0.68rem;font-weight:600;}
+    .mod-on{background:#DCFCE7;color:#166534;}
+    .mod-off{background:#F1F5F9;color:#94A3B8;text-decoration:line-through;}
+    .mod-pill svg{width:10px;height:10px;}
+
+    /* Cobrança */
+    .card-cobranca{padding:12px 18px;border-bottom:1px solid #F1F5F9;}
+    .cobranca-titulo{font-size:0.7rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
+    .cobranca-itens{display:flex;flex-wrap:wrap;gap:8px;}
+    .cob-item{background:#FFFDF5;border:1px solid #F5E3A0;border-radius:8px;padding:6px 10px;}
+    .cob-label{font-size:0.65rem;color:#92400E;font-weight:600;}
+    .cob-valor{font-size:0.9rem;font-weight:700;color:#1A2C3E;}
+
+    /* Ações */
+    .card-acoes{padding:12px 18px;display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;}
+    .btn-sm{padding:6px 14px;border-radius:40px;font-size:0.75rem;font-weight:600;cursor:pointer;border:1px solid #E2E8F0;background:transparent;transition:all 0.15s;}
+    .btn-sm:hover{border-color:#C9A03D;color:#C9A03D;}
+    .btn-sm.primary{background:#C9A03D;border-color:#C9A03D;color:#fff;}
+    .btn-sm.primary:hover{background:#A0822E;}
+    .btn-sm.danger{border-color:#EF4444;color:#EF4444;}
+    .btn-sm.danger:hover{background:#EF4444;color:#fff;}
+    .btn-sm.secondary{border-color:#8A9CB0;color:#8A9CB0;}
+    .btn-sm.secondary:hover{border-color:#1A2C3E;color:#1A2C3E;}
+
+    /* Modal */
+    .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;}
+    .modal-bg.open{display:flex;}
+    .modal{background:#fff;border-radius:16px;padding:26px;width:100%;max-width:560px;box-shadow:0 8px 40px rgba(0,0,0,0.15);margin:auto;}
+    .modal h3{font-size:1rem;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+    .form-row{margin-bottom:14px;}
+    .form-row label{display:block;font-size:0.78rem;font-weight:600;margin-bottom:5px;color:#1A2C3E;}
+    .form-row input,.form-row select,.form-row textarea{width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:9px 12px;font-size:0.85rem;outline:none;font-family:inherit;}
+    .form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#C9A03D;}
+    .form-row textarea{resize:vertical;min-height:60px;}
+    .form-row small{font-size:0.7rem;color:#8A9CB0;margin-top:3px;display:block;}
+
+    .section-title{font-size:0.75rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.05em;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid #F1F5F9;}
+
+    /* Toggle módulos no modal */
+    .modulos-lista{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+    .mod-toggle{display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:8px 11px;cursor:pointer;transition:all 0.15s;user-select:none;}
+    .mod-toggle.on{background:#F0FDF4;border-color:#86EFAC;}
+    .mod-toggle-label{font-size:0.75rem;font-weight:600;color:#1A2C3E;}
+    .toggle-sw{width:32px;height:18px;background:#CBD5E1;border-radius:9px;position:relative;transition:background 0.2s;flex-shrink:0;}
+    .toggle-sw::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left 0.2s;}
+    .mod-toggle.on .toggle-sw{background:#22C55E;}
+    .mod-toggle.on .toggle-sw::after{left:16px;}
+
+    /* Cobrança checkboxes */
+    .cob-opcoes{display:flex;flex-direction:column;gap:8px;}
+    .cob-opt{border:1px solid #E2E8F0;border-radius:10px;overflow:hidden;}
+    .cob-opt-header{display:flex;align-items:center;gap:10px;padding:10px 13px;cursor:pointer;background:#F8FAFC;}
+    .cob-opt-header input[type=checkbox]{width:16px;height:16px;accent-color:#C9A03D;cursor:pointer;}
+    .cob-opt-label{font-size:0.82rem;font-weight:600;flex:1;}
+    .cob-opt-body{display:none;padding:10px 13px;background:#fff;border-top:1px solid #F1F5F9;}
+    .cob-opt.checked .cob-opt-body{display:block;}
+    .cob-opt.checked{border-color:#C9A03D;}
+    .cob-opt.checked .cob-opt-header{background:#FFFDF5;}
+    .input-moeda{position:relative;}
+    .input-moeda span{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:0.82rem;color:#8A9CB0;font-weight:600;}
+    .input-moeda input{padding-left:28px;}
+
+    /* Limites */
+    .limites-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+    .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid #F1F5F9;}
+    .btn-cancelar{background:transparent;border:1px solid #E2E8F0;padding:9px 18px;border-radius:40px;font-size:0.82rem;cursor:pointer;}
+    .btn-salvar{background:#C9A03D;border:none;color:#fff;padding:9px 22px;border-radius:40px;font-size:0.82rem;font-weight:600;cursor:pointer;}
+    .btn-salvar:hover{background:#A0822E;}
+
+    /* Toast */
+    #toast{position:fixed;bottom:24px;right:24px;background:#1A2C3E;color:#fff;padding:12px 20px;border-radius:10px;font-size:0.82rem;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:300px;}
+    #toast.show{opacity:1;}
+    #toast.sucesso{background:#166534;}
+    #toast.erro{background:#991B1B;}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-logo">
+    <div>
+      <h1>⚙️ Gestão de Planos</h1>
+      <p>Gaditas Torneios — Admin</p>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <a href="painel-admin.html" class="btn-back">← Painel</a>
+    <button class="btn-sair" onclick="sair()">Sair</button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="topo">
+    <div class="topo-txt">
+      <h2>Planos e Módulos</h2>
+      <p>Configure planos com módulos e modelos de cobrança para cada tipo de cliente</p>
+    </div>
+    <button class="btn-novo" onclick="abrirModal()">+ Novo Plano</button>
+  </div>
+
+  <div class="filtros">
+    <button class="filtro-btn ativo" data-f="todos" onclick="filtrar(this,'todos')">Todos</button>
+    <button class="filtro-btn" data-f="federacao" onclick="filtrar(this,'federacao')">Federação</button>
+    <button class="filtro-btn" data-f="academia_interna" onclick="filtrar(this,'academia_interna')">Academia (Liga Interna)</button>
+    <button class="filtro-btn" data-f="liga_academias" onclick="filtrar(this,'liga_academias')">Liga entre Academias</button>
+  </div>
+
+  <div class="grid" id="grid-planos">
+    <div class="vazio"><span>📋</span>Carregando planos...</div>
+  </div>
+</div>
+
+<!-- Modal criar/editar plano -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h3>📋 <span id="modal-titulo">Novo Plano</span></h3>
+
+    <div class="form-row">
+      <label>Nome do plano *</label>
+      <input type="text" id="f-nome" placeholder="Ex: Plano Federação Pro">
+    </div>
+    <div class="form-row">
+      <label>Descrição</label>
+      <textarea id="f-desc" placeholder="Descreva o que está incluso..."></textarea>
+    </div>
+    <div class="form-row">
+      <label>Tipo de cliente *</label>
+      <select id="f-tipo">
+        <option value="">Selecionar...</option>
+        <option value="federacao">Federação (Torneio de Chaveamento)</option>
+        <option value="academia_interna">Academia (Liga Interna)</option>
+        <option value="liga_academias">Liga entre Academias</option>
+      </select>
+    </div>
+
+    <div class="section-title">Módulos incluídos</div>
+    <div class="modulos-lista" id="modulos-lista">
+      <div class="mod-toggle" data-mod="cronogramaPub" onclick="toggleMod(this)">
+        <span class="mod-toggle-label">📅 Cronograma público</span>
+        <div class="toggle-sw"></div>
+      </div>
+      <div class="mod-toggle" data-mod="placarPub" onclick="toggleMod(this)">
+        <span class="mod-toggle-label">📊 Placar ao vivo público</span>
+        <div class="toggle-sw"></div>
+      </div>
+      <div class="mod-toggle" data-mod="tvChaveamento" onclick="toggleMod(this)">
+        <span class="mod-toggle-label">📺 TV Chaveamento</span>
+        <div class="toggle-sw"></div>
+      </div>
+      <div class="mod-toggle" data-mod="placarAdm" onclick="toggleMod(this)">
+        <span class="mod-toggle-label">🥋 Placar Admin</span>
+        <div class="toggle-sw"></div>
+      </div>
+      <div class="mod-toggle" data-mod="ligaInterna" onclick="toggleMod(this)">
+        <span class="mod-toggle-label">🏆 Sistema de Liga</span>
+        <div class="toggle-sw"></div>
+      </div>
+      <div class="mod-toggle" data-mod="tvLiga" onclick="toggleMod(this)">
+        <span class="mod-toggle-label">📺 TV Liga</span>
+        <div class="toggle-sw"></div>
+      </div>
+    </div>
+
+    <div class="section-title">Limites</div>
+    <div class="limites-row">
+      <div class="form-row" style="margin-bottom:0">
+        <label>Máx. atletas <small style="display:inline;color:#8A9CB0">(0 = ilimitado)</small></label>
+        <input type="number" id="f-lim-atletas" value="0" min="0">
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <label>Máx. eventos/mês <small style="display:inline;color:#8A9CB0">(0 = ilimitado)</small></label>
+        <input type="number" id="f-lim-eventos" value="0" min="0">
+      </div>
+    </div>
+
+    <div class="section-title">Modelos de cobrança</div>
+    <div class="cob-opcoes">
+
+      <div class="cob-opt" id="cob-mensal">
+        <label class="cob-opt-header">
+          <input type="checkbox" onchange="toggleCobOpt(this,'cob-mensal')">
+          <span class="cob-opt-label">💳 Assinatura mensal</span>
+        </label>
+        <div class="cob-opt-body">
+          <div class="form-row" style="margin-bottom:0">
+            <label>Valor mensal</label>
+            <div class="input-moeda"><span>R$</span><input type="number" id="f-val-mensal" placeholder="0,00" min="0" step="0.01"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cob-opt" id="cob-evento">
+        <label class="cob-opt-header">
+          <input type="checkbox" onchange="toggleCobOpt(this,'cob-evento')">
+          <span class="cob-opt-label">📅 Por evento</span>
+        </label>
+        <div class="cob-opt-body">
+          <div class="form-row" style="margin-bottom:0">
+            <label>Valor por evento</label>
+            <div class="input-moeda"><span>R$</span><input type="number" id="f-val-evento" placeholder="0,00" min="0" step="0.01"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cob-opt" id="cob-atleta">
+        <label class="cob-opt-header">
+          <input type="checkbox" onchange="toggleCobOpt(this,'cob-atleta')">
+          <span class="cob-opt-label">🥋 Por atleta inscrito</span>
+        </label>
+        <div class="cob-opt-body">
+          <div class="form-row" style="margin-bottom:0">
+            <label>Valor por atleta</label>
+            <div class="input-moeda"><span>R$</span><input type="number" id="f-val-atleta" placeholder="0,00" min="0" step="0.01"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cob-opt" id="cob-equipe">
+        <label class="cob-opt-header">
+          <input type="checkbox" onchange="toggleCobOpt(this,'cob-equipe')">
+          <span class="cob-opt-label">🏫 Por equipe inscrita</span>
+        </label>
+        <div class="cob-opt-body">
+          <div class="form-row" style="margin-bottom:0">
+            <label>Valor por equipe</label>
+            <div class="input-moeda"><span>R$</span><input type="number" id="f-val-equipe" placeholder="0,00" min="0" step="0.01"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="form-row" style="margin-top:14px">
+      <label>Status do plano</label>
+      <select id="f-ativo">
+        <option value="true">✅ Ativo</option>
+        <option value="false">⏸️ Inativo</option>
+      </select>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarPlano()">Salvar Plano</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const cfg = {
+  apiKey:"AIzaSyA0HOHKPd9gCpJx0pnFWaKdLU-1WJks-gA",
+  authDomain:"campeonatobjj.firebaseapp.com",
+  projectId:"campeonatobjj",
+  storageBucket:"campeonatobjj.firebasestorage.app",
+  messagingSenderId:"399016509024",
+  appId:"1:399016509024:web:2963122de02b7ff3bc0d05"
+};
+const app = initializeApp(cfg);
+const db  = getFirestore(app);
+const auth = getAuth(app);
+
+let planos = [];
+let editandoId = null;
+let filtroAtual = 'todos';
+
+const TIPO_LABEL = {
+  federacao: 'Federação',
+  academia_interna: 'Academia (Liga Interna)',
+  liga_academias: 'Liga entre Academias'
+};
+const TIPO_BADGE = {
+  federacao: 'badge-fed',
+  academia_interna: 'badge-acad',
+  liga_academias: 'badge-liga'
+};
+const MOD_LABEL = {
+  cronogramaPub: '📅 Cronograma',
+  placarPub: '📊 Placar público',
+  tvChaveamento: '📺 TV Chave',
+  placarAdm: '🥋 Placar admin',
+  ligaInterna: '🏆 Liga',
+  tvLiga: '📺 TV Liga'
+};
+const COB_LABEL = {
+  mensal: 'Mensal',
+  evento: 'Por evento',
+  atleta: 'Por atleta',
+  equipe: 'Por equipe'
+};
+
+// Auth
+onAuthStateChanged(auth, u => {
+  if (!u) { location.href = 'login-admin.html'; return; }
+  carregarPlanos();
+});
+
+window.sair = () => signOut(auth).then(() => location.href = 'login-admin.html');
+
+// Carregar
+async function carregarPlanos() {
+  const snap = await getDocs(query(collection(db,'planos'), orderBy('criadoEm','desc')));
+  planos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderizar();
+}
+
+function renderizar() {
+  const grid = document.getElementById('grid-planos');
+  let lista = filtroAtual === 'todos' ? planos : planos.filter(p => p.tipo === filtroAtual);
+  if (!lista.length) {
+    grid.innerHTML = '<div class="vazio"><span>📋</span>Nenhum plano cadastrado</div>';
+    return;
+  }
+  grid.innerHTML = lista.map(p => cardHTML(p)).join('');
+}
+
+function cardHTML(p) {
+  const mods = p.modulos || {};
+  const cob  = p.cobranca || {};
+  const modPills = Object.entries(MOD_LABEL).map(([k,l]) =>
+    `<span class="mod-pill ${mods[k] ? 'mod-on' : 'mod-off'}">${l}</span>`
+  ).join('');
+
+  const cobItens = [];
+  if (cob.mensal)  cobItens.push(`<div class="cob-item"><div class="cob-label">Mensal</div><div class="cob-valor">R$ ${fmt(cob.valorMensal)}</div></div>`);
+  if (cob.evento)  cobItens.push(`<div class="cob-item"><div class="cob-label">Por evento</div><div class="cob-valor">R$ ${fmt(cob.valorEvento)}</div></div>`);
+  if (cob.atleta)  cobItens.push(`<div class="cob-item"><div class="cob-label">Por atleta</div><div class="cob-valor">R$ ${fmt(cob.valorAtleta)}</div></div>`);
+  if (cob.equipe)  cobItens.push(`<div class="cob-item"><div class="cob-label">Por equipe</div><div class="cob-valor">R$ ${fmt(cob.valorEquipe)}</div></div>`);
+
+  const limAtl = mods.limiteAtletas > 0 ? `<span class="mod-pill mod-on">👥 Máx ${mods.limiteAtletas} atletas</span>` : '';
+  const limEv  = mods.limiteEventos > 0 ? `<span class="mod-pill mod-on">📅 Máx ${mods.limiteEventos} eventos</span>` : '';
+
+  return `
+  <div class="card-plano ${p.ativo===false?'inativo':''}">
+    <div class="card-topo">
+      <div class="card-badges">
+        <span class="badge ${TIPO_BADGE[p.tipo]||'badge-fed'}">${TIPO_LABEL[p.tipo]||p.tipo}</span>
+        <span class="badge ${p.ativo===false?'badge-inativo':'badge-ativo'}">${p.ativo===false?'Inativo':'Ativo'}</span>
+      </div>
+      <div class="card-nome">${esc(p.nome)}</div>
+      ${p.descricao?`<div class="card-desc">${esc(p.descricao)}</div>`:''}
+    </div>
+    <div class="card-modulos">
+      <div class="modulos-titulo">Módulos</div>
+      <div class="modulos-grid">${modPills}${limAtl}${limEv}</div>
+    </div>
+    ${cobItens.length?`
+    <div class="card-cobranca">
+      <div class="cobranca-titulo">Cobrança</div>
+      <div class="cobranca-itens">${cobItens.join('')}</div>
+    </div>`:''}
+    <div class="card-acoes">
+      <button class="btn-sm primary" onclick="editarPlano('${p.id}')">✏️ Editar</button>
+      <button class="btn-sm secondary" onclick="duplicarPlano('${p.id}')">📋 Duplicar</button>
+      <button class="btn-sm danger" onclick="excluirPlano('${p.id}')">🗑️ Excluir</button>
+    </div>
+  </div>`;
+}
+
+function fmt(v) {
+  if (!v && v !== 0) return '–';
+  return Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Filtro
+window.filtrar = (btn, f) => {
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo'));
+  btn.classList.add('ativo');
+  filtroAtual = f;
+  renderizar();
+};
+
+// Modal
+window.abrirModal = () => {
+  editandoId = null;
+  document.getElementById('modal-titulo').textContent = 'Novo Plano';
+  limparModal();
+  document.getElementById('modal-bg').classList.add('open');
+};
+
+window.fecharModal = () => {
+  document.getElementById('modal-bg').classList.remove('open');
+  editandoId = null;
+};
+
+window.editarPlano = id => {
+  const p = planos.find(x => x.id === id);
+  if (!p) return;
+  editandoId = id;
+  document.getElementById('modal-titulo').textContent = 'Editar Plano';
+  limparModal();
+  document.getElementById('f-nome').value = p.nome || '';
+  document.getElementById('f-desc').value = p.descricao || '';
+  document.getElementById('f-tipo').value = p.tipo || '';
+  document.getElementById('f-ativo').value = String(p.ativo !== false);
+  const mods = p.modulos || {};
+  document.querySelectorAll('.mod-toggle').forEach(el => {
+    const k = el.dataset.mod;
+    if (mods[k]) el.classList.add('on'); else el.classList.remove('on');
+  });
+  document.getElementById('f-lim-atletas').value = mods.limiteAtletas || 0;
+  document.getElementById('f-lim-eventos').value = mods.limiteEventos || 0;
+  const cob = p.cobranca || {};
+  ['mensal','evento','atleta','equipe'].forEach(k => {
+    const el = document.getElementById(`cob-${k}`);
+    const cb = el.querySelector('input[type=checkbox]');
+    if (cob[k]) { cb.checked = true; el.classList.add('checked'); }
+  });
+  if (cob.valorMensal)  document.getElementById('f-val-mensal').value = cob.valorMensal;
+  if (cob.valorEvento)  document.getElementById('f-val-evento').value = cob.valorEvento;
+  if (cob.valorAtleta)  document.getElementById('f-val-atleta').value = cob.valorAtleta;
+  if (cob.valorEquipe)  document.getElementById('f-val-equipe').value = cob.valorEquipe;
+  document.getElementById('modal-bg').classList.add('open');
+};
+
+window.duplicarPlano = id => {
+  const p = planos.find(x => x.id === id);
+  if (!p) return;
+  editandoId = null;
+  document.getElementById('modal-titulo').textContent = 'Duplicar Plano';
+  limparModal();
+  document.getElementById('f-nome').value = p.nome + ' (cópia)';
+  document.getElementById('f-desc').value = p.descricao || '';
+  document.getElementById('f-tipo').value = p.tipo || '';
+  const mods = p.modulos || {};
+  document.querySelectorAll('.mod-toggle').forEach(el => {
+    const k = el.dataset.mod;
+    if (mods[k]) el.classList.add('on'); else el.classList.remove('on');
+  });
+  document.getElementById('f-lim-atletas').value = mods.limiteAtletas || 0;
+  document.getElementById('f-lim-eventos').value = mods.limiteEventos || 0;
+  const cob = p.cobranca || {};
+  ['mensal','evento','atleta','equipe'].forEach(k => {
+    const el = document.getElementById(`cob-${k}`);
+    const cb = el.querySelector('input[type=checkbox]');
+    if (cob[k]) { cb.checked = true; el.classList.add('checked'); }
+  });
+  if (cob.valorMensal)  document.getElementById('f-val-mensal').value = cob.valorMensal;
+  if (cob.valorEvento)  document.getElementById('f-val-evento').value = cob.valorEvento;
+  if (cob.valorAtleta)  document.getElementById('f-val-atleta').value = cob.valorAtleta;
+  if (cob.valorEquipe)  document.getElementById('f-val-equipe').value = cob.valorEquipe;
+  document.getElementById('modal-bg').classList.add('open');
+};
+
+function limparModal() {
+  document.getElementById('f-nome').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-tipo').value = '';
+  document.getElementById('f-ativo').value = 'true';
+  document.querySelectorAll('.mod-toggle').forEach(el => el.classList.remove('on'));
+  document.getElementById('f-lim-atletas').value = 0;
+  document.getElementById('f-lim-eventos').value = 0;
+  ['mensal','evento','atleta','equipe'].forEach(k => {
+    const el = document.getElementById(`cob-${k}`);
+    el.classList.remove('checked');
+    el.querySelector('input[type=checkbox]').checked = false;
+  });
+  document.getElementById('f-val-mensal').value = '';
+  document.getElementById('f-val-evento').value = '';
+  document.getElementById('f-val-atleta').value = '';
+  document.getElementById('f-val-equipe').value = '';
+}
+
+window.toggleMod = el => el.classList.toggle('on');
+
+window.toggleCobOpt = (cb, id) => {
+  const el = document.getElementById(id);
+  if (cb.checked) el.classList.add('checked'); else el.classList.remove('checked');
+};
+
+// Salvar
+window.salvarPlano = async () => {
+  const nome = document.getElementById('f-nome').value.trim();
+  const tipo = document.getElementById('f-tipo').value;
+  if (!nome) { toast('Informe o nome do plano','erro'); return; }
+  if (!tipo) { toast('Selecione o tipo de cliente','erro'); return; }
+
+  const modulos = {};
+  document.querySelectorAll('.mod-toggle').forEach(el => {
+    modulos[el.dataset.mod] = el.classList.contains('on');
+  });
+  modulos.limiteAtletas = parseInt(document.getElementById('f-lim-atletas').value) || 0;
+  modulos.limiteEventos = parseInt(document.getElementById('f-lim-eventos').value) || 0;
+
+  const cobranca = {
+    mensal: document.getElementById('cob-mensal').classList.contains('checked'),
+    evento: document.getElementById('cob-evento').classList.contains('checked'),
+    atleta: document.getElementById('cob-atleta').classList.contains('checked'),
+    equipe: document.getElementById('cob-equipe').classList.contains('checked'),
+    valorMensal: parseFloat(document.getElementById('f-val-mensal').value) || 0,
+    valorEvento:  parseFloat(document.getElementById('f-val-evento').value)  || 0,
+    valorAtleta:  parseFloat(document.getElementById('f-val-atleta').value)  || 0,
+    valorEquipe:  parseFloat(document.getElementById('f-val-equipe').value)  || 0,
+  };
+
+  const dados = {
+    nome,
+    descricao: document.getElementById('f-desc').value.trim(),
+    tipo,
+    ativo: document.getElementById('f-ativo').value === 'true',
+    modulos,
+    cobranca,
+  };
+
+  try {
+    if (editandoId) {
+      await updateDoc(doc(db,'planos',editandoId), dados);
+      toast('Plano atualizado!','sucesso');
+    } else {
+      await addDoc(collection(db,'planos'), { ...dados, criadoEm: serverTimestamp() });
+      toast('Plano criado!','sucesso');
+    }
+    fecharModal();
+    carregarPlanos();
+  } catch(e) {
+    console.error(e);
+    toast('Erro ao salvar plano','erro');
+  }
+};
+
+// Excluir
+window.excluirPlano = async id => {
+  const p = planos.find(x => x.id === id);
+  if (!p) return;
+  if (!confirm(`Excluir o plano "${p.nome}"? Esta ação não pode ser desfeita.`)) return;
+  try {
+    await deleteDoc(doc(db,'planos',id));
+    toast('Plano excluído','sucesso');
+    carregarPlanos();
+  } catch(e) {
+    toast('Erro ao excluir','erro');
+  }
+};
+
+// Toast
+function toast(msg, tipo='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + tipo;
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => el.className = '', 2800);
+}
+
+// Fechar modal clicando fora
+document.getElementById('modal-bg').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-bg')) fecharModal();
+});
+</script>
+</body>
+</html>
