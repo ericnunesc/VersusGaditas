@@ -747,6 +747,38 @@ function renderizarChaveamento() {
         const podeAvancar = total > 0 && finalizadas === total;
         const nomeFase = getNomeFase(lutasNormais.length, cat);
 
+        // ── Caso WO: 1 atleta, sem lutas ──
+        if ((cat.atletas || []).length <= 1 && total === 0) {
+            const atletaWO = (cat.atletas || [])[0];
+            if (atletaWO) {
+                const chaveEsc = (cat.chave || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+                const btnRealocar = `<button onclick="if(typeof window.onRealocAtleta==='function')window.onRealocAtleta('${atletaWO.id}','${chaveEsc}')" style="background:#7C3AED;border:none;color:#fff;padding:5px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;margin-left:8px;font-family:inherit">🔀 Realocar</button>`;
+                html += `
+                    <div class="categoria-chave" id="cat-${safeId}">
+                        <div class="categoria-header">
+                            <h4>🏅 ${cat.nome}</h4>
+                            <span class="area-badge" style="background:#FEF3C7;color:#92400E">📍 ${cat.area||'Tatame 1'}</span>
+                            <span style="font-size:0.75rem;color:#8A9CB0">👥 1 atleta</span>
+                        </div>
+                        <div style="padding:16px 20px;display:flex;align-items:center;gap:14px;background:#FFFBEB;border-radius:0 0 4px 4px;">
+                            <div style="font-size:2rem">🥇</div>
+                            <div>
+                                <div style="font-weight:700;font-size:0.95rem;color:#92400E">${atletaWO.nome}</div>
+                                <div style="font-size:0.75rem;color:#B45309;margin-top:2px">${atletaWO.academia||''} · ${atletaWO.peso||''}kg</div>
+                            </div>
+                            <div style="margin-left:auto;background:#D97706;color:#fff;padding:5px 14px;border-radius:20px;font-size:0.75rem;font-weight:700">🏆 WO</div>
+                        </div>
+                        <div style="padding:8px 20px 14px;font-size:0.75rem;color:#8A9CB0;text-align:center">
+                            Único atleta — sem adversário. ${btnRealocar}
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `<div class="categoria-chave" id="cat-${safeId}"><div class="categoria-header"><h4>🏅 ${cat.nome}</h4></div><div style="padding:18px;text-align:center;color:#8A9CB0;font-size:0.82rem">Nenhum atleta nesta categoria.</div></div>`;
+            }
+            continue;
+        }
+
         html += `
             <div class="categoria-chave" id="cat-${safeId}">
                 <div class="categoria-header">

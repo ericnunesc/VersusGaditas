@@ -430,6 +430,34 @@
             .luta-atletas { grid-template-columns: 1fr; }
             .luta-vs { text-align: center; }
         }
+
+        /* ── Modal Realocar (painel) ── */
+        .modal-rp-bg {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.65); z-index: 500;
+            align-items: center; justify-content: center;
+        }
+        .modal-rp-bg.aberto { display: flex; }
+        .modal-rp {
+            background: #fff; border-radius: 16px; padding: 24px;
+            width: min(400px, 94vw); box-shadow: 0 8px 40px rgba(124,58,237,0.25);
+            border-top: 4px solid #7C3AED;
+        }
+        .modal-rp h3 { color: #7C3AED; font-size: 1rem; margin-bottom: 18px; }
+        .rp-field { margin-bottom: 13px; }
+        .rp-field label { display: block; font-size: 0.72rem; color: #8A9CB0; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+        .rp-field input, .rp-field select {
+            width: 100%; border: 1px solid #E2E8F0; border-radius: 8px;
+            color: #1A2C3E; padding: 9px 12px; font-size: 0.88rem;
+            font-family: inherit; background: #F8FAFC;
+        }
+        .rp-field select:focus { outline: none; border-color: #7C3AED; }
+        .rp-field input[disabled] { opacity: 0.5; background: #F1F5F9; }
+        .rp-hint { font-size: 0.72rem; color: #7C3AED; margin-top: 4px; min-height: 16px; }
+        .rp-acoes { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-rp-cancelar { flex: 1; background: #F1F5F9; border: none; color: #8A9CB0; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-family: inherit; }
+        .btn-rp-salvar { flex: 2; background: #7C3AED; border: none; color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700; font-family: inherit; }
+        .btn-rp-salvar:hover { background: #6D28D9; }
     </style>
 </head>
 <body>
@@ -1704,6 +1732,179 @@ function confirmarAlterarSenha() {
     fecharModalSenha();
     alert('Senha alterada com sucesso!');
 }
+
+// ── Realocar Atleta (painel) ─────────────────────────────────────────
+var _rpAtletaId = null, _rpChaveCategoria = null, _rpSexo = null;
+
+const CATS_IDADE_RP = [
+    'Pré-Mirim','Mirim 1','Mirim 2','Infantil 1','Infantil 2',
+    'Infanto-Juvenil','Juvenil','Adulto',
+    'Master 1','Master 2','Master 3','Master 4','Master 5','Master 6'
+];
+const PESOS_MASC_RP = ['Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Super Pesadíssimo','Absoluto'];
+const PESOS_FEM_RP  = ['Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Absoluto'];
+
+window.onRealocAtleta = function(atletaId, chaveCategoria) {
+    const torneio = window.torneioAtual;
+    if (!torneio) { alert('Nenhuma competição ativa.'); return; }
+    const cat = (torneio.categorias || []).find(c => c.chave === chaveCategoria);
+    if (!cat) { alert('Categoria não encontrada.'); return; }
+    const atleta = (cat.atletas || []).find(a => String(a.id) === String(atletaId));
+    if (!atleta) { alert('Atleta não encontrado.'); return; }
+
+    const partes = (cat.nome || '').split(' | ');
+    const sexoLabel    = partes[0] || 'Masculino';
+    const catIdadeAtual = partes[1] || 'Adulto';
+    const faixaAtual   = partes[2] || (atleta.faixa || '');
+    const catPesoAtual = partes[3] || '';
+
+    _rpAtletaId = String(atletaId);
+    _rpChaveCategoria = chaveCategoria;
+    _rpSexo = sexoLabel === 'Masculino' ? 'M' : 'F';
+
+    document.getElementById('rp-nome').value  = atleta.nome || '';
+    document.getElementById('rp-faixa').value = faixaAtual;
+
+    const isMaster = catIdadeAtual.startsWith('Master');
+    const selCat = document.getElementById('rp-catidade');
+    selCat.innerHTML = '';
+    const idxAtual = CATS_IDADE_RP.indexOf(catIdadeAtual);
+    const opcoes = isMaster
+        ? CATS_IDADE_RP.filter((c, i) => c.startsWith('Master') && i <= idxAtual)
+        : [catIdadeAtual];
+    opcoes.forEach(op => {
+        const o = document.createElement('option');
+        o.value = op; o.textContent = op;
+        if (op === catIdadeAtual) o.selected = true;
+        selCat.appendChild(o);
+    });
+
+    const selPeso = document.getElementById('rp-peso');
+    selPeso.innerHTML = '';
+    const pesosDisp = _rpSexo === 'M' ? PESOS_MASC_RP : PESOS_FEM_RP;
+    pesosDisp.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p; o.textContent = p;
+        if (p === catPesoAtual) o.selected = true;
+        selPeso.appendChild(o);
+    });
+
+    const hints = [];
+    if (isMaster) hints.push('⬇️ Master: somente descer de categoria de idade.');
+    else hints.push('ℹ️ Categoria de idade bloqueada pelas regras CBJJ.');
+    hints.push('🥋 Faixa não pode ser alterada.');
+    document.getElementById('rp-hint').textContent = hints.join(' ');
+
+    document.getElementById('modal-rp-bg').classList.add('aberto');
+};
+
+function fecharRealocPainel() {
+    document.getElementById('modal-rp-bg').classList.remove('aberto');
+    _rpAtletaId = null; _rpChaveCategoria = null; _rpSexo = null;
+}
+
+function salvarRealocPainel() {
+    if (!_rpAtletaId || !_rpChaveCategoria) return;
+    const torneio = window.torneioAtual;
+    const catIdx = (torneio.categorias || []).findIndex(c => c.chave === _rpChaveCategoria);
+    if (catIdx === -1) { alert('Categoria não encontrada.'); return; }
+
+    const cat = torneio.categorias[catIdx];
+    const atletaIdx = (cat.atletas || []).findIndex(a => String(a.id) === String(_rpAtletaId));
+    if (atletaIdx === -1) { alert('Atleta não encontrado.'); return; }
+
+    const atleta = JSON.parse(JSON.stringify(cat.atletas[atletaIdx]));
+    const novaCatidade = document.getElementById('rp-catidade').value;
+    const novoPeso     = document.getElementById('rp-peso').value;
+    const sexoLabel    = _rpSexo === 'M' ? 'Masculino' : 'Feminino';
+    const faixa        = document.getElementById('rp-faixa').value;
+    const novoNomeCat  = `${sexoLabel} | ${novaCatidade} | ${faixa} | ${novoPeso}`;
+
+    if (novoNomeCat === cat.nome) { fecharRealocPainel(); return; }
+
+    atleta.categoria_idade = novaCatidade;
+    atleta.categoria_peso  = novoPeso;
+
+    // Remove da categoria origem
+    cat.atletas.splice(atletaIdx, 1);
+    if (cat.lutas && cat.lutas.length) {
+        cat.lutas = cat.lutas.filter(l =>
+            String((l.atletaA||{}).id) !== _rpAtletaId &&
+            String((l.atletaB||{}).id) !== _rpAtletaId
+        );
+    }
+    if (!cat.atletas.length) torneio.categorias.splice(catIdx, 1);
+
+    // Encontra ou cria categoria destino
+    const destIdx = torneio.categorias.findIndex(c => c.nome === novoNomeCat);
+    if (destIdx === -1) {
+        torneio.categorias.push({
+            chave: novoNomeCat + '_' + Date.now(),
+            nome: novoNomeCat,
+            atletas: [atleta],
+            lutas: [],
+            rodadaAtual: 1,
+            rodadaTotal: 1,
+            campeao: null,
+            area: cat.area || (window.areasLuta && window.areasLuta[0]) || 'Tatame 1',
+            status: 'em_andamento',
+            diretosProximaRodada: []
+        });
+    } else {
+        torneio.categorias[destIdx].atletas.push(atleta);
+        const algumIniciada = (torneio.categorias[destIdx].lutas || []).some(l => l.inicioMs || l.finalizada);
+        if (!algumIniciada) {
+            torneio.categorias[destIdx].lutas = [];
+            torneio.categorias[destIdx].rodadaAtual = 1;
+            torneio.categorias[destIdx].diretosProximaRodada = [];
+        }
+    }
+
+    if (typeof salvarEstadoTorneio === 'function') salvarEstadoTorneio();
+
+    // Atualiza gaditas_atletas
+    try {
+        const atletas = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
+        const aIdx = atletas.findIndex(a => String(a.id) === String(_rpAtletaId));
+        if (aIdx !== -1) {
+            atletas[aIdx].categoria_idade = novaCatidade;
+            atletas[aIdx].categoria_peso  = novoPeso;
+            localStorage.setItem('gaditas_atletas', JSON.stringify(atletas));
+        }
+    } catch(e) { console.error(e); }
+
+    fecharRealocPainel();
+    if (typeof mostrarToast === 'function') mostrarToast(`✅ Atleta movido para: ${novoNomeCat}`, 'sucesso');
+    renderizarChaveamento();
+}
 </script>
+
+<!-- Modal Realocar Atleta (painel) -->
+<div class="modal-rp-bg" id="modal-rp-bg" onclick="if(event.target===this)fecharRealocPainel()">
+    <div class="modal-rp">
+        <h3>🔀 Realocar Atleta</h3>
+        <div class="rp-field">
+            <label>Atleta</label>
+            <input type="text" id="rp-nome" disabled />
+        </div>
+        <div class="rp-field">
+            <label>Faixa (bloqueada)</label>
+            <input type="text" id="rp-faixa" disabled />
+        </div>
+        <div class="rp-field">
+            <label>Categoria de Idade</label>
+            <select id="rp-catidade"></select>
+        </div>
+        <div class="rp-field">
+            <label>Categoria de Peso</label>
+            <select id="rp-peso"></select>
+        </div>
+        <p class="rp-hint" id="rp-hint"></p>
+        <div class="rp-acoes">
+            <button class="btn-rp-cancelar" onclick="fecharRealocPainel()">Cancelar</button>
+            <button class="btn-rp-salvar" onclick="salvarRealocPainel()">✅ Salvar Realocação</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
