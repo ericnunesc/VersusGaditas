@@ -126,6 +126,14 @@ setInterval(function(){ var d=new Date(); document.getElementById('relogio-pub')
 var areaSelecionada = localStorage.getItem('gaditas_pub_area') || '';
 var duracaoPorFaixa = {Branca:5,Azul:6,Roxa:7,Marrom:8,Preta:10};
 
+// ── Sequência de faixas ──
+var _FAIXAS_ORD_DFLT=['Kids','Branca','Azul','Roxa','Marrom','Preta'];
+var _KIDS_BELTS=['Cinza','Amarela','Laranja','Verde'];
+var _ordemFaixas=(function(){try{var s=localStorage.getItem('gaditas_ordem_faixas');return s?JSON.parse(s):null;}catch(e){return null;}})()||_FAIXAS_ORD_DFLT.slice();
+function _getBeltGrupo(n){var b=((n||'').split(' | ')[2]||'').trim();return _KIDS_BELTS.indexOf(b)>=0?'Kids':(b||'Outros');}
+function _isAbsCat(n){return (n||'').indexOf('ABSOLUTO')!==-1;}
+function _sortByOrdem(cats){return cats.slice().sort(function(a,b){var ia=_ordemFaixas.indexOf(_getBeltGrupo(a.nome||''));var ib=_ordemFaixas.indexOf(_getBeltGrupo(b.nome||''));var oa=ia===-1?999:ia;var ob=ib===-1?999:ib;if(oa!==ob)return oa-ob;return(_isAbsCat(a.nome||'')?1:0)-(_isAbsCat(b.nome||'')?1:0);});}
+
 // ===== AREAS =====
 function carregarAreas(){
     var raw=localStorage.getItem('gaditas_torneio_atual'); if(!raw) return;
@@ -183,7 +191,7 @@ function atualizarPlacar(){
     if(!lutaAtiva){
         // Verificar se há resultado recente nesta área (últimos 90s)
         var ultima=null, ultimaCat=null;
-        (dados.categorias||[]).filter(function(c){return c.area===areaSelecionada;}).forEach(function(cat){
+        _sortByOrdem((dados.categorias||[]).filter(function(c){return c.area===areaSelecionada;})).forEach(function(cat){
             (cat.lutas||[]).forEach(function(l){
                 if(l.finalizada&&l.vencedor&&l.fimMs){
                     if(!ultima||Number(l.fimMs)>Number(ultima.fimMs)){ ultima=l; ultimaCat=cat; }
@@ -308,6 +316,9 @@ function tick(){
 
 tick();
 setInterval(tick, 1000); // 1s para cronômetro fluido
+window.addEventListener('storage', function(e){
+    if(e.key==='gaditas_ordem_faixas'){try{_ordemFaixas=JSON.parse(e.newValue||'null')||_FAIXAS_ORD_DFLT.slice();}catch(x){}}
+});
 </script>
 </body>
 </html>

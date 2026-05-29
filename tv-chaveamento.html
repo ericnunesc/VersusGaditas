@@ -435,6 +435,14 @@
 <script>
 var areaAtiva = null;
 var horarioInicio = localStorage.getItem('gaditas_horario_inicio') || '09:00';
+
+// ── Sequência de faixas (lê config do admin) ──
+var _FAIXAS_ORD_DFLT=['Kids','Branca','Azul','Roxa','Marrom','Preta'];
+var _KIDS_BELTS=['Cinza','Amarela','Laranja','Verde'];
+var _ordemFaixas=(function(){try{var s=localStorage.getItem('gaditas_ordem_faixas');return s?JSON.parse(s):null;}catch(e){return null;}})()||_FAIXAS_ORD_DFLT.slice();
+function _getBeltGrupo(n){var b=((n||'').split(' | ')[2]||'').trim();return _KIDS_BELTS.indexOf(b)>=0?'Kids':(b||'Outros');}
+function _isAbsCat(n){return (n||'').indexOf('ABSOLUTO')!==-1;}
+function _sortByOrdem(cats){return cats.slice().sort(function(a,b){var ia=_ordemFaixas.indexOf(_getBeltGrupo(a.nome||''));var ib=_ordemFaixas.indexOf(_getBeltGrupo(b.nome||''));var oa=ia===-1?999:ia;var ob=ib===-1?999:ib;if(oa!==ob)return oa-ob;return(_isAbsCat(a.nome||'')?1:0)-(_isAbsCat(b.nome||'')?1:0);});}
 var duracaoPorFaixa = {Branca:5, Azul:6, Roxa:7, Marrom:8, Preta:10};
 
 function pad(n){ return n.toString().padStart(2,'0'); }
@@ -939,7 +947,7 @@ function carregarTV(){
     document.getElementById('areas-tabs').innerHTML=tabsHtml;
 
     // Montar cronograma único da área ativa
-    var aCats=cats.filter(function(c){return c.area===areaAtiva;});
+    var aCats=_sortByOrdem(cats.filter(function(c){return c.area===areaAtiva;}));
     if(!aCats.length){
         document.getElementById('tv-content').innerHTML='<div class="empty"><div class="icon">🥋</div><h2>Nenhuma categoria nesta área</h2></div>';
         return;
@@ -1119,7 +1127,8 @@ carregarTV();
 // Intervalo aumentado para 3s e scroll é preservado
 setInterval(carregarTV, 1000);
 window.addEventListener('storage', function(e){
-    if(['gaditas_torneio_atual','gaditas_lutas_ativas','gaditas_placar_crono'].some(function(k){return e.key&&e.key.indexOf(k)===0;}))
+    if(e.key==='gaditas_ordem_faixas'){try{_ordemFaixas=JSON.parse(e.newValue||'null')||_FAIXAS_ORD_DFLT.slice();}catch(x){}}
+    if(['gaditas_torneio_atual','gaditas_lutas_ativas','gaditas_placar_crono','gaditas_ordem_faixas'].some(function(k){return e.key&&e.key.indexOf(k)===0;}))
         carregarTV();
 });
 </script>

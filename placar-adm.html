@@ -155,6 +155,14 @@ var placar = { A:{pts:0,vant:0,pun:0}, B:{pts:0,vant:0,pun:0} };
 var lutaEncerrada = false;
 var areaFiltro = '';
 
+// ── Sequência de faixas ──
+var _FAIXAS_ORD_DFLT=['Kids','Branca','Azul','Roxa','Marrom','Preta'];
+var _KIDS_BELTS=['Cinza','Amarela','Laranja','Verde'];
+var _ordemFaixas=(function(){try{var s=localStorage.getItem('gaditas_ordem_faixas');return s?JSON.parse(s):null;}catch(e){return null;}})()||_FAIXAS_ORD_DFLT.slice();
+function _getBeltGrupo(n){var b=((n||'').split(' | ')[2]||'').trim();return _KIDS_BELTS.indexOf(b)>=0?'Kids':(b||'Outros');}
+function _isAbsCat(n){return (n||'').indexOf('ABSOLUTO')!==-1;}
+function _sortByOrdem(cats){return cats.slice().sort(function(a,b){var ia=_ordemFaixas.indexOf(_getBeltGrupo(a.nome||''));var ib=_ordemFaixas.indexOf(_getBeltGrupo(b.nome||''));var oa=ia===-1?999:ia;var ob=ib===-1?999:ib;if(oa!==ob)return oa-ob;return(_isAbsCat(a.nome||'')?1:0)-(_isAbsCat(b.nome||'')?1:0);});}
+
 // CRONÔMETRO INDEPENDENTE
 var cronoAtivo = false;
 // ===== SONS =====
@@ -254,7 +262,7 @@ function carregarLutas(){
     var sel=document.getElementById('select-luta');
     var atual=sel.value;
     sel.innerHTML='<option value="">— Selecione uma luta —</option>';
-    (dados.categorias||[]).forEach(function(cat){
+    _sortByOrdem(dados.categorias||[]).forEach(function(cat){
         if(areaFiltro && cat.area!==areaFiltro) return;
         var rodAtual = Number(cat.rodadaAtual || 1);
 
@@ -882,6 +890,10 @@ function gerarLutasAuto(atletas) {
 carregarAreas();
 carregarLutas();
 setInterval(function(){ carregarAreas(); carregarLutas(); },8000);
+window.addEventListener('storage', function(e){
+    if(e.key==='gaditas_ordem_faixas'){try{_ordemFaixas=JSON.parse(e.newValue||'null')||_FAIXAS_ORD_DFLT.slice();}catch(x){}}
+    if(['gaditas_torneio_atual','gaditas_ordem_faixas'].indexOf(e.key)!==-1){ carregarAreas(); carregarLutas(); }
+});
 </script>
 </body>
 </html>
