@@ -121,20 +121,19 @@
     <h3>🔀 Realocar Atleta</h3>
     <div class="atleta-atual" id="real-atleta-info"></div>
 
-    <label>Categoria de Idade</label>
-    <select id="real-categoria"></select>
+    <div id="real-row-categoria">
+      <label>Categoria de Idade</label>
+      <select id="real-categoria"></select>
+    </div>
 
     <label>Faixa (não alterável)</label>
     <div class="faixa-locked" id="real-faixa"></div>
 
-    <label>Peso (kg)</label>
+    <label>Peso (kg) — só para cima</label>
     <input type="number" id="real-peso" step="0.1" min="1" max="200">
 
-    <div class="regras-hint">
-      ℹ️ <strong>Regras de realocação:</strong><br>
-      • A <strong>faixa permanece a mesma</strong><br>
-      • Pode <strong>subir de peso</strong> (categoria mais pesada)<br>
-      • Masters: pode mover entre categorias Master (ex: Master 2 → Master 1 ou 3)
+    <div class="regras-hint" id="real-hint">
+      ℹ️ Carregando regras...
     </div>
 
     <div class="modal-real-footer">
@@ -170,24 +169,28 @@
     { nome:"Master 6",        idadeMin:56, idadeMax:99 },
   ];
 
-  // Categorias permitidas para realocação dado a categoria atual
+  // Categorias permitidas para realocação
+  // Regras:
+  //  - Crianças / Juvenil / Adulto → só mudam peso, categoria travada
+  //  - Masters → podem só DESCER (ir para Master menor, ou seja, mais jovem/difícil)
+  //              ex: Master 3 pode ir para Master 2 ou Master 1, nunca para Master 4+
   function categoriasPermitidas(categoriaAtual) {
     const idx = CATEGORIAS_IDADE.findIndex(c => c.nome === categoriaAtual);
-    if (idx === -1) return CATEGORIAS_IDADE.map(c => c.nome);
+    if (idx === -1) return [categoriaAtual];
 
-    const isMaster = categoriaAtual.startsWith('Master');
-    const isAdulto = categoriaAtual === 'Adulto';
+    if (categoriaAtual.startsWith('Master')) {
+      // Só pode descer: mesma ou Masters com índice menor (mais jovens)
+      return CATEGORIAS_IDADE
+        .filter((c, i) => c.nome.startsWith('Master') && i <= idx)
+        .map(c => c.nome);
+    }
 
-    if (isMaster) {
-      // Masters podem mover entre todos os Masters
-      return CATEGORIAS_IDADE.filter(c => c.nome.startsWith('Master')).map(c => c.nome);
-    }
-    if (isAdulto) {
-      // Adulto pode mover para Masters
-      return ['Adulto', ...CATEGORIAS_IDADE.filter(c => c.nome.startsWith('Master')).map(c => c.nome)];
-    }
-    // Outros: pode ir para mesma categoria ou mais velha
-    return CATEGORIAS_IDADE.slice(idx).map(c => c.nome);
+    // Adulto e crianças: categoria travada, só peso muda
+    return [categoriaAtual];
+  }
+
+  function isMaster(categoria) {
+    return (categoria || '').startsWith('Master');
   }
 
   let _realocacaoId = null;
@@ -405,6 +408,26 @@
     sel.innerHTML = permitidas.map(nome =>
       `<option value="${nome}" ${nome === i.categoria ? 'selected' : ''}>${nome}</option>`
     ).join('');
+
+    // Mostra/esconde campo de categoria conforme tipo
+    const ehMaster = isMaster(i.categoria);
+    const rowCat = document.getElementById('real-row-categoria');
+    if (rowCat) rowCat.style.display = ehMaster ? 'block' : 'none';
+
+    // Atualiza dica conforme tipo
+    const hint = document.getElementById('real-hint');
+    if (hint) {
+      if (ehMaster) {
+        hint.innerHTML = `ℹ️ <strong>Regras para Masters:</strong><br>
+          • Pode <strong>descer de categoria</strong> (ex: Master 3 → Master 2 ou 1)<br>
+          • <strong>Nunca</strong> pode subir (ex: Master 1 → Master 2 é proibido)<br>
+          • Pode subir de peso (categoria mais pesada)<br>
+          • Faixa permanece a mesma`;
+      } else {
+        hint.innerHTML = `ℹ️ <strong>Regra:</strong> ${i.categoria} só pode alterar o <strong>peso</strong> (para categoria mais pesada).<br>
+          Categoria de idade e faixa são fixas.`;
+      }
+    }
 
     document.getElementById('modal-real-bg').classList.add('open');
   };
