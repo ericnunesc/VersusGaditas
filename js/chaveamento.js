@@ -874,23 +874,30 @@ function gerarChaveamento() {
     // Reinicia categorias mantendo a competição ativa
     torneio.categorias = [];
     const areas = window.areasLuta || ['Tatame 1', 'Tatame 2', 'Tatame 3'];
-    let areaIdx = 0;
 
-    // --- Categorias normais ---
-    const atletasPorCategoria = {};
-    grupos.forEach((grupo) => { atletasPorCategoria[grupo.nome] = grupo.atletas; });
+    // ── Lê a sequência de faixas configurada pelo admin ──
+    const _FAIXAS_ORD_DEF = ['Kids','Branca','Azul','Roxa','Marrom','Preta'];
+    const _KIDS_BELTS_GER = ['Cinza','Amarela','Laranja','Verde'];
+    const ordemFaixasGer = (() => {
+        try { const s = localStorage.getItem('gaditas_ordem_faixas'); return s ? JSON.parse(s) : null; } catch(e) { return null; }
+    })() || _FAIXAS_ORD_DEF.slice();
 
-    for (const [nomeCategoria, atletasCat] of Object.entries(atletasPorCategoria)) {
-        if (!atletasCat || atletasCat.length === 0) continue;
-        const categoria = gerarChaveamentoCategoria(nomeCategoria, atletasCat, 'eliminatoria');
-        if (categoria) {
-            categoria.area = areas[areaIdx % areas.length];
-            areaIdx++;
-            torneio.categorias.push(categoria);
-        }
+    function _getBeltGrupoGer(nome) {
+        const belt = ((nome || '').split(' | ')[2] || '').trim();
+        return _KIDS_BELTS_GER.includes(belt) ? 'Kids' : (belt || 'Outros');
     }
 
-    // --- Categorias Absoluto (agrupadas por Sexo + Faixa, ignorando peso) ---
+    // Preparar buckets por faixa: { faixaNome: { regular: [], abs: [] } }
+    const beltBuckets = {};
+    [...ordemFaixasGer, 'Outros'].forEach(b => { beltBuckets[b] = { regular: [], abs: [] }; });
+
+    grupos.forEach((grupo) => {
+        const bg = _getBeltGrupoGer(grupo.nome);
+        if (!beltBuckets[bg]) beltBuckets[bg] = { regular: [], abs: [] };
+        beltBuckets[bg].regular.push(grupo);
+    });
+
+    // ── Absolutos: agrupar por Sexo + Faixa e colocar no bucket da faixa ──
     const gruposAbs = new Map();
     for (const atleta of atletas) {
         if (!atleta.absoluto) continue;
@@ -899,17 +906,46 @@ function gerarChaveamento() {
         if (!gruposAbs.has(chaveAbs)) gruposAbs.set(chaveAbs, { atletas: [], nome: nomeAbs });
         gruposAbs.get(chaveAbs).atletas.push(atleta);
     }
-    let absGerados = 0;
     gruposAbs.forEach((grupo) => {
         if (grupo.atletas.length < 2) return;
-        const cat = gerarChaveamentoCategoria(grupo.nome, grupo.atletas, 'eliminatoria');
-        if (cat) {
-            cat.area = areas[areaIdx % areas.length];
-            cat.isAbsoluto = true;
-            areaIdx++;
-            torneio.categorias.push(cat);
-            absGerados++;
-        }
+        const bg = _getBeltGrupoGer(grupo.nome);
+        if (!beltBuckets[bg]) beltBuckets[bg] = { regular: [], abs: [] };
+        beltBuckets[bg].abs.push(grupo);
+    });
+
+    // ── Distribuir seguindo a sequência de faixas ──
+    // Cada faixa: todas as categorias normais em round-robin nos tatames,
+    // depois os absolutos dessa faixa (ainda no mesmo round-robin contínuo).
+    // Resultado: todos os tatames seguem a mesma ordem de faixas.
+    let areaIdx = 0;
+    let absGerados = 0;
+
+    [...ordemFaixasGer, 'Outros'].forEach((beltName) => {
+        const bucket = beltBuckets[beltName];
+        if (!bucket) return;
+
+        // Categorias de peso desta faixa
+        bucket.regular.forEach((grupo) => {
+            if (!grupo.atletas || grupo.atletas.length === 0) return;
+            const categoria = gerarChaveamentoCategoria(grupo.nome, grupo.atletas, 'eliminatoria');
+            if (categoria) {
+                categoria.area = areas[areaIdx % areas.length];
+                areaIdx++;
+                torneio.categorias.push(categoria);
+            }
+        });
+
+        // Absoluto desta faixa — logo após as categorias de peso
+        bucket.abs.forEach((grupo) => {
+            const cat = gerarChaveamentoCategoria(grupo.nome, grupo.atletas, 'eliminatoria');
+            if (cat) {
+                cat.area = areas[areaIdx % areas.length];
+                cat.isAbsoluto = true;
+                areaIdx++;
+                torneio.categorias.push(cat);
+                absGerados++;
+            }
+        });
     });
 
     salvarEstadoTorneio();
