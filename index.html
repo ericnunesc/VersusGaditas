@@ -793,9 +793,9 @@
           // Mostra durante checagem
           const chkFim = c.checagemFim ? new Date(c.checagemFim) : null;
           if (chkFim && now <= chkFim) return true;
-          // Mostra no dia da competição e até 3 dias após
+          // Mostra no dia da competição e até 30 dias após (fase resultados)
           const competData = c.data ? new Date(c.data + 'T23:59') : null;
-          const limite = competData ? new Date(competData.getTime() + 3 * 24 * 60 * 60 * 1000) : null;
+          const limite = competData ? new Date(competData.getTime() + 30 * 24 * 60 * 60 * 1000) : null;
           if (limite && now <= limite) return true;
           return false;
         }
@@ -811,25 +811,35 @@
         const isLiga  = c.tipo === 'liga';
 
         // Calcular status efetivo das inscrições a partir das datas
-        const fimDt    = c.dataFimInscricoes    ? new Date(c.dataFimInscricoes)    : null;
-        const iniDt    = c.dataInicioInscricoes ? new Date(c.dataInicioInscricoes) : null;
-        const chkFimDt = c.checagemFim          ? new Date(c.checagemFim)          : null;
-        const isEnc       = c.status === 'encerrado' || (fimDt && now > fimDt);
-        const isBreve     = !isEnc && iniDt && now < iniDt;
-        // Competindo: encerrado + checagem encerrada (ou sem janela de checagem)
-        const isCompetindo = isEnc && (!chkFimDt || now > chkFimDt);
+        const fimDt      = c.dataFimInscricoes    ? new Date(c.dataFimInscricoes)    : null;
+        const iniDt      = c.dataInicioInscricoes ? new Date(c.dataInicioInscricoes) : null;
+        const chkFimDt   = c.checagemFim          ? new Date(c.checagemFim)          : null;
+        const competFimDt = c.data ? new Date(c.data + 'T23:59') : null;
 
-        const pillLbl = isCompetindo ? '🥋 Competição' :
-                        isEnc        ? '🔒 Encerradas'  :
-                        isBreve      ? '🕐 Em breve'    : '✅ Inscrições abertas';
-        const pillCls = isCompetindo ? 'ativo'          :
-                        isEnc        ? 'enc'             :
-                        isBreve      ? 'breve'           : 'ativo';
+        const isEnc        = c.status === 'encerrado' || (fimDt && now > fimDt);
+        const isBreve      = !isEnc && iniDt && now < iniDt;
+        // Competindo: encerrado + checagem encerrada + ainda no dia da competição
+        const isCompetindo = isEnc && (!chkFimDt || now > chkFimDt) && (!competFimDt || now <= competFimDt);
+        // Resultados: após o dia da competição (até 30 dias)
+        const isResultados = isEnc && competFimDt && now > competFimDt;
+
+        const pillLbl = isResultados  ? '🏅 Resultados'        :
+                        isCompetindo  ? '🥋 Competição'         :
+                        isEnc         ? '🔒 Encerradas'         :
+                        isBreve       ? '🕐 Em breve'           : '✅ Inscrições abertas';
+        const pillCls = isResultados  ? 'ativo'                 :
+                        isCompetindo  ? 'ativo'                 :
+                        isEnc         ? 'enc'                   :
+                        isBreve       ? 'breve'                 : 'ativo';
 
         const links = isLiga
           ? `${!isEnc && !isBreve ? `<a href="liga-inscricao.html?id=${c.id}" class="ev-link prim">📝 Inscrever Equipe</a>` : ''}
              <a href="liga-cronograma.html?id=${c.id}" class="ev-link">📅 Calendário</a>
              <a href="liga-placar-publico.html?id=${c.id}" class="ev-link">🏆 Placar</a>`
+          : isResultados
+            ? `<a href="placar-publico.html?id=${c.id}" class="ev-link prim">🏆 Resultado por Equipe</a>
+               <a href="tv-chaveamento.html?id=${c.id}" class="ev-link prim">📊 Resultado por Categoria</a>
+               <a href="atletas-publico.html?id=${c.id}" class="ev-link">👥 Atletas</a>`
           : isCompetindo
             ? `<a href="placar-publico.html?id=${c.id}" class="ev-link prim">🏆 Placar ao Vivo</a>
                <a href="tv-chaveamento.html?id=${c.id}" class="ev-link">📊 Chaveamento</a>
