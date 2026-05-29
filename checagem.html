@@ -446,17 +446,20 @@ function abrirModalReal(insc) {
   document.getElementById('mr-erro').style.display = 'none';
 
   // ── Categoria de idade ──────────────────────────────────────────────
-  // Regra: pode descer de categoria (mais jovem/leve), NÃO pode subir.
-  // Master desce até Adulto. Adulto fica em Adulto.
-  const ehMasterAtual = catIdadeAtual.startsWith('Master');
-  const idxAtual      = CATS_IDADE_C.indexOf(catIdadeAtual);
+  // Teto = categoria máxima pela DATA DE NASCIMENTO (não pela categoria atual).
+  // Dentro do intervalo permitido (Adulto → teto), o atleta transita livremente.
+  // Ex: nasceu para Master 4 → vê Adulto, M1, M2, M3, M4 mesmo que esteja em M2.
+  // Adulto (18-29) → só Adulto. Kids → só a categoria da idade.
+  const catMaxNome  = getMaxCatNome(insc.dataNascimento, catIdadeAtual);
+  const ehMasterMax = catMaxNome.startsWith('Master');
+  const idxMax      = CATS_IDADE_C.indexOf(catMaxNome);
 
   const selCat = document.getElementById('mr-catidade');
   selCat.innerHTML = '';
-  const opcoes = ehMasterAtual
-    // Master: Adulto + todos os Masters até a categoria ATUAL (não acima)
-    ? CATS_IDADE_C.filter((c, i) => c === 'Adulto' || (c.startsWith('Master') && i <= idxAtual))
-    // Adulto / Kids: apenas a categoria atual (sem subir nem descer fora da faixa)
+  const opcoes = ehMasterMax
+    // Master: Adulto + todos os Masters até o teto da data de nascimento
+    ? CATS_IDADE_C.filter((c, i) => c === 'Adulto' || (c.startsWith('Master') && i <= idxMax))
+    // Adulto / Kids: apenas a categoria correspondente à idade
     : [catIdadeAtual];
   opcoes.forEach(op => {
     const o = document.createElement('option');
@@ -483,8 +486,8 @@ function abrirModalReal(insc) {
   });
 
   const hints = [];
-  if (ehMasterAtual) hints.push(`Idade: pode descer até Adulto (não pode subir acima de ${catIdadeAtual}).`);
-  else hints.push('ℹ️ Categoria de idade bloqueada. Apenas o peso pode ser alterado.');
+  if (ehMasterMax) hints.push(`Idade: pode lutar de Adulto até ${catMaxNome} (limite pela data de nascimento).`);
+  else hints.push('ℹ️ Categoria de idade definida pela idade. Apenas o peso pode ser alterado.');
   hints.push(`⚖️ Peso: ${catPesoFisico} ou mais pesado (baseado no peso cadastrado).`);
   hints.push('🥋 Faixa não pode ser alterada (regras CBJJ).');
   document.getElementById('mr-hint').textContent = hints.join(' ');
