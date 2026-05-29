@@ -11,13 +11,14 @@ function determinarCategoriaIdade(idade) {
 
 function determinarCategoriaPeso(sexo, idade, peso, faixa) {
     let categoriasPeso;
-    
+
     if (idade <= 17) {
-        categoriasPeso = CATEGORIAS_PESO_INFANTIL;
+        const catIdade = determinarCategoriaIdade(idade);
+        categoriasPeso = getTabKids(catIdade.nome, sexo);
     } else {
         categoriasPeso = sexo === 'M' ? CATEGORIAS_PESO_MASC : CATEGORIAS_PESO_FEM;
     }
-    
+
     for (const cat of categoriasPeso) {
         if (peso <= cat.pesoMax) {
             return cat;
