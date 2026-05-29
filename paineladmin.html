@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin - COMPETIÇÃO BJJ</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:#F5F7FA; color:#1A2C3E; }
+    header { background:#1A2C3E; color:#fff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+    .header-logo { display:flex; align-items:center; gap:10px; }
+    .header-logo h1 { font-size:1rem; font-weight:700; }
+    .header-logo p { font-size:0.68rem; color:#8A9CB0; }
+    .header-right { display:flex; align-items:center; gap:10px; }
+    .user-email { font-size:0.78rem; color:#8A9CB0; }
+    .btn-sair { background:transparent; border:1px solid #EF4444; color:#EF4444; padding:6px 14px; border-radius:40px; font-size:0.78rem; cursor:pointer; }
+    .btn-sair:hover { background:#EF4444; color:#fff; }
+
+    .app { max-width:1100px; margin:0 auto; padding:28px 20px; }
+
+    /* ── Tabs ── */
+    .tabs-nav { display:flex; gap:2px; margin-bottom:24px; border-bottom:2px solid #E2E8F0; flex-wrap:wrap; }
+    .tab-btn { background:transparent; border:none; padding:10px 20px; font-size:0.85rem; font-weight:600; color:#8A9CB0; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
+    .tab-btn:hover { color:#C9A03D; }
+    .tab-btn.active { color:#C9A03D; border-bottom-color:#C9A03D; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+
+    /* ── Campeonatos ── */
+    .topo { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+    .topo h2 { font-size:1.1rem; font-weight:700; }
+    .btn-novo { background:#C9A03D; border:none; color:#fff; padding:10px 22px; border-radius:40px; font-size:0.85rem; font-weight:600; cursor:pointer; }
+    .btn-novo:hover { background:#A0822E; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
+    .card { background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden; }
+    .card-banner { height:130px; display:flex; align-items:center; justify-content:center; font-size:3rem; background:linear-gradient(135deg,#1A2C3E,#2A4060); overflow:hidden; position:relative; }
+    .card-banner img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+    .card-banner .emoji-sobre { position:relative; z-index:1; }
+    .card-body { padding:14px 16px; }
+    .card-nome { font-weight:700; font-size:0.92rem; margin-bottom:3px; }
+    .card-info { font-size:0.73rem; color:#8A9CB0; margin-bottom:10px; }
+    .card-acoes { display:flex; gap:6px; flex-wrap:wrap; }
+    .btn-sm { padding:5px 12px; border-radius:40px; font-size:0.73rem; font-weight:600; cursor:pointer; border:1px solid #E2E8F0; background:transparent; text-decoration:none; display:inline-block; text-align:center; color:#1A2C3E; }
+    .btn-sm:hover { border-color:#C9A03D; color:#C9A03D; }
+    .btn-sm.primary { background:#C9A03D; border-color:#C9A03D; color:#fff; }
+    .btn-sm.primary:hover { background:#A0822E; }
+    .btn-sm.danger { border-color:#EF4444; color:#EF4444; }
+    .btn-sm.danger:hover { background:#EF4444; color:#fff; }
+    .status-pill { display:inline-block; padding:3px 9px; border-radius:20px; font-size:0.66rem; font-weight:700; margin-bottom:6px; }
+    .status-ativo { background:#DCFCE7; color:#166534; }
+    .status-encerrado { background:#F1F5F9; color:#64748B; }
+    .status-breve { background:#FEF9C3; color:#92400E; }
+    .vazio { text-align:center; padding:60px 20px; color:#8A9CB0; grid-column:1/-1; }
+    .vazio span { font-size:3rem; display:block; margin-bottom:12px; opacity:0.3; }
+
+    /* ── Planos ── */
+    .planos-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:20px; }
+    .plano-card { background:#fff; border:1px solid #E2E8F0; border-radius:14px; padding:22px; }
+    .plano-card-titulo { font-size:0.95rem; font-weight:700; margin-bottom:4px; }
+    .plano-card-sub { font-size:0.72rem; color:#8A9CB0; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid #F1F5F9; }
+    .plano-tier { background:#FAFBFC; border:1px solid #F1F5F9; border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+    .plano-tier-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px; }
+    .plano-tier-label { font-size:0.82rem; font-weight:700; }
+    .plano-tier-lim { font-size:0.7rem; color:#8A9CB0; display:flex; align-items:center; gap:4px; }
+    .plano-preco-row { display:flex; align-items:center; gap:6px; }
+    .plano-prefix { font-size:0.78rem; color:#8A9CB0; font-weight:600; }
+    .plano-input { border:1px solid #E2E8F0; border-radius:8px; padding:7px 10px; font-size:0.9rem; font-weight:700; width:100px; text-align:center; color:#C9A03D; }
+    .plano-input:focus { border-color:#C9A03D; outline:none; }
+    .plano-input-sm { width:60px; font-size:0.8rem; color:#1A2C3E; font-weight:400; padding:4px 6px; border:1px solid #E2E8F0; border-radius:6px; text-align:center; }
+    .plano-input-sm:focus { border-color:#C9A03D; outline:none; }
+    .plano-suffix { font-size:0.72rem; color:#8A9CB0; }
+    .plano-save-row { margin-top:14px; display:flex; justify-content:flex-end; align-items:center; gap:8px; }
+    .btn-salvar-plano { background:#C9A03D; border:none; color:#fff; padding:8px 20px; border-radius:40px; font-size:0.8rem; font-weight:600; cursor:pointer; }
+    .btn-salvar-plano:hover { background:#A0822E; }
+    .plano-saved-msg { font-size:0.72rem; color:#059669; display:none; }
+
+    /* ── Clientes ── */
+    .resumo-bar { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin-bottom:20px; }
+    .resumo-stat { background:#fff; border:1px solid #E2E8F0; border-radius:10px; padding:14px; text-align:center; }
+    .resumo-stat h4 { font-size:1.5rem; font-weight:700; color:#C9A03D; }
+    .resumo-stat p { font-size:0.68rem; color:#8A9CB0; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
+    .cliente-row { background:#fff; border:1px solid #E2E8F0; border-radius:12px; padding:14px 18px; margin-bottom:10px; display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap; }
+    .cliente-info-block { flex:1; min-width:180px; }
+    .cliente-nome { font-weight:700; font-size:0.9rem; margin-bottom:2px; }
+    .cliente-plano-info { font-size:0.75rem; color:#8A9CB0; }
+    .cliente-obs { font-size:0.7rem; color:#8A9CB0; font-style:italic; margin-top:3px; }
+    .cliente-status-badge { padding:3px 10px; border-radius:20px; font-size:0.68rem; font-weight:700; white-space:nowrap; margin-top:2px; }
+    .cs-ativo { background:#DCFCE7; color:#166534; }
+    .cs-pendente { background:#FEF9C3; color:#92400E; }
+    .cs-inativo { background:#F1F5F9; color:#64748B; }
+    .cliente-valor { font-weight:700; color:#C9A03D; font-size:0.88rem; min-width:110px; text-align:right; white-space:nowrap; }
+    .cliente-acoes { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    .clientes-vazio { text-align:center; padding:40px 20px; color:#8A9CB0; background:#fff; border:1px solid #E2E8F0; border-radius:12px; }
+    .cliente-pagamento { font-size:0.68rem; color:#8A9CB0; margin-top:3px; display:flex; align-items:center; gap:4px; }
+    .cliente-pagamento.atrasado { color:#DC2626; font-weight:600; }
+    .filtro-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+    .filtro-btn { padding:5px 14px; border-radius:40px; border:1px solid #E2E8F0; background:#fff; font-size:0.75rem; font-weight:600; cursor:pointer; color:#64748B; transition:all 0.2s; }
+    .filtro-btn:hover { border-color:#1A2C3E; color:#1A2C3E; }
+    .filtro-btn.active { background:#1A2C3E; color:#fff; border-color:#1A2C3E; }
+    .filtro-btn.pend { }
+    .filtro-btn.pend.active { background:#D97706; border-color:#D97706; }
+    .btn-cobrar { background:#25D366; border:none; color:#fff; padding:5px 11px; border-radius:40px; font-size:0.72rem; font-weight:700; cursor:pointer; white-space:nowrap; }
+    .btn-cobrar:hover { background:#1da85c; }
+    .receita-total { font-size:1.1rem; font-weight:700; color:#059669; }
+    .alerta-pendente { background:#FEF9C3; border:1px solid #FDE68A; border-radius:10px; padding:10px 14px; font-size:0.78rem; color:#92400E; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+
+    /* ── Modais ── */
+    .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center; padding:16px; }
+    .modal-bg.open { display:flex; }
+    .modal { background:#fff; border-radius:16px; padding:26px; width:100%; max-width:480px; box-shadow:0 8px 40px rgba(0,0,0,0.15); max-height:92vh; overflow-y:auto; }
+    .modal h3 { font-size:1rem; font-weight:700; margin-bottom:18px; }
+    .modal label { display:block; font-size:0.78rem; font-weight:600; margin-bottom:4px; color:#1A2C3E; margin-top:10px; }
+    .modal input, .modal select, .modal textarea { width:100%; border:1px solid #E2E8F0; border-radius:8px; padding:9px 12px; font-size:0.85rem; outline:none; }
+    .modal input:focus, .modal select:focus, .modal textarea:focus { border-color:#C9A03D; }
+    .modal textarea { resize:vertical; min-height:65px; }
+    .modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+    .btn-cancelar { background:transparent; border:1px solid #E2E8F0; padding:9px 18px; border-radius:40px; font-size:0.82rem; cursor:pointer; }
+    .btn-salvar { background:#C9A03D; border:none; color:#fff; padding:9px 22px; border-radius:40px; font-size:0.82rem; font-weight:600; cursor:pointer; }
+    .emoji-grid { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+    .emoji-opt { font-size:1.4rem; cursor:pointer; padding:4px 8px; border-radius:8px; border:2px solid transparent; }
+    .emoji-opt.sel { border-color:#C9A03D; background:#FFF8EC; }
+    .cartaz-upload { border:2px dashed #E2E8F0; border-radius:10px; padding:14px; text-align:center; cursor:pointer; margin-top:6px; }
+    .cartaz-upload:hover { border-color:#C9A03D; }
+    .cartaz-upload input { display:none; }
+    .cartaz-upload p { font-size:0.72rem; color:#8A9CB0; margin-top:4px; }
+    .cartaz-preview { position:relative; margin-top:6px; }
+    .cartaz-preview img { width:100%; max-height:180px; object-fit:cover; border-radius:8px; border:1px solid #E2E8F0; }
+    .cartaz-preview .btn-remover { position:absolute; top:6px; right:6px; background:rgba(239,68,68,0.9); color:#fff; border:none; border-radius:20px; padding:4px 10px; font-size:0.72rem; cursor:pointer; }
+    .modal-section { border:1px solid #F1F5F9; border-radius:10px; padding:12px 14px; background:#FAFBFC; margin-top:10px; }
+    .modal-section-title { font-size:0.7rem; font-weight:700; color:#8A9CB0; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+    .modal-section label { margin-top:8px; }
+    .modal-section label:first-of-type { margin-top:0; }
+
+    /* ── Modal confirmação ── */
+    .confirm-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1100; align-items:center; justify-content:center; padding:16px; }
+    .confirm-bg.open { display:flex; }
+    .confirm-box { background:#fff; border-radius:16px; padding:28px 26px; width:100%; max-width:360px; box-shadow:0 8px 40px rgba(0,0,0,0.2); text-align:center; }
+    .confirm-box .icon { font-size:2.2rem; margin-bottom:10px; }
+    .confirm-box h3 { font-size:0.95rem; font-weight:700; margin-bottom:6px; color:#1A2C3E; }
+    .confirm-box p { font-size:0.8rem; color:#64748B; margin-bottom:20px; }
+    .confirm-btns { display:flex; gap:10px; justify-content:center; }
+    .btn-confirm-cancel { background:transparent; border:1px solid #E2E8F0; padding:9px 22px; border-radius:40px; font-size:0.82rem; cursor:pointer; font-weight:600; color:#64748B; }
+    .btn-confirm-cancel:hover { border-color:#1A2C3E; color:#1A2C3E; }
+    .btn-confirm-ok { background:#EF4444; border:none; padding:9px 22px; border-radius:40px; font-size:0.82rem; cursor:pointer; font-weight:700; color:#fff; }
+    .btn-confirm-ok:hover { background:#DC2626; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">
+    <img src="images/logo-budoflow.png" alt="BudoFlow" style="height:38px;width:auto;border-radius:50%;flex-shrink:0;">
+    <div><h1>COMPETIÇÃO BJJ</h1><p>Painel Administrativo</p></div>
+  </div>
+  <div class="header-right">
+    <span class="user-email" id="user-email"></span>
+    <button class="btn-sair" id="btn-sair">↩ Sair</button>
+  </div>
+</header>
+
+<div class="app">
+
+  <div class="tabs-nav">
+    <button class="tab-btn active" data-tab="campeonatos" onclick="setTab('campeonatos')">🏆 Campeonatos</button>
+    <button class="tab-btn" data-tab="planos" onclick="setTab('planos')">💰 Planos</button>
+    <button class="tab-btn" data-tab="clientes" onclick="setTab('clientes')">👥 Clientes</button>
+  </div>
+
+  <!-- ══ CAMPEONATOS ══ -->
+  <div id="tab-campeonatos" class="tab-content active">
+    <div class="topo">
+      <h2>Meus Campeonatos</h2>
+      <button class="btn-novo" onclick="abrirModal()">+ Novo Campeonato</button>
+    </div>
+    <div class="grid" id="grid"><div class="vazio"><span>⏳</span>Carregando...</div></div>
+  </div>
+
+  <!-- ══ PLANOS ══ -->
+  <div id="tab-planos" class="tab-content">
+    <div class="topo">
+      <div>
+        <h2>Configuração de Planos</h2>
+        <p style="font-size:0.78rem;color:#8A9CB0;margin-top:2px;">Defina os valores cobrados de cada tipo de cliente</p>
+      </div>
+    </div>
+    <div class="planos-grid">
+
+      <!-- Chaveamento -->
+      <div class="plano-card">
+        <div class="plano-card-titulo">🥋 Chaveamento — Por Evento</div>
+        <div class="plano-card-sub">Federações e organizadores de torneios com chaveamento eliminatório</div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Pequeno</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-c-peq-max" value="100"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-c-peq-preco" value="197"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Médio</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-c-med-max" value="300"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-c-med-preco" value="347"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Grande</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-c-grd-max" value="600"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-c-grd-preco" value="597"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Mega Evento</span>
+            <span class="plano-tier-lim" style="color:#C9A03D;font-weight:600">600+ atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-c-meg-preco" value="897"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-save-row">
+          <span class="plano-saved-msg" id="saved-chav">✅ Salvo!</span>
+          <button class="btn-salvar-plano" onclick="salvarPlanosChaveamento()">💾 Salvar</button>
+        </div>
+      </div>
+
+      <!-- Liga Academia -->
+      <div class="plano-card">
+        <div class="plano-card-titulo">🏫 Liga Academia — Interno</div>
+        <div class="plano-card-sub">Liga interna entre os próprios alunos da academia</div>
+
+        <!-- Por Mês -->
+        <div style="font-size:0.7rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.8px;margin:12px 0 8px">📅 Assinatura Mensal</div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Starter</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-la-sta-max" value="30"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-la-sta-preco" value="59"><span class="plano-suffix">/ mês</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Pro</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-la-pro-max" value="100"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-la-pro-preco" value="99"><span class="plano-suffix">/ mês</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Elite</span>
+            <span class="plano-tier-lim" style="color:#C9A03D;font-weight:600">ilimitado + logo/cores</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-la-eli-preco" value="159"><span class="plano-suffix">/ mês</span></div>
+        </div>
+
+        <!-- Por Evento -->
+        <div style="font-size:0.7rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.8px;margin:16px 0 8px;padding-top:14px;border-top:1px solid #F1F5F9">🎯 Evento Único</div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Starter</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-eu-sta-max" value="50"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-sta-preco" value="99"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Pro</span>
+            <span class="plano-tier-lim">até <input type="number" class="plano-input-sm" id="p-eu-pro-max" value="150"> atletas</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-pro-preco" value="179"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head">
+            <span class="plano-tier-label">Elite</span>
+            <span class="plano-tier-lim" style="color:#C9A03D;font-weight:600">ilimitado</span>
+          </div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-eu-eli-preco" value="299"><span class="plano-suffix">/ evento</span></div>
+        </div>
+
+        <div class="plano-save-row">
+          <span class="plano-saved-msg" id="saved-liga-acad">✅ Salvo!</span>
+          <button class="btn-salvar-plano" onclick="salvarPlanosLigaAcademia()">💾 Salvar</button>
+        </div>
+      </div>
+
+      <!-- Liga Inter -->
+      <div class="plano-card">
+        <div class="plano-card-titulo">⚔️ Liga Inter-Academias — Externo</div>
+        <div class="plano-card-sub">Liga entre academias gerenciada por você · Cobrança por inscrição</div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head"><span class="plano-tier-label">Inscrição por Equipe</span></div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-li-equipe" value="300" oninput="atualizarExemplo()"><span class="plano-suffix">/ academia</span></div>
+        </div>
+
+        <div class="plano-tier">
+          <div class="plano-tier-head"><span class="plano-tier-label">Inscrição por Atleta</span></div>
+          <div class="plano-preco-row"><span class="plano-prefix">R$</span><input type="number" class="plano-input" id="p-li-atleta" value="40" oninput="atualizarExemplo()"><span class="plano-suffix">/ atleta</span></div>
+        </div>
+
+        <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:0.73rem;color:#166534;line-height:1.6;">
+          💡 Exemplo: 8 equipes × R$<span id="ex-equipe">300</span> + 40 atletas × R$<span id="ex-atleta">40</span><br>
+          = <strong>R$ <span id="ex-total">4.000</span></strong> por fase da liga
+        </div>
+
+        <div class="plano-save-row">
+          <span class="plano-saved-msg" id="saved-liga-inter">✅ Salvo!</span>
+          <button class="btn-salvar-plano" onclick="salvarPlanosLigaInter()">💾 Salvar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ CLIENTES ══ -->
+  <div id="tab-clientes" class="tab-content">
+    <div class="topo">
+      <h2>Clientes</h2>
+      <button class="btn-novo" onclick="abrirModalCliente()">+ Novo Cliente</button>
+    </div>
+    <div class="resumo-bar" id="resumo-clientes"></div>
+    <div id="alerta-pendentes"></div>
+    <div class="filtro-bar">
+      <span style="font-size:0.72rem;color:#8A9CB0;font-weight:600;">Filtrar:</span>
+      <button class="filtro-btn active" onclick="setFiltro('')">Todos</button>
+      <button class="filtro-btn" onclick="setFiltro('ativo')">✅ Ativos</button>
+      <button class="filtro-btn pend" onclick="setFiltro('pendente')">⏳ Pendentes</button>
+      <button class="filtro-btn" onclick="setFiltro('inativo')">🔴 Inativos</button>
+    </div>
+    <div id="clientes-list"><div class="clientes-vazio">Carregando clientes...</div></div>
+  </div>
+
+</div>
+
+<!-- MODAL: CONFIRMAÇÃO -->
+<div class="confirm-bg" id="confirm-bg">
+  <div class="confirm-box">
+    <div class="icon" id="confirm-icon">⚠️</div>
+    <h3 id="confirm-titulo"></h3>
+    <p id="confirm-texto"></p>
+    <div class="confirm-btns">
+      <button class="btn-confirm-cancel" id="confirm-cancel">Cancelar</button>
+      <button class="btn-confirm-ok" id="confirm-ok">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CAMPEONATO -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h3 id="modal-titulo">Novo Campeonato</h3>
+
+    <label>Nome do campeonato *</label>
+    <input type="text" id="f-nome" placeholder="Ex: Copa Gaditas 2025">
+
+    <label>Data do evento</label>
+    <input type="date" id="f-data">
+
+    <label>Local</label>
+    <input type="text" id="f-local" placeholder="Ex: Ginásio Municipal - São Paulo">
+
+    <label>Descrição</label>
+    <textarea id="f-descricao" placeholder="Informações gerais sobre o campeonato..."></textarea>
+
+    <label>Tipo de Competição</label>
+    <select id="f-tipo" onchange="onTipoChange()">
+      <option value="chaveamento">🥋 Chaveamento (Eliminatórias)</option>
+      <option value="liga">⚽ Liga (Pontos Corridos)</option>
+    </select>
+
+    <label>Cliente responsável <span style="font-weight:400;color:#8A9CB0">(opcional — dá acesso pelo portal)</span></label>
+    <select id="f-cliente">
+      <option value="">— Sem cliente vinculado —</option>
+    </select>
+
+    <div id="liga-extra" style="display:none">
+      <div class="modal-section">
+        <div class="modal-section-title">⚽ Configuração da Liga</div>
+        <label>Escopo</label>
+        <select id="f-escopo">
+          <option value="academia">🏫 Liga Academia — Interno (academia paga mensalidade)</option>
+          <option value="inter">⚔️ Liga Inter-Academias — Externo (inscrição por equipe/atleta)</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Status</label>
+    <select id="f-status">
+      <option value="breve">🕐 Em breve</option>
+      <option value="ativo">✅ Inscrições abertas</option>
+      <option value="encerrado">🔒 Encerrado</option>
+    </select>
+
+    <label>Logo / Marca da Organização <span style="font-weight:400;color:#8A9CB0">(URL da imagem)</span></label>
+    <input type="text" id="f-marca" placeholder="https://exemplo.com/logo.png">
+    <p style="font-size:0.68rem;color:#8A9CB0;margin-top:4px;">Logo exibida nas páginas públicas do evento (cabeçalho, inscrição, placar). Cole a URL de uma imagem hospedada.</p>
+
+    <label>Cartaz do evento</label>
+    <div id="cartaz-preview-box" class="cartaz-preview" style="display:none">
+      <img id="cartaz-preview-img" src="">
+      <button class="btn-remover" onclick="removerCartaz()">✕ Remover</button>
+    </div>
+    <label class="cartaz-upload" id="cartaz-upload-area" for="f-cartaz">
+      🖼️ Clique para selecionar o cartaz
+      <p>JPG ou PNG · Recomendado: 800×600px</p>
+      <input type="file" id="f-cartaz" accept="image/*" onchange="selecionarCartaz(this)">
+    </label>
+
+    <label>Ícone (quando não há cartaz)</label>
+    <div class="emoji-grid" id="emoji-grid">
+      <span class="emoji-opt" onclick="selecionarEmoji('🥋')">🥋</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('🏆')">🏆</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('⚔️')">⚔️</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('🎖️')">🎖️</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('🥇')">🥇</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('🏅')">🏅</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('👊')">👊</span>
+      <span class="emoji-opt" onclick="selecionarEmoji('💪')">💪</span>
+    </div>
+    <input type="hidden" id="f-emoji" value="🥋">
+    <input type="hidden" id="f-id" value="">
+
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" id="btn-salvar" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: LINK DE ACESSO -->
+<div class="modal-bg" id="modal-link-bg">
+  <div class="modal" style="max-width:500px">
+    <h3>✅ Acesso criado!</h3>
+    <p style="font-size:0.82rem;color:#8A9CB0;margin-bottom:14px">Copie o link abaixo e envie para o cliente definir sua senha:</p>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <input type="text" id="modal-link-input" readonly
+        style="flex:1;background:#F8FAFC;font-size:0.72rem;cursor:pointer;"
+        onclick="this.select()">
+      <button onclick="copiarLinkModal()"
+        style="background:#C9A03D;border:none;color:#fff;padding:9px 16px;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap"
+        id="btn-copiar-modal">📋 Copiar</button>
+    </div>
+    <a id="modal-link-whatsapp" href="#" target="_blank"
+      style="display:inline-block;margin-top:10px;font-size:0.78rem;color:#25D366;font-weight:600;text-decoration:none;">
+      📲 Enviar por WhatsApp
+    </a>
+    <p style="font-size:0.72rem;color:#8A9CB0;margin-top:12px;">
+      Após definir a senha, o cliente acessa:<br>
+      <a href="https://competicaobjj.vercel.app/login-cliente.html" target="_blank"
+        style="color:#C9A03D;">competicaobjj.vercel.app/login-cliente.html</a>
+    </p>
+    <div class="modal-footer">
+      <button class="btn-salvar" onclick="document.getElementById('modal-link-bg').classList.remove('open')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CLIENTE -->
+<div class="modal-bg" id="modal-cliente-bg">
+  <div class="modal">
+    <h3 id="modal-cliente-titulo">Novo Cliente</h3>
+
+    <label>Nome *</label>
+    <input type="text" id="c-nome" placeholder="Ex: Academia Gracie SP / Federação BJJ PR">
+
+    <label>Email</label>
+    <input type="email" id="c-email" placeholder="contato@academia.com">
+
+    <label>WhatsApp / Telefone</label>
+    <input type="tel" id="c-tel" placeholder="(11) 99999-0000">
+
+    <label>Tipo de Plano *</label>
+    <select id="c-tipo" onchange="onTipoClienteChange()">
+      <option value="chaveamento">🥋 Chaveamento — Por Evento</option>
+      <option value="ligaAcademia">🏫 Liga Academia — Interno (mensalidade)</option>
+      <option value="ligaInter">⚔️ Liga Inter-Academias — Externo</option>
+    </select>
+
+    <div id="c-tier-row" style="display:none">
+      <label>Tier / Plano de Academia</label>
+      <select id="c-tier" onchange="atualizarLinkAssinatura()">
+        <option value="starter">Starter (até 30 atletas) — R$59/mês</option>
+        <option value="pro">Pro (até 100 atletas) — R$99/mês</option>
+        <option value="elite">Elite (ilimitado) — R$159/mês</option>
+      </select>
+    </div>
+
+    <div id="c-link-row" style="display:none;margin-top:4px;">
+      <label>Link de Assinatura</label>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input type="text" id="c-link-display" readonly
+          style="flex:1;background:#F8FAFC;font-size:0.73rem;color:#1A2C3E;border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;cursor:pointer;"
+          onclick="this.select()">
+        <button onclick="copiarLinkAssinatura()"
+          style="background:#C9A03D;border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;white-space:nowrap;font-weight:600;">
+          📋 Copiar
+        </button>
+      </div>
+      <a id="c-link-whatsapp" href="#" target="_blank"
+        style="display:inline-block;margin-top:6px;font-size:0.72rem;color:#25D366;font-weight:600;text-decoration:none;">
+        📲 Enviar por WhatsApp
+      </a>
+    </div>
+
+    <label>Status</label>
+    <select id="c-status">
+      <option value="ativo">✅ Ativo</option>
+      <option value="pendente">⏳ Pendente pagamento</option>
+      <option value="inativo">🔴 Inativo</option>
+    </select>
+
+    <label>Data de início do contrato</label>
+    <input type="date" id="c-inicio">
+
+    <label>Observações internas</label>
+    <textarea id="c-obs" placeholder="Notas sobre negociação, desconto, histórico..."></textarea>
+
+    <input type="hidden" id="c-id">
+
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="fecharModalCliente()">Cancelar</button>
+      <button class="btn-salvar" id="btn-salvar-cliente" onclick="salvarCliente()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import {
+    onLogin, logout,
+    listarCampeonatos, criarCampeonato, atualizarCampeonato, deletarCampeonato,
+    salvarPlanos, buscarPlanos,
+    criarCliente, listarClientes, atualizarCliente, deletarCliente
+  } from './js/firebase.js';
+
+  let campsData = [], clientesData = [], planosConfig = null;
+  let cartazBase64 = null;
+
+  const PLANOS_DEFAULT = {
+    chaveamento: {
+      pequeno: { atletasMax:100,  preco:197 }, medio:  { atletasMax:300,  preco:347 },
+      grande:  { atletasMax:600,  preco:597 }, mega:   { atletasMax:9999, preco:897 }
+    },
+    eventoUnico: {
+      starter: { atletasMax:50,   preco:99  }, pro:    { atletasMax:150,  preco:179 },
+      elite:   { atletasMax:9999, preco:299 }
+    },
+    ligaAcademia: {
+      starter: { atletasMax:30,   preco:59  }, pro:    { atletasMax:100,  preco:99  },
+      elite:   { atletasMax:9999, preco:159 }
+    },
+    ligaInter: { inscricaoEquipe:300, inscricaoAtleta:40 }
+  };
+
+  // ── Auth ──────────────────────────────────────────────────
+  onLogin(user => {
+    if (!user) { window.location.replace('login-admin.html'); return; }
+    document.getElementById('user-email').textContent = user.email;
+    carregarCampeonatos();
+  });
+  document.getElementById('btn-sair').addEventListener('click', async () => {
+    await logout(); window.location.replace('login-admin.html');
+  });
+
+  // ── Tabs ─────────────────────────────────────────────────
+  window.setTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.toggle('active', t.id === 'tab-'+tab));
+    if (tab === 'planos')   carregarPlanos();
+    if (tab === 'clientes') carregarClientes();
+  };
+
+  // ── Campeonatos ───────────────────────────────────────────
+  async function carregarCampeonatos() {
+    const grid = document.getElementById('grid');
+    try {
+      // Carrega campeonatos e clientes independentemente — erro nos clientes não derruba tudo
+      const camps = await listarCampeonatos();
+      try { clientesData = await listarClientes(); } catch(e) { console.warn('Clientes indisponível:', e.message); clientesData = []; }
+      campsData = camps;
+      if (!camps.length) {
+        grid.innerHTML = `<div class="vazio"><img src="images/logo-budoflow.png" alt="BudoFlow" style="height:68px;width:auto;border-radius:50%;display:block;margin:0 auto;">Nenhum campeonato ainda.<br>Crie o primeiro!</div>`;
+        return;
+      }
+      const cliMap = {};
+      clientesData.forEach(c => { cliMap[c.id] = c.nome; });
+      grid.innerHTML = camps.map(c => {
+        const data    = c.data ? new Date(c.data+'T12:00').toLocaleDateString('pt-BR') : '—';
+        const banner  = c.cartaz
+          ? `<div class="card-banner"><img src="${c.cartaz}" alt="Cartaz"></div>`
+          : `<div class="card-banner"><span class="emoji-sobre">${c.emoji||'🥋'}</span></div>`;
+        const isLiga  = c.tipo === 'liga';
+        const tagCliente = c.clienteId && cliMap[c.clienteId]
+          ? `<span style="background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">👤 ${cliMap[c.clienteId]}</span> `
+          : '';
+        const tagEscopo = isLiga && c.escopo
+          ? `<span style="background:${c.escopo==='academia'?'#F0FDF4':'#FFF7ED'};color:${c.escopo==='academia'?'#166534':'#C2410C'};padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">${c.escopo==='academia'?'🏫 Interno':'⚔️ Externo'}</span> `
+          : '';
+        const acoes = isLiga
+          ? `<a href="liga-adm.html?id=${c.id}" class="btn-sm primary">⚽ Admin Liga</a>
+             <a href="liga-placar-adm.html?id=${c.id}" class="btn-sm" style="background:#10B981;color:#fff;border-color:#10B981">🎙️ Placar</a>
+             <a href="liga-inscricao.html?id=${c.id}" target="_blank" class="btn-sm">📝 Inscrições</a>
+             <a href="liga-portal.html?id=${c.id}" target="_blank" class="btn-sm">🔐 Portal</a>
+             <a href="liga-tv.html?id=${c.id}" target="_blank" class="btn-sm">📺 TV</a>
+             <button class="btn-sm" onclick="editar('${c.id}')">✏️</button>
+             <button class="btn-sm danger" onclick="excluir('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>`
+          : `<a href="painel.html?id=${c.id}" class="btn-sm" style="background:#C9A03D;color:#fff;border-color:#C9A03D">⚙️ Administrar</a>
+             <a href="adm-inscricoes.html?id=${c.id}" class="btn-sm primary">📋 Inscrições / Aprovações</a>
+             <a href="adm-chaveamento.html?id=${c.id}" class="btn-sm" style="background:#1A2C3E;color:#fff;border-color:#1A2C3E">🥊 Chaveamento</a>
+             <a href="placar-adm.html?id=${c.id}" class="btn-sm" style="background:#10B981;color:#fff;border-color:#10B981">🎙️ Placar</a>
+             <a href="inscricao.html?id=${c.id}" target="_blank" class="btn-sm">📝 Inscrição</a>
+             <a href="atletas-publico.html?id=${c.id}" target="_blank" class="btn-sm">👥 Atletas</a>
+             <button class="btn-sm" onclick="editar('${c.id}')">✏️</button>
+             <button class="btn-sm danger" onclick="excluir('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>`;
+        return `<div class="card">${banner}<div class="card-body">
+          <div style="margin-bottom:5px">${tagCliente}${tagEscopo}<span class="status-pill status-${c.status||'ativo'}">${{ativo:'✅ Aberto',breve:'🕐 Em breve',encerrado:'🔒 Encerrado'}[c.status||'ativo']}</span>${isLiga?' <span style="background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">⚽ Liga</span>':''}</div>
+          <div class="card-nome">${c.nome}</div>
+          <div class="card-info">📅 ${data}${c.local?' · 📍 '+c.local:''}</div>
+          <div class="card-acoes">${acoes}</div>
+        </div></div>`;
+      }).join('');
+    } catch(e) {
+      grid.innerHTML = `<div class="vazio"><span>⚠️</span>Erro ao carregar campeonatos.</div>`;
+    }
+  }
+
+  window.abrirModal = function(dados) {
+    cartazBase64 = dados?.cartaz || null;
+    document.getElementById('f-id').value        = dados?.id       || '';
+    document.getElementById('f-nome').value      = dados?.nome     || '';
+    document.getElementById('f-data').value      = dados?.data     || '';
+    document.getElementById('f-local').value     = dados?.local    || '';
+    document.getElementById('f-descricao').value = dados?.descricao|| '';
+    document.getElementById('f-tipo').value      = dados?.tipo     || 'chaveamento';
+    document.getElementById('f-status').value    = dados?.status   || 'breve';
+    document.getElementById('f-emoji').value     = dados?.emoji    || '🥋';
+    document.getElementById('f-escopo').value    = dados?.escopo   || 'academia';
+    document.getElementById('f-marca').value     = dados?.marca    || '';
+    document.getElementById('f-cartaz').value    = '';
+    document.getElementById('modal-titulo').textContent = dados ? 'Editar Campeonato' : 'Novo Campeonato';
+    selecionarEmoji(dados?.emoji || '🥋');
+    popularDropClientes(dados?.clienteId || '');
+    onTipoChange();
+    const prev = document.getElementById('cartaz-preview-box');
+    const up   = document.getElementById('cartaz-upload-area');
+    if (cartazBase64) {
+      document.getElementById('cartaz-preview-img').src = cartazBase64;
+      prev.style.display = 'block'; up.style.display = 'none';
+    } else { prev.style.display = 'none'; up.style.display = 'block'; }
+    document.getElementById('modal-bg').classList.add('open');
+  };
+
+  function popularDropClientes(selectedId) {
+    const sel = document.getElementById('f-cliente');
+    sel.innerHTML = '<option value="">— Sem cliente vinculado —</option>';
+    clientesData.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.id; o.textContent = c.nome;
+      if (c.id === selectedId) o.selected = true;
+      sel.appendChild(o);
+    });
+  }
+
+  window.onTipoChange = function() {
+    const isLiga = document.getElementById('f-tipo').value === 'liga';
+    document.getElementById('liga-extra').style.display = isLiga ? 'block' : 'none';
+  };
+
+  window.fecharModal = function() {
+    cartazBase64 = null;
+    document.getElementById('modal-bg').classList.remove('open');
+  };
+
+  window.selecionarEmoji = function(e) {
+    document.getElementById('f-emoji').value = e;
+    document.querySelectorAll('.emoji-opt').forEach(el => el.classList.toggle('sel', el.textContent === e));
+  };
+
+  // ── Modal de confirmação (evita confirm() que bloqueia thread) ─
+  function pedirConfirmacao({ titulo, texto, icone = '⚠️', labelOk = 'Excluir' }) {
+    return new Promise(resolve => {
+      document.getElementById('confirm-icon').textContent   = icone;
+      document.getElementById('confirm-titulo').textContent = titulo;
+      document.getElementById('confirm-texto').textContent  = texto;
+      document.getElementById('confirm-ok').textContent     = labelOk;
+      const bg = document.getElementById('confirm-bg');
+      bg.classList.add('open');
+      const fechar = ok => {
+        bg.classList.remove('open');
+        document.getElementById('confirm-ok').removeEventListener('click', onOk);
+        document.getElementById('confirm-cancel').removeEventListener('click', onCancel);
+        bg.removeEventListener('click', onBg);
+        resolve(ok);
+      };
+      const onOk     = () => fechar(true);
+      const onCancel = () => fechar(false);
+      const onBg     = e => { if (e.target === bg) fechar(false); };
+      document.getElementById('confirm-ok').addEventListener('click', onOk);
+      document.getElementById('confirm-cancel').addEventListener('click', onCancel);
+      bg.addEventListener('click', onBg);
+    });
+  }
+
+  window.editar   = function(id) { const c = campsData.find(x => x.id === id); if (c) abrirModal(c); };
+  window.excluir  = async function(id, nome) {
+    const ok = await pedirConfirmacao({
+      titulo: `Excluir "${nome}"?`,
+      texto:  'Esta ação é permanente e não pode ser desfeita.',
+    });
+    if (!ok) return;
+    try { await deletarCampeonato(id); carregarCampeonatos(); }
+    catch(e) { alert('Erro: ' + e.message); }
+  };
+
+  window.selecionarCartaz = function(input) {
+    const file = input.files[0]; if (!file) return;
+    redimensionar(file, 900, b64 => {
+      cartazBase64 = b64;
+      document.getElementById('cartaz-preview-img').src = b64;
+      document.getElementById('cartaz-preview-box').style.display = 'block';
+      document.getElementById('cartaz-upload-area').style.display = 'none';
+    });
+  };
+  window.removerCartaz = function() {
+    cartazBase64 = null; document.getElementById('f-cartaz').value = '';
+    document.getElementById('cartaz-preview-box').style.display = 'none';
+    document.getElementById('cartaz-upload-area').style.display = 'block';
+  };
+  function redimensionar(file, maxSize, cb) {
+    const r = new FileReader();
+    r.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const cv = document.createElement('canvas');
+        const rt = Math.min(maxSize/img.width, maxSize/img.height, 1);
+        cv.width = Math.round(img.width*rt); cv.height = Math.round(img.height*rt);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        cb(cv.toDataURL('image/jpeg', 0.78));
+      }; img.src = e.target.result;
+    }; r.readAsDataURL(file);
+  }
+
+  window.salvar = async function() {
+    const nome = document.getElementById('f-nome').value.trim();
+    if (!nome) { alert('Informe o nome do campeonato.'); return; }
+    const btn = document.getElementById('btn-salvar');
+    btn.textContent = 'Salvando...'; btn.disabled = true;
+    const tipo = document.getElementById('f-tipo').value;
+    const dados = {
+      nome, tipo,
+      data:      document.getElementById('f-data').value,
+      local:     document.getElementById('f-local').value.trim(),
+      descricao: document.getElementById('f-descricao').value.trim(),
+      status:    document.getElementById('f-status').value,
+      emoji:     document.getElementById('f-emoji').value,
+      cartaz:    cartazBase64 || null,
+      marca:     document.getElementById('f-marca').value.trim() || null,
+      clienteId: document.getElementById('f-cliente').value || null,
+    };
+    if (tipo === 'liga') {
+      dados.escopo = document.getElementById('f-escopo').value;
+    }
+    const id = document.getElementById('f-id').value;
+    try {
+      if (id) await atualizarCampeonato(id, dados);
+      else    await criarCampeonato(dados);
+      fecharModal(); carregarCampeonatos();
+    } catch(e) { alert('Erro ao salvar: ' + e.message); }
+    finally { btn.textContent = 'Salvar'; btn.disabled = false; }
+  };
+
+  // ── Planos ───────────────────────────────────────────────
+  async function carregarPlanos() {
+    try {
+      const snap = await buscarPlanos();
+      planosConfig = snap || JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+    } catch(e) {
+      console.warn('Planos indisponível:', e.message);
+      planosConfig = JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+    }
+    preencherPlanos();
+    atualizarExemplo();
+  }
+
+  function preencherPlanos() {
+    const p = planosConfig;
+    const c  = p.chaveamento   || PLANOS_DEFAULT.chaveamento;
+    const eu = p.eventoUnico   || PLANOS_DEFAULT.eventoUnico;
+    const la = p.ligaAcademia  || PLANOS_DEFAULT.ligaAcademia;
+    const li = p.ligaInter     || PLANOS_DEFAULT.ligaInter;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+    set('p-c-peq-max',   c.pequeno?.atletasMax  ?? 100);
+    set('p-c-peq-preco', c.pequeno?.preco       ?? 197);
+    set('p-c-med-max',   c.medio?.atletasMax    ?? 300);
+    set('p-c-med-preco', c.medio?.preco         ?? 347);
+    set('p-c-grd-max',   c.grande?.atletasMax   ?? 600);
+    set('p-c-grd-preco', c.grande?.preco        ?? 597);
+    set('p-c-meg-preco', c.mega?.preco          ?? 897);
+    set('p-eu-sta-max',  eu.starter?.atletasMax ?? 50);
+    set('p-eu-sta-preco',eu.starter?.preco      ?? 99);
+    set('p-eu-pro-max',  eu.pro?.atletasMax     ?? 150);
+    set('p-eu-pro-preco',eu.pro?.preco          ?? 179);
+    set('p-eu-eli-preco',eu.elite?.preco        ?? 299);
+    set('p-la-sta-max',  la.starter?.atletasMax ?? 30);
+    set('p-la-sta-preco',la.starter?.preco      ?? 59);
+    set('p-la-pro-max',  la.pro?.atletasMax     ?? 100);
+    set('p-la-pro-preco',la.pro?.preco          ?? 99);
+    set('p-la-eli-preco',la.elite?.preco        ?? 159);
+    set('p-li-equipe',   li.inscricaoEquipe     ?? 300);
+    set('p-li-atleta',   li.inscricaoAtleta     ?? 40);
+  }
+
+  window.atualizarExemplo = function() {
+    const eq = +document.getElementById('p-li-equipe')?.value || 300;
+    const at = +document.getElementById('p-li-atleta')?.value || 40;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('ex-equipe', eq); set('ex-atleta', at);
+    set('ex-total', (8*eq + 40*at).toLocaleString('pt-BR'));
+  };
+
+  function showSaved(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = 'inline';
+    setTimeout(() => { el.style.display = 'none'; }, 2500);
+  }
+
+  window.salvarPlanosChaveamento = async function() {
+    if (!planosConfig) planosConfig = JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+    planosConfig.chaveamento = {
+      pequeno: { atletasMax:+document.getElementById('p-c-peq-max').value, preco:+document.getElementById('p-c-peq-preco').value },
+      medio:   { atletasMax:+document.getElementById('p-c-med-max').value, preco:+document.getElementById('p-c-med-preco').value },
+      grande:  { atletasMax:+document.getElementById('p-c-grd-max').value, preco:+document.getElementById('p-c-grd-preco').value },
+      mega:    { atletasMax:9999,                                           preco:+document.getElementById('p-c-meg-preco').value }
+    };
+    await salvarPlanos(planosConfig); showSaved('saved-chav');
+  };
+
+  window.salvarPlanosLigaAcademia = async function() {
+    if (!planosConfig) planosConfig = JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+    planosConfig.ligaAcademia = {
+      starter: { atletasMax:+document.getElementById('p-la-sta-max').value,  preco:+document.getElementById('p-la-sta-preco').value },
+      pro:     { atletasMax:+document.getElementById('p-la-pro-max').value,  preco:+document.getElementById('p-la-pro-preco').value },
+      elite:   { atletasMax:9999,                                             preco:+document.getElementById('p-la-eli-preco').value }
+    };
+    planosConfig.eventoUnico = {
+      starter: { atletasMax:+document.getElementById('p-eu-sta-max').value,  preco:+document.getElementById('p-eu-sta-preco').value },
+      pro:     { atletasMax:+document.getElementById('p-eu-pro-max').value,  preco:+document.getElementById('p-eu-pro-preco').value },
+      elite:   { atletasMax:9999,                                             preco:+document.getElementById('p-eu-eli-preco').value }
+    };
+    await salvarPlanos(planosConfig); showSaved('saved-liga-acad');
+  };
+
+  window.salvarPlanosLigaInter = async function() {
+    if (!planosConfig) planosConfig = JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+    planosConfig.ligaInter = {
+      inscricaoEquipe:+document.getElementById('p-li-equipe').value,
+      inscricaoAtleta:+document.getElementById('p-li-atleta').value
+    };
+    await salvarPlanos(planosConfig); showSaved('saved-liga-inter');
+  };
+
+  // ── Clientes ─────────────────────────────────────────────
+  async function carregarClientes() {
+    if (!planosConfig) {
+      try {
+        const snap = await buscarPlanos();
+        planosConfig = snap || JSON.parse(JSON.stringify(PLANOS_DEFAULT));
+      } catch(e) { planosConfig = JSON.parse(JSON.stringify(PLANOS_DEFAULT)); }
+    }
+    try {
+      clientesData = await listarClientes();
+    } catch(e) {
+      console.warn('Clientes indisponível (verifique regras do Firestore):', e.message);
+      clientesData = [];
+      document.getElementById('clientes-list').innerHTML =
+        `<div class="clientes-vazio">⚠️ Sem acesso à coleção <code>clientes</code>.<br><small>Atualize as regras do Firestore — veja as instruções abaixo.</small></div>`;
+    }
+    renderClientes();
+  }
+
+  function valorCliente(c) {
+    if (c.tipo === 'chaveamento') return 'Por evento';
+    if (c.tipo === 'ligaInter')   return 'Por inscrição';
+    if (c.tipo === 'ligaAcademia' && c.tier) {
+      const preco = planosConfig?.ligaAcademia?.[c.tier]?.preco;
+      return preco ? `R$ ${preco}/mês` : '—';
+    }
+    return '—';
+  }
+
+  const LABEL_TIPO = { chaveamento:'🥋 Chaveamento', ligaAcademia:'🏫 Liga Academia', ligaInter:'⚔️ Liga Inter' };
+  const LABEL_TIER = { starter:'Starter', pro:'Pro', elite:'Elite' };
+  const BADGE_STATUS = { ativo:'cs-ativo', pendente:'cs-pendente', inativo:'cs-inativo' };
+  const LABEL_STATUS = { ativo:'✅ Ativo', pendente:'⏳ Pendente', inativo:'🔴 Inativo' };
+
+  let filtroStatus = '';
+
+  window.setFiltro = function(status) {
+    filtroStatus = status;
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+    const idx = ['','ativo','pendente','inativo'].indexOf(status);
+    document.querySelectorAll('.filtro-btn')[idx]?.classList.add('active');
+    renderListaClientes();
+  };
+
+  // Converte Firestore Timestamp ou string para Date
+  function tsToDate(ts) {
+    if (!ts) return null;
+    if (ts.seconds) return new Date(ts.seconds * 1000);
+    if (ts.toDate)  return ts.toDate();
+    return new Date(ts);
+  }
+
+  function formatarData(ts) {
+    const d = tsToDate(ts);
+    if (!d || isNaN(d)) return null;
+    return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  // Quantos dias desde o último pagamento
+  function diasDesde(ts) {
+    const d = tsToDate(ts);
+    if (!d || isNaN(d)) return null;
+    return Math.floor((Date.now() - d.getTime()) / 86400000);
+  }
+
+  function renderClientes() {
+    const ativos    = clientesData.filter(c => c.status === 'ativo').length;
+    const pendentes = clientesData.filter(c => c.status === 'pendente').length;
+    const inativos  = clientesData.filter(c => c.status === 'inativo').length;
+    const mrr = clientesData
+      .filter(c => c.status === 'ativo' && c.tipo === 'ligaAcademia' && c.tier)
+      .reduce((s, c) => s + (planosConfig?.ligaAcademia?.[c.tier]?.preco || 0), 0);
+
+    document.getElementById('resumo-clientes').innerHTML = `
+      <div class="resumo-stat"><h4>${clientesData.length}</h4><p>Total</p></div>
+      <div class="resumo-stat"><h4 style="color:#059669">${ativos}</h4><p>Ativos</p></div>
+      <div class="resumo-stat"><h4 style="color:#D97706">${pendentes}</h4><p>Pendentes</p></div>
+      <div class="resumo-stat"><h4 style="color:#64748B">${inativos}</h4><p>Inativos</p></div>
+      ${mrr > 0 ? `<div class="resumo-stat"><div class="receita-total">R$ ${mrr}</div><p>MRR / mês</p></div>` : ''}
+      ${mrr > 0 ? `<div class="resumo-stat"><div class="receita-total">R$ ${mrr * 12}</div><p>Projeção anual</p></div>` : ''}
+    `;
+
+    // Alerta de pendentes
+    const alertaEl = document.getElementById('alerta-pendentes');
+    if (pendentes > 0) {
+      alertaEl.innerHTML = `<div class="alerta-pendente">⚠️ <strong>${pendentes} cliente${pendentes>1?'s':''} com pagamento pendente.</strong> Use o botão 💬 Cobrar para enviar lembrete via WhatsApp.</div>`;
+    } else {
+      alertaEl.innerHTML = '';
+    }
+
+    renderListaClientes();
+  }
+
+  function renderListaClientes() {
+    const lista = filtroStatus
+      ? clientesData.filter(c => c.status === filtroStatus)
+      : clientesData;
+
+    if (!lista.length) {
+      document.getElementById('clientes-list').innerHTML =
+        filtroStatus
+          ? `<div class="clientes-vazio">Nenhum cliente com status "${LABEL_STATUS[filtroStatus]||filtroStatus}".</div>`
+          : `<div class="clientes-vazio">👥 Nenhum cliente cadastrado.<br><small>Clique em "+ Novo Cliente" para começar.</small></div>`;
+      return;
+    }
+
+    document.getElementById('clientes-list').innerHTML = lista.map(c => {
+      // Info de pagamento
+      const ultimoPag   = formatarData(c.ultimoPagamento);
+      const diasPag     = diasDesde(c.ultimoPagamento);
+      const atrasado    = c.status !== 'ativo' && diasPag !== null && diasPag > 30;
+      const pagInfoHtml = ultimoPag
+        ? `<div class="cliente-pagamento ${atrasado?'atrasado':''}">
+             💳 Último pagamento: ${ultimoPag}${diasPag !== null ? ` (${diasPag}d atrás)` : ''}
+           </div>`
+        : `<div class="cliente-pagamento">💳 Nenhum pagamento registrado</div>`;
+
+      // Botão cobrar (para pendentes/inativos com tel ou email)
+      const podeCobrar = (c.status === 'pendente' || c.status === 'inativo') && (c.tel || c.email);
+      const nomeSeguro = c.nome.replace(/'/g,"\\'");
+      const telNum     = (c.tel||'').replace(/\D/g,'');
+      const tierLabel  = LABEL_TIER[c.tier] || '';
+      const valorPag   = valorCliente(c);
+      const msgCobrar  = encodeURIComponent(
+        `Olá, ${c.nome}! Tudo bem?\n\nPassando para avisar que identificamos uma pendência no seu plano *${tierLabel || LABEL_TIPO[c.tipo]||c.tipo}* — ${valorPag} — na plataforma *COMPETIÇÃO BJJ*.\n\nPor favor, regularize para continuar com acesso completo. Qualquer dúvida, estou à disposição! 🙏`
+      );
+      const linkCobrar = telNum
+        ? `https://wa.me/55${telNum}?text=${msgCobrar}`
+        : `https://wa.me/?text=${msgCobrar}`;
+      const btnCobrar  = podeCobrar
+        ? `<a href="${linkCobrar}" target="_blank" class="btn-cobrar">💬 Cobrar</a>`
+        : '';
+
+      return `
+        <div class="cliente-row">
+          <div class="cliente-info-block">
+            <div class="cliente-nome">${c.nome}</div>
+            <div class="cliente-plano-info">${LABEL_TIPO[c.tipo]||c.tipo}${c.tier?' · '+LABEL_TIER[c.tier]:''}${c.inicio?' · desde '+new Date(c.inicio+'T12:00').toLocaleDateString('pt-BR'):''}${c.email?' · '+c.email:''}${c.tel?' · '+c.tel:''}</div>
+            ${pagInfoHtml}
+            ${c.obs ? `<div class="cliente-obs">${c.obs}</div>` : ''}
+          </div>
+          <span class="cliente-status-badge ${BADGE_STATUS[c.status]||'cs-inativo'}">${LABEL_STATUS[c.status]||c.status}</span>
+          <div class="cliente-valor">${valorCliente(c)}</div>
+          <div class="cliente-acoes">
+            ${btnCobrar}
+            <button class="btn-sm ${c.uid?'':'primary'}" onclick="criarAcessoCliente('${c.id}','${nomeSeguro}')">
+              ${c.uid ? '✉️ Reenviar' : '🔑 Criar acesso'}
+            </button>
+            <button class="btn-sm" onclick="editarCliente('${c.id}')">✏️</button>
+            <button class="btn-sm danger" onclick="excluirCliente('${c.id}','${nomeSeguro}')">🗑️</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  window.abrirModalCliente = function(dados) {
+    document.getElementById('c-id').value     = dados?.id     || '';
+    document.getElementById('c-nome').value   = dados?.nome   || '';
+    document.getElementById('c-email').value  = dados?.email  || '';
+    document.getElementById('c-tel').value    = dados?.tel    || '';
+    document.getElementById('c-tipo').value   = dados?.tipo   || 'ligaAcademia';
+    document.getElementById('c-tier').value   = dados?.tier   || 'pro';
+    document.getElementById('c-status').value = dados?.status || 'ativo';
+    document.getElementById('c-obs').value    = dados?.obs    || '';
+    document.getElementById('c-inicio').value = dados?.inicio || new Date().toISOString().split('T')[0];
+    document.getElementById('modal-cliente-titulo').textContent = dados ? 'Editar Cliente' : 'Novo Cliente';
+    onTipoClienteChange();
+    if (document.getElementById('c-tipo').value === 'ligaAcademia') atualizarLinkAssinatura();
+    document.getElementById('modal-cliente-bg').classList.add('open');
+  };
+
+  // Links de assinatura InfinitePay por tier
+  const PLANOS_LINKS = {
+    starter: 'https://invoice.infinitepay.io/plans/grupo_lotta/aB2vLeYaNF',
+    pro:     'https://invoice.infinitepay.io/plans/grupo_lotta/vfGO2BUdWL',
+    elite:   'https://invoice.infinitepay.io/plans/grupo_lotta/DU64bZpy2w'
+  };
+
+  window.onTipoClienteChange = function() {
+    const tipo = document.getElementById('c-tipo').value;
+    const isLiga = tipo === 'ligaAcademia';
+    document.getElementById('c-tier-row').style.display = isLiga ? 'block' : 'none';
+    document.getElementById('c-link-row').style.display = isLiga ? 'block' : 'none';
+    if (isLiga) atualizarLinkAssinatura();
+  };
+
+  window.atualizarLinkAssinatura = function() {
+    const tier = document.getElementById('c-tier').value;
+    const link = PLANOS_LINKS[tier] || '';
+    document.getElementById('c-link-display').value = link;
+    const nome = document.getElementById('c-nome').value.trim() || 'sua academia';
+    const msg  = encodeURIComponent(`Olá! Segue o link para assinar o plano ${tier.charAt(0).toUpperCase()+tier.slice(1)} da COMPETIÇÃO BJJ:\n${link}`);
+    document.getElementById('c-link-whatsapp').href = `https://wa.me/?text=${msg}`;
+  };
+
+  window.copiarLinkAssinatura = function() {
+    const link = document.getElementById('c-link-display').value;
+    if (!link) return;
+    navigator.clipboard.writeText(link).then(() => {
+      const btn = event.target;
+      btn.textContent = '✅ Copiado!';
+      setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+    });
+  };
+
+  window.fecharModalCliente = function() {
+    document.getElementById('modal-cliente-bg').classList.remove('open');
+  };
+
+  window.salvarCliente = async function() {
+    const nome = document.getElementById('c-nome').value.trim();
+    if (!nome) { alert('Informe o nome do cliente.'); return; }
+    const btn = document.getElementById('btn-salvar-cliente');
+    btn.textContent = 'Salvando...'; btn.disabled = true;
+    const tipo = document.getElementById('c-tipo').value;
+    const dados = {
+      nome, tipo,
+      email:  document.getElementById('c-email').value.trim(),
+      tel:    document.getElementById('c-tel').value.trim(),
+      tier:   tipo === 'ligaAcademia' ? document.getElementById('c-tier').value : null,
+      status: document.getElementById('c-status').value,
+      obs:    document.getElementById('c-obs').value.trim(),
+      inicio: document.getElementById('c-inicio').value,
+    };
+    const id = document.getElementById('c-id').value;
+    try {
+      if (id) await atualizarCliente(id, dados);
+      else    await criarCliente(dados);
+      fecharModalCliente(); carregarClientes();
+    } catch(e) { alert('Erro: ' + e.message); }
+    finally { btn.textContent = 'Salvar'; btn.disabled = false; }
+  };
+
+  window.copiarLinkModal = function() {
+    const inp = document.getElementById('modal-link-input');
+    inp.select();
+    navigator.clipboard.writeText(inp.value).then(() => {
+      const btn = document.getElementById('btn-copiar-modal');
+      btn.textContent = '✅ Copiado!';
+      setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+    }).catch(() => {
+      document.execCommand('copy');
+    });
+  };
+
+  window.criarAcessoCliente = async function(id, nome) {
+    const btn = event.target.closest('button');
+    const txtOriginal = btn.textContent.trim();
+    btn.textContent = '⏳ Aguarde...'; btn.disabled = true;
+    try {
+      const res  = await fetch('/api/criar-conta-cliente', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clienteId: id })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
+      // Atualiza título do modal conforme e-mail foi enviado ou não
+      const h3 = document.querySelector('#modal-link-bg h3');
+      if (h3) h3.textContent = data.emailEnviado ? '✅ Acesso criado e e-mail enviado!' : '✅ Acesso criado!';
+      const subp = document.querySelector('#modal-link-bg p');
+      if (subp) subp.textContent = data.emailEnviado
+        ? `E-mail enviado automaticamente para ${data.email}. O link abaixo é o mesmo, caso precise reenviar:`
+        : 'Copie o link abaixo e envie para o cliente definir sua senha:';
+
+      // Mostra modal com link selecionável
+      const inp = document.getElementById('modal-link-input');
+      inp.value = data.resetLink;
+      const wa = encodeURIComponent(`Olá! Acesse o link para criar sua senha no COMPETIÇÃO BJJ:\n${data.resetLink}\n\nApós criar a senha, entre em: https://competicaobjj.vercel.app/login-cliente.html`);
+      document.getElementById('modal-link-whatsapp').href = `https://wa.me/?text=${wa}`;
+      document.getElementById('modal-link-bg').classList.add('open');
+      setTimeout(() => { inp.select(); navigator.clipboard.writeText(data.resetLink).catch(()=>{}); }, 100);
+      carregarClientes();
+    } catch(e) {
+      alert('Erro: ' + e.message);
+      btn.textContent = txtOriginal; btn.disabled = false;
+    }
+  };
+
+  window.editarCliente = function(id) {
+    const c = clientesData.find(x => x.id === id); if (c) abrirModalCliente(c);
+  };
+  window.excluirCliente = async function(id, nome) {
+    const ok = await pedirConfirmacao({
+      titulo: `Excluir cliente "${nome}"?`,
+      texto:  'Campeonatos vinculados não serão apagados.',
+    });
+    if (!ok) return;
+    try { await deletarCliente(id); carregarClientes(); }
+    catch(e) { alert('Erro: ' + e.message); }
+  };
+</script>
+</body>
+</html>
+

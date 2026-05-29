@@ -341,8 +341,8 @@ function fecharModal() {
 
 // ── Verificar identidade ────────────────────────────────────────────────
 const CATS_IDADE_C = ['Pré-Mirim','Mirim 1','Mirim 2','Infantil 1','Infantil 2','Infanto-Juvenil','Juvenil','Adulto','Master 1','Master 2','Master 3','Master 4','Master 5','Master 6'];
-const PESOS_MASC_C = ['Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Super Pesadíssimo','Absoluto'];
-const PESOS_FEM_C  = ['Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Absoluto'];
+const PESOS_MASC_C = ['Galo','Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Absoluto'];
+const PESOS_FEM_C  = ['Galo','Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Absoluto'];
 
 // Helpers de compatibilidade — inscrições antigas salvam "categoria" e "peso" (número)
 // Novas realocações de checagem salvam "categoria_idade" e "categoria_peso"
@@ -354,7 +354,7 @@ function getCatIdade(insc) {
   return insc.categoria_idade || insc.categoria || '?';
 }
 const _PESOS_MASC_LIM = [57.5, 64, 70, 76, 82.3, 88.3, 94.3, 100.5, 999];
-const _PESOS_FEM_LIM  = [48.5, 53.5, 58.5, 64, 69, 74, 79.3, 999];
+const _PESOS_FEM_LIM  = [48.5, 53.5, 58.5, 64, 69, 74, 79.3, 84.3, 999];
 function calcCatPeso(peso, sexo) {
   const p = parseFloat(peso) || 0;
   const m = (sexo || '').toUpperCase() === 'M' || (sexo || '').toUpperCase() === 'MASCULINO';

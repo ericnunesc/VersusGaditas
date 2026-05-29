@@ -25,37 +25,40 @@ const CATEGORIAS_IDADE = [
   { nome: "Master 6", idadeMin: 56, idadeMax: 99, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] }
 ];
 
-// Categorias de Peso - Masculino (GI)
+// Categorias de Peso - Masculino Adulto/Master (GI) — tabela oficial CBJJ/IBJJF
 const CATEGORIAS_PESO_MASC = [
-  { nome: "Pluma", pesoMax: 57.5 },
-  { nome: "Leve", pesoMax: 64.0 },
-  { nome: "Médio", pesoMax: 70.0 },
-  { nome: "Meio-Pesado", pesoMax: 76.0 },
-  { nome: "Pesado", pesoMax: 82.3 },
-  { nome: "Super Pesado", pesoMax: 88.3 },
-  { nome: "Pesadíssimo", pesoMax: 94.3 },
-  { nome: "Super Pesadíssimo", pesoMax: 100.5 },
-  { nome: "Absoluto", pesoMax: 999 }
+  { nome: "Galo",          pesoMax: 57.5 },
+  { nome: "Pluma",         pesoMax: 64.0 },
+  { nome: "Leve",          pesoMax: 70.0 },
+  { nome: "Médio",         pesoMax: 76.0 },
+  { nome: "Meio-Pesado",   pesoMax: 82.3 },
+  { nome: "Pesado",        pesoMax: 88.3 },
+  { nome: "Super Pesado",  pesoMax: 94.3 },
+  { nome: "Pesadíssimo",   pesoMax: 100.5 },
+  { nome: "Absoluto",      pesoMax: 999 }
 ];
 
-// Categorias de Peso - Feminino (GI)
+// Categorias de Peso - Feminino Adulto/Master (GI) — tabela oficial CBJJ/IBJJF
 const CATEGORIAS_PESO_FEM = [
-  { nome: "Pluma", pesoMax: 48.5 },
-  { nome: "Leve", pesoMax: 53.5 },
-  { nome: "Médio", pesoMax: 58.5 },
-  { nome: "Meio-Pesado", pesoMax: 64.0 },
-  { nome: "Pesado", pesoMax: 69.0 },
-  { nome: "Super Pesado", pesoMax: 74.0 },
-  { nome: "Pesadíssimo", pesoMax: 79.3 },
-  { nome: "Absoluto", pesoMax: 999 }
+  { nome: "Galo",          pesoMax: 48.5 },
+  { nome: "Pluma",         pesoMax: 53.5 },
+  { nome: "Leve",          pesoMax: 58.5 },
+  { nome: "Médio",         pesoMax: 64.0 },
+  { nome: "Meio-Pesado",   pesoMax: 69.0 },
+  { nome: "Pesado",        pesoMax: 74.0 },
+  { nome: "Super Pesado",  pesoMax: 79.3 },
+  { nome: "Pesadíssimo",   pesoMax: 84.3 },
+  { nome: "Absoluto",      pesoMax: 999 }
 ];
 
-// Categorias de Peso para Infantil/Juvenil
+// Categorias de Peso para Infantil/Juvenil — limites CBJJ por faixa etária
+// Pré-Mirim a Infanto-Juvenil usam faixas leves; Juvenil se aproxima do adulto
 const CATEGORIAS_PESO_INFANTIL = [
-  { nome: "Leve", pesoMax: 40 },
-  { nome: "Médio", pesoMax: 50 },
-  { nome: "Pesado", pesoMax: 60 },
-  { nome: "Super Pesado", pesoMax: 999 }
+  { nome: "Pluma",         pesoMax: 30 },
+  { nome: "Leve",          pesoMax: 40 },
+  { nome: "Médio",         pesoMax: 50 },
+  { nome: "Pesado",        pesoMax: 65 },
+  { nome: "Super Pesado",  pesoMax: 999 }
 ];
 
 // Estado global do app
