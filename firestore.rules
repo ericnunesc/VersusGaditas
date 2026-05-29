@@ -50,7 +50,14 @@ service cloud.firestore {
         // Qualquer pessoa pode criar inscrição (formulário público)
         allow read: if true;
         allow create: if true;
-        allow update, delete: if isAdmin();
+        allow delete: if isAdmin();
+        // Admin tem acesso total; atleta pode atualizar apenas os campos
+        // de checagem (verificação via CPF+email feita no app).
+        allow update: if isAdmin() ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'categoria_idade', 'categoria_peso',
+            'historicoChecagem', 'ultimaAlteracaoChecagem'
+          ]);
       }
 
       match /atletas/{docId} {
