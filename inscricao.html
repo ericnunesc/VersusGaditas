@@ -594,12 +594,26 @@
     }
 
     if (id) {
-      // Carrega nome do campeonato no título
+      // Carrega nome do campeonato e verifica status
       buscarCampeonato(id).then(c => {
         if (c) {
           document.title = `Inscrição — ${c.nome}`;
           const sub = document.querySelector('.subtitle');
           if (sub) sub.textContent = `Inscrição — ${c.nome}`;
+
+          // Bloqueia se inscrições estiverem encerradas
+          if (c.status === 'encerrado') {
+            document.getElementById('formBox')?.remove();
+            const enc = document.createElement('div');
+            enc.style.cssText = 'max-width:500px;margin:60px auto;text-align:center;padding:32px;background:#FFFBEB;border:2px solid #FDE68A;border-radius:16px;';
+            enc.innerHTML = `
+              <div style="font-size:3rem;margin-bottom:12px">🔒</div>
+              <h2 style="color:#92400E;font-size:1.2rem;margin-bottom:8px">Inscrições encerradas</h2>
+              <p style="color:#B45309;font-size:0.88rem;line-height:1.6">As inscrições para <strong>${c.nome}</strong> foram encerradas.<br>Entre em contato com a organização para mais informações.</p>
+              ${c.checagemInicio ? `<hr style="margin:16px 0;border:none;border-top:1px solid #FDE68A"><p style="color:#B45309;font-size:0.82rem">🔍 Período de checagem disponível — <a href="checagem.html?id=${id}" style="color:#7C3AED;font-weight:600">acesse aqui</a></p>` : ''}
+            `;
+            document.querySelector('main, .container, body').prepend(enc);
+          }
         }
       });
 

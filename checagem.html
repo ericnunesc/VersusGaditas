@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checagem — Competição BJJ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ouro: #C9A03D;
+      --bg: #060608;
+      --bg2: #0E0E12;
+      --bg3: #161620;
+      --borda: #1E1E2A;
+      --texto: #E8E8F0;
+      --texto-fraco: #5A5A7A;
+      --verde: #00E68A;
+      --roxo: #7C3AED;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--texto); min-height: 100vh; }
+
+    .header {
+      background: var(--bg2); border-bottom: 1px solid var(--borda);
+      padding: 16px 24px; display: flex; align-items: center; gap: 14px;
+    }
+    .header-logo { font-size: 1.6rem; }
+    .header-text h1 { font-family: 'Oswald', sans-serif; font-size: 1.1rem; color: var(--ouro); letter-spacing: 1px; }
+    .header-text p  { font-size: 0.72rem; color: var(--texto-fraco); margin-top: 2px; }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    /* Status bar */
+    .status-bar {
+      border-radius: 12px; padding: 14px 20px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .status-bar.aberto   { background: rgba(0,230,138,0.08); border: 1px solid rgba(0,230,138,0.3); }
+    .status-bar.encerrado { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); }
+    .status-bar.aguardando { background: rgba(201,160,61,0.08); border: 1px solid rgba(201,160,61,0.3); }
+    .status-icon { font-size: 1.6rem; }
+    .status-info h3 { font-family: 'Oswald', sans-serif; font-size: 0.95rem; letter-spacing: 1px; }
+    .status-info p  { font-size: 0.75rem; color: var(--texto-fraco); margin-top: 3px; }
+
+    /* Categorias */
+    .cat-titulo {
+      font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 2px;
+      color: var(--texto-fraco); text-transform: uppercase; margin: 24px 0 10px;
+    }
+    .cat-bloco {
+      background: var(--bg2); border: 1px solid var(--borda); border-radius: 12px;
+      overflow: hidden; margin-bottom: 12px;
+    }
+    .cat-header {
+      padding: 11px 18px; background: var(--bg3); border-bottom: 1px solid var(--borda);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+    }
+    .cat-nome { font-family: 'Oswald', sans-serif; font-size: 0.92rem; color: var(--ouro); letter-spacing: 1px; }
+    .cat-count { font-size: 0.7rem; color: var(--texto-fraco); }
+    .atleta-row {
+      padding: 11px 18px; display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid var(--borda); cursor: pointer; transition: background .15s;
+    }
+    .atleta-row:last-child { border-bottom: none; }
+    .atleta-row:hover { background: rgba(124,58,237,0.06); }
+    .atleta-idx  { font-size: 0.7rem; color: var(--texto-fraco); width: 20px; text-align: center; }
+    .atleta-nome { flex: 1; font-size: 0.9rem; font-weight: 600; }
+    .atleta-acad { font-size: 0.72rem; color: var(--texto-fraco); }
+    .atleta-faixa { font-size: 0.7rem; background: rgba(201,160,61,0.15); color: var(--ouro); padding: 2px 8px; border-radius: 8px; }
+    .btn-realocar-row { background: var(--roxo); border: none; color: #fff; padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .btn-realocar-row:disabled { background: #333; color: #777; cursor: default; }
+
+    /* Modal verificação */
+    .modal-bg {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+      z-index: 300; align-items: center; justify-content: center;
+    }
+    .modal-bg.aberto { display: flex; }
+    .modal {
+      background: #14141f; border: 1px solid var(--borda); border-radius: 16px;
+      padding: 26px; width: min(440px, 95vw); box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
+    .modal h3 { font-family: 'Oswald', sans-serif; color: var(--ouro); font-size: 1rem; margin-bottom: 6px; }
+    .modal .sub { font-size: 0.78rem; color: var(--texto-fraco); margin-bottom: 20px; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 0.7rem; color: var(--texto-fraco); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .05em; }
+    .field input, .field select {
+      width: 100%; background: #0C0C18; border: 1px solid #2A2A40; border-radius: 8px;
+      color: var(--texto); padding: 9px 12px; font-size: 0.88rem; font-family: inherit;
+    }
+    .field input[disabled] { opacity: 0.45; }
+    .field input:focus, .field select:focus { outline: none; border-color: var(--roxo); }
+    .field .hint { font-size: 0.7rem; color: #A78BFA; margin-top: 4px; }
+    .modal-acoes { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-cancelar {
+      flex: 1; background: transparent; border: 1px solid #333350; color: #888;
+      padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-family: inherit;
+    }
+    .btn-confirmar {
+      flex: 2; background: var(--roxo); border: none; color: #fff;
+      padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700; font-family: inherit;
+    }
+    .btn-confirmar:hover { background: #6D28D9; }
+    .erro-msg { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 10px 14px; font-size: 0.8rem; color: #FCA5A5; margin-bottom: 14px; display: none; }
+
+    /* Categoria atual no modal */
+    .cat-atual-box {
+      background: rgba(201,160,61,0.07); border: 1px solid rgba(201,160,61,0.2);
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
+    }
+    .cat-atual-box .label { font-size: 0.68rem; color: var(--texto-fraco); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+    .cat-atual-box .valor { font-family: 'Oswald', sans-serif; color: var(--ouro); font-size: 0.95rem; }
+
+    /* Spinner */
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--roxo); color: #fff; padding: 12px 24px; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 600; z-index: 9999;
+      box-shadow: 0 4px 24px rgba(124,58,237,.5); white-space: nowrap; display: none;
+    }
+
+    .vazio { text-align: center; padding: 48px 20px; color: var(--texto-fraco); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">🔍</div>
+  <div class="header-text">
+    <h1 id="header-titulo">CHECAGEM — COMPETIÇÃO BJJ</h1>
+    <p id="header-sub">Verificação e ajuste de categorias</p>
+  </div>
+</div>
+
+<div class="container">
+  <div id="status-bar" class="status-bar aguardando">
+    <div class="status-icon">⏳</div>
+    <div class="status-info">
+      <h3>Carregando...</h3>
+      <p>Aguarde enquanto carregamos os dados do evento.</p>
+    </div>
+  </div>
+  <div id="lista-cats"></div>
+</div>
+
+<!-- Modal: Verificar identidade -->
+<div class="modal-bg" id="modal-verif" onclick="if(event.target===this)fecharModal()">
+  <div class="modal">
+    <h3 id="mv-titulo">Verificar Identidade</h3>
+    <p class="sub" id="mv-sub">Informe seus dados para confirmar sua identidade e acessar a realocação.</p>
+    <div class="erro-msg" id="mv-erro"></div>
+
+    <div class="field">
+      <label>CPF (somente números)</label>
+      <input type="text" id="mv-cpf" placeholder="00000000000" maxlength="14" inputmode="numeric" />
+    </div>
+    <div class="field">
+      <label>E-mail cadastrado</label>
+      <input type="email" id="mv-email" placeholder="seuemail@exemplo.com" />
+    </div>
+    <div class="modal-acoes">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-confirmar" id="btn-verificar" onclick="verificarIdentidade()">Confirmar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Realocar categoria -->
+<div class="modal-bg" id="modal-real" onclick="if(event.target===this)fecharModalReal()">
+  <div class="modal">
+    <h3>🔀 Realocar Categoria</h3>
+    <p class="sub">Selecione a nova categoria desejada. As regras CBJJ se aplicam.</p>
+
+    <div class="cat-atual-box">
+      <div class="label">Categoria atual</div>
+      <div class="valor" id="mr-cat-atual">—</div>
+    </div>
+
+    <div class="erro-msg" id="mr-erro"></div>
+
+    <div class="field">
+      <label>Nome</label>
+      <input type="text" id="mr-nome" disabled />
+    </div>
+    <div class="field">
+      <label>Faixa (bloqueada)</label>
+      <input type="text" id="mr-faixa" disabled />
+    </div>
+    <div class="field" id="mr-row-catidade">
+      <label>Categoria de Idade</label>
+      <select id="mr-catidade"></select>
+    </div>
+    <div class="field">
+      <label>Categoria de Peso</label>
+      <select id="mr-peso"></select>
+    </div>
+    <p class="hint" id="mr-hint" style="font-size:0.7rem;color:#A78BFA;margin-top:-8px;margin-bottom:8px"></p>
+    <div class="modal-acoes">
+      <button class="btn-cancelar" onclick="fecharModalReal()">Cancelar</button>
+      <button class="btn-confirmar" id="btn-salvar-real" onclick="salvarRealocacao()">✅ Confirmar Realocação</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { buscarCampeonato, listarInscricoes, atualizarInscricao } from './js/firebase.js';
+
+const params    = new URLSearchParams(location.search);
+const campId    = params.get('id');
+let campeonato  = null;
+let inscricoes  = []; // só aprovadas
+let inscAtual   = null; // inscrição sendo realocada
+
+// ── Helpers ────────────────────────────────────────────────────────────
+function toast(msg, dur = 3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, dur);
+}
+
+function fmtDt(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function normCPF(v) { return String(v || '').replace(/\D/g, ''); }
+
+function janelaCheagem() {
+  if (!campeonato?.checagemInicio || !campeonato?.checagemFim) return 'sem_janela';
+  const agora = new Date();
+  const ini   = new Date(campeonato.checagemInicio);
+  const fim   = new Date(campeonato.checagemFim);
+  if (agora < ini) return 'aguardando';
+  if (agora > fim) return 'encerrada';
+  return 'aberta';
+}
+
+// ── Status bar ─────────────────────────────────────────────────────────
+function renderStatusBar() {
+  const bar = document.getElementById('status-bar');
+  const j   = janelaCheagem();
+  if (campeonato?.status !== 'encerrado') {
+    bar.className = 'status-bar aguardando';
+    bar.innerHTML = `<div class="status-icon">📝</div><div class="status-info"><h3>Inscrições ainda abertas</h3><p>A checagem estará disponível após o encerramento das inscrições.</p></div>`;
+    return;
+  }
+  if (j === 'sem_janela') {
+    bar.className = 'status-bar aguardando';
+    bar.innerHTML = `<div class="status-icon">⏳</div><div class="status-info"><h3>Checagem disponível em breve</h3><p>O período de checagem ainda não foi definido pela organização.</p></div>`;
+  } else if (j === 'aguardando') {
+    bar.className = 'status-bar aguardando';
+    bar.innerHTML = `<div class="status-icon">⏳</div><div class="status-info"><h3>Checagem ainda não iniciou</h3><p>Início: ${fmtDt(campeonato.checagemInicio)} · Fim: ${fmtDt(campeonato.checagemFim)}</p></div>`;
+  } else if (j === 'aberta') {
+    bar.className = 'status-bar aberto';
+    bar.innerHTML = `<div class="status-icon">✅</div><div class="status-info"><h3 style="color:#00E68A">CHECAGEM ABERTA</h3><p>Até ${fmtDt(campeonato.checagemFim)} · Clique no seu nome para ajustar a categoria.</p></div>`;
+  } else {
+    bar.className = 'status-bar encerrado';
+    bar.innerHTML = `<div class="status-icon">🔒</div><div class="status-info"><h3 style="color:#EF4444">Checagem encerrada</h3><p>O período de checagem foi encerrado em ${fmtDt(campeonato.checagemFim)}.</p></div>`;
+  }
+}
+
+// ── Renderizar categorias ───────────────────────────────────────────────
+function renderLista() {
+  const container = document.getElementById('lista-cats');
+  if (!inscricoes.length) {
+    container.innerHTML = '<div class="vazio">Nenhum atleta aprovado encontrado.</div>';
+    return;
+  }
+
+  // Agrupar por categoria
+  const grupos = {};
+  inscricoes.forEach(i => {
+    const cat = `${i.sexo === 'M' ? 'Masculino' : 'Feminino'} | ${i.categoria_idade || '?'} | ${i.faixa || '?'} | ${i.categoria_peso || '?'}`;
+    if (!grupos[cat]) grupos[cat] = [];
+    grupos[cat].push(i);
+  });
+
+  const janela = janelaCheagem();
+  const podeAlterar = janela === 'aberta';
+
+  let html = '';
+  Object.keys(grupos).sort().forEach(cat => {
+    const lista = grupos[cat];
+    html += `<div class="cat-bloco">
+      <div class="cat-header">
+        <span class="cat-nome">🏅 ${cat}</span>
+        <span class="cat-count">${lista.length} atleta(s)</span>
+      </div>`;
+    lista.forEach((insc, idx) => {
+      html += `<div class="atleta-row" onclick="clicarAtleta('${insc.id}')">
+        <span class="atleta-idx">${idx + 1}</span>
+        <div style="flex:1">
+          <div class="atleta-nome">${insc.nome || insc.nomeAtleta || '—'}</div>
+          <div class="atleta-acad">${insc.academia || insc.equipe || ''}</div>
+        </div>
+        <span class="atleta-faixa">${insc.faixa || ''}</span>
+        <button class="btn-realocar-row" ${podeAlterar ? '' : 'disabled'} onclick="event.stopPropagation();clicarAtleta('${insc.id}')">
+          ${podeAlterar ? '🔀 Ajustar' : '—'}
+        </button>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ── Abrir modal verificação ─────────────────────────────────────────────
+window.clicarAtleta = function(inscId) {
+  if (janelaCheagem() !== 'aberta') return;
+  inscAtual = inscricoes.find(i => i.id === inscId) || null;
+  if (!inscAtual) return;
+  document.getElementById('mv-titulo').textContent = `Verificar: ${inscAtual.nome || inscAtual.nomeAtleta}`;
+  document.getElementById('mv-sub').textContent = 'Informe o CPF e e-mail cadastrados na inscrição para confirmar sua identidade.';
+  document.getElementById('mv-cpf').value   = '';
+  document.getElementById('mv-email').value = '';
+  document.getElementById('mv-erro').style.display = 'none';
+  document.getElementById('modal-verif').classList.add('aberto');
+};
+
+window.fecharModal = function() {
+  document.getElementById('modal-verif').classList.remove('aberto');
+  inscAtual = null;
+};
+
+// ── Verificar identidade ────────────────────────────────────────────────
+const CATS_IDADE_C = ['Pré-Mirim','Mirim 1','Mirim 2','Infantil 1','Infantil 2','Infanto-Juvenil','Juvenil','Adulto','Master 1','Master 2','Master 3','Master 4','Master 5','Master 6'];
+const PESOS_MASC_C = ['Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Super Pesadíssimo','Absoluto'];
+const PESOS_FEM_C  = ['Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Absoluto'];
+
+window.verificarIdentidade = async function() {
+  const cpfInput   = normCPF(document.getElementById('mv-cpf').value);
+  const emailInput = document.getElementById('mv-email').value.trim().toLowerCase();
+  const erroEl     = document.getElementById('mv-erro');
+  const btn        = document.getElementById('btn-verificar');
+
+  erroEl.style.display = 'none';
+  if (!cpfInput || !emailInput) {
+    erroEl.textContent = 'Preencha CPF e e-mail.';
+    erroEl.style.display = 'block'; return;
+  }
+
+  const cpfCad   = normCPF(inscAtual.cpf);
+  const emailCad = (inscAtual.email || '').trim().toLowerCase();
+
+  if (cpfCad !== cpfInput || emailCad !== emailInput) {
+    erroEl.textContent = 'CPF ou e-mail não correspondem à inscrição. Verifique os dados.';
+    erroEl.style.display = 'block'; return;
+  }
+
+  // Identidade confirmada — abre modal de realocação
+  fecharModal();
+  abrirModalReal(inscAtual);
+};
+
+// ── Modal realocação ────────────────────────────────────────────────────
+function abrirModalReal(insc) {
+  const catAtual = `${insc.sexo === 'M' ? 'Masculino' : 'Feminino'} | ${insc.categoria_idade || '?'} | ${insc.faixa || '?'} | ${insc.categoria_peso || '?'}`;
+  document.getElementById('mr-cat-atual').textContent = catAtual;
+  document.getElementById('mr-nome').value  = insc.nome || insc.nomeAtleta || '';
+  document.getElementById('mr-faixa').value = insc.faixa || '';
+  document.getElementById('mr-erro').style.display = 'none';
+
+  const catIdadeAtual = insc.categoria_idade || 'Adulto';
+  const isMaster = catIdadeAtual.startsWith('Master');
+  const selCat   = document.getElementById('mr-catidade');
+  selCat.innerHTML = '';
+  const idxAtual = CATS_IDADE_C.indexOf(catIdadeAtual);
+  const opcoes = isMaster
+    ? CATS_IDADE_C.filter((c, i) => c.startsWith('Master') && i <= idxAtual)
+    : [catIdadeAtual];
+  opcoes.forEach(op => {
+    const o = document.createElement('option');
+    o.value = op; o.textContent = op;
+    if (op === catIdadeAtual) o.selected = true;
+    selCat.appendChild(o);
+  });
+
+  const selPeso   = document.getElementById('mr-peso');
+  selPeso.innerHTML = '';
+  const pesosDisp = insc.sexo === 'M' ? PESOS_MASC_C : PESOS_FEM_C;
+  const catPesoAtual = insc.categoria_peso || '';
+  pesosDisp.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    if (p === catPesoAtual) o.selected = true;
+    selPeso.appendChild(o);
+  });
+
+  const hints = [];
+  if (isMaster) hints.push('⬇️ Masters: somente descer de categoria de idade.');
+  else hints.push('ℹ️ Categoria de idade bloqueada. Apenas o peso pode ser alterado.');
+  hints.push('🥋 Faixa não pode ser alterada (regras CBJJ).');
+  document.getElementById('mr-hint').textContent = hints.join(' ');
+
+  document.getElementById('modal-real').classList.add('aberto');
+}
+
+window.fecharModalReal = function() {
+  document.getElementById('modal-real').classList.remove('aberto');
+};
+
+// ── Salvar realocação ────────────────────────────────────────────────────
+window.salvarRealocacao = async function() {
+  if (!inscAtual && !document.getElementById('mr-nome').value) return;
+  const insc = inscAtual || inscricoes.find(i => (i.nome||i.nomeAtleta) === document.getElementById('mr-nome').value);
+  if (!insc) return;
+
+  const novaCatidade = document.getElementById('mr-catidade').value;
+  const novoPeso     = document.getElementById('mr-peso').value;
+  const erroEl       = document.getElementById('mr-erro');
+  const btn          = document.getElementById('btn-salvar-real');
+
+  if (novaCatidade === (insc.categoria_idade||'') && novoPeso === (insc.categoria_peso||'')) {
+    fecharModalReal(); return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span> Salvando...'; btn.disabled = true;
+  erroEl.style.display = 'none';
+
+  try {
+    const agora   = new Date();
+    const dataHora = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    const historico = insc.historicoChecagem || [];
+    historico.push({
+      de: `${insc.categoria_idade} | ${insc.categoria_peso}`,
+      para: `${novaCatidade} | ${novoPeso}`,
+      em: agora.toISOString(),
+      via: 'checagem_atleta'
+    });
+
+    await atualizarInscricao(campId, insc.id, {
+      categoria_idade:   novaCatidade,
+      categoria_peso:    novoPeso,
+      historicoChecagem: historico,
+      ultimaAlteracaoChecagem: agora.toISOString()
+    });
+
+    // Atualiza localmente
+    insc.categoria_idade = novaCatidade;
+    insc.categoria_peso  = novoPeso;
+    insc.historicoChecagem = historico;
+
+    fecharModalReal();
+    toast(`✅ Categoria atualizada para: ${novaCatidade} | ${novoPeso}`);
+    renderLista();
+  } catch(e) {
+    erroEl.textContent = 'Erro ao salvar: ' + e.message;
+    erroEl.style.display = 'block';
+  } finally {
+    btn.textContent = '✅ Confirmar Realocação'; btn.disabled = false;
+  }
+  // eslint-disable-next-line no-unused-vars
+  inscAtual = insc; // mantém ref
+};
+
+// ── Carregar dados ──────────────────────────────────────────────────────
+async function init() {
+  if (!campId) {
+    document.getElementById('status-bar').innerHTML = '<div class="status-icon">❌</div><div class="status-info"><h3>ID de campeonato não informado</h3></div>';
+    return;
+  }
+
+  try {
+    campeonato = await buscarCampeonato(campId);
+    if (!campeonato) throw new Error('Campeonato não encontrado');
+
+    document.title = `Checagem — ${campeonato.nome}`;
+    document.getElementById('header-titulo').textContent = `CHECAGEM — ${campeonato.nome.toUpperCase()}`;
+
+    if (campeonato.checagemInicio && campeonato.checagemFim) {
+      document.getElementById('header-sub').textContent =
+        `Checagem: ${fmtDt(campeonato.checagemInicio)} até ${fmtDt(campeonato.checagemFim)}`;
+    }
+
+    renderStatusBar();
+
+    // Carrega apenas inscrições aprovadas
+    const todas = await listarInscricoes(campId);
+    inscricoes = todas.filter(i => i.status === 'aprovado' || i.status === 'aprovada');
+    renderLista();
+
+  } catch(e) {
+    document.getElementById('status-bar').className = 'status-bar encerrado';
+    document.getElementById('status-bar').innerHTML = `<div class="status-icon">❌</div><div class="status-info"><h3>Erro</h3><p>${e.message}</p></div>`;
+  }
+}
+
+init();
+
+// Atualiza status a cada minuto (caso a janela abra/feche)
+setInterval(() => {
+  renderStatusBar();
+  renderLista();
+}, 60000);
+</script>
+</body>
+</html>

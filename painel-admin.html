@@ -401,7 +401,18 @@
       <option value="encerrado">🔒 Encerrado</option>
     </select>
 
-    <label>Logo / Marca da Organização <span style="font-weight:400;color:#8A9CB0">(URL da imagem)</span></label>
+    <div class="modal-section" style="margin-top:18px;padding:14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;">
+      <div class="modal-section-title" style="margin-bottom:12px">📅 Inscrições & Checagem</div>
+      <label>Data fim das inscrições <span style="font-weight:400;color:#8A9CB0">(informativo)</span></label>
+      <input type="date" id="f-fim-inscricoes">
+      <label style="margin-top:12px">Checagem — início <span style="font-weight:400;color:#8A9CB0">(atletas ajustam categoria)</span></label>
+      <input type="datetime-local" id="f-checagem-inicio">
+      <label style="margin-top:8px">Checagem — fim</label>
+      <input type="datetime-local" id="f-checagem-fim">
+      <p style="font-size:0.68rem;color:#8A9CB0;margin-top:8px;line-height:1.5">Durante o período de checagem, atletas inscritos e aprovados podem ajustar a própria categoria usando CPF + e-mail, sem precisar do admin.</p>
+    </div>
+
+    <label style="margin-top:16px">Logo / Marca da Organização <span style="font-weight:400;color:#8A9CB0">(URL da imagem)</span></label>
     <input type="text" id="f-marca" placeholder="https://exemplo.com/logo.png">
     <p style="font-size:0.68rem;color:#8A9CB0;margin-top:4px;">Logo exibida nas páginas públicas do evento (cabeçalho, inscrição, placar). Cole a URL de uma imagem hospedada.</p>
 
@@ -613,13 +624,26 @@
              <a href="liga-tv.html?id=${c.id}" target="_blank" class="btn-sm">📺 TV</a>
              <button class="btn-sm" onclick="editar('${c.id}')">✏️</button>
              <button class="btn-sm danger" onclick="excluir('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>`
-          : `<a href="adm-inscricoes.html?id=${c.id}" class="btn-sm primary">📋 Inscrições / Aprovações</a>
+          : (() => {
+              const enc = c.status === 'encerrado';
+              const inscBtn  = enc
+                ? `<span class="btn-sm" style="background:#FEE2E2;color:#EF4444;border-color:#FCA5A5;cursor:default">🔒 Encerradas</span>`
+                : `<a href="inscricao.html?id=${c.id}" target="_blank" class="btn-sm">📝 Inscrição</a>`;
+              const pubBtn   = enc
+                ? `<a href="checagem.html?id=${c.id}" target="_blank" class="btn-sm" style="background:#7C3AED;color:#fff;border-color:#7C3AED">🔍 Checagem</a>`
+                : `<a href="atletas-publico.html?id=${c.id}" target="_blank" class="btn-sm">👥 Atletas</a>`;
+              const togBtn   = enc
+                ? `<button class="btn-sm" onclick="reabrirInscricoes('${c.id}')" title="Reabrir inscrições" style="background:#D1FAE5;color:#059669;border-color:#6EE7B7">🔓 Reabrir</button>`
+                : `<button class="btn-sm" onclick="encerrarInscricoes('${c.id}')" title="Encerrar inscrições" style="background:#FEE2E2;color:#EF4444;border-color:#FCA5A5">🔒 Encerrar</button>`;
+              return `<a href="adm-inscricoes.html?id=${c.id}" class="btn-sm primary">📋 Inscrições / Aprovações</a>
              <a href="adm-chaveamento.html?id=${c.id}" class="btn-sm" style="background:#1A2C3E;color:#fff;border-color:#1A2C3E">🥊 Chaveamento</a>
              <a href="placar-adm.html?id=${c.id}" class="btn-sm" style="background:#10B981;color:#fff;border-color:#10B981">🎙️ Placar</a>
-             <a href="inscricao.html?id=${c.id}" target="_blank" class="btn-sm">📝 Inscrição</a>
-             <a href="atletas-publico.html?id=${c.id}" target="_blank" class="btn-sm">👥 Atletas</a>
+             ${inscBtn}
+             ${pubBtn}
+             ${togBtn}
              <button class="btn-sm" onclick="editar('${c.id}')">✏️</button>
              <button class="btn-sm danger" onclick="excluir('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>`;
+            })();
         return `<div class="card">${banner}<div class="card-body">
           <div style="margin-bottom:5px">${tagCliente}${tagEscopo}<span class="status-pill status-${c.status||'ativo'}">${{ativo:'✅ Aberto',breve:'🕐 Em breve',encerrado:'🔒 Encerrado'}[c.status||'ativo']}</span>${isLiga?' <span style="background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">⚽ Liga</span>':''}</div>
           <div class="card-nome">${c.nome}</div>
@@ -642,8 +666,11 @@
     document.getElementById('f-tipo').value      = dados?.tipo     || 'chaveamento';
     document.getElementById('f-status').value    = dados?.status   || 'breve';
     document.getElementById('f-emoji').value     = dados?.emoji    || '🥋';
-    document.getElementById('f-escopo').value    = dados?.escopo   || 'academia';
-    document.getElementById('f-marca').value     = dados?.marca    || '';
+    document.getElementById('f-escopo').value          = dados?.escopo          || 'academia';
+    document.getElementById('f-fim-inscricoes').value  = dados?.dataFimInscricoes || '';
+    document.getElementById('f-checagem-inicio').value = dados?.checagemInicio    || '';
+    document.getElementById('f-checagem-fim').value    = dados?.checagemFim       || '';
+    document.getElementById('f-marca').value           = dados?.marca             || '';
     document.getElementById('f-cartaz').value    = '';
     document.getElementById('modal-titulo').textContent = dados ? 'Editar Campeonato' : 'Novo Campeonato';
     selecionarEmoji(dados?.emoji || '🥋');
@@ -710,6 +737,32 @@
   }
 
   window.editar   = function(id) { const c = campsData.find(x => x.id === id); if (c) abrirModal(c); };
+
+  window.encerrarInscricoes = async function(id) {
+    const ok = await pedirConfirmacao({
+      titulo: 'Encerrar inscrições?',
+      texto: 'O link de inscrição ficará indisponível para novos atletas. O botão "Atletas" vira "Checagem" no card.',
+      icone: '🔒', labelOk: 'Encerrar'
+    });
+    if (!ok) return;
+    try {
+      await atualizarCampeonato(id, { status: 'encerrado' });
+      carregarCampeonatos();
+    } catch(e) { alert('Erro: ' + e.message); }
+  };
+
+  window.reabrirInscricoes = async function(id) {
+    const ok = await pedirConfirmacao({
+      titulo: 'Reabrir inscrições?',
+      texto: 'O link de inscrição voltará a aceitar novos atletas.',
+      icone: '🔓', labelOk: 'Reabrir'
+    });
+    if (!ok) return;
+    try {
+      await atualizarCampeonato(id, { status: 'ativo' });
+      carregarCampeonatos();
+    } catch(e) { alert('Erro: ' + e.message); }
+  };
   window.excluir  = async function(id, nome) {
     const ok = await pedirConfirmacao({
       titulo: `Excluir "${nome}"?`,
@@ -762,8 +815,11 @@
       status:    document.getElementById('f-status').value,
       emoji:     document.getElementById('f-emoji').value,
       cartaz:    cartazBase64 || null,
-      marca:     document.getElementById('f-marca').value.trim() || null,
-      clienteId: document.getElementById('f-cliente').value || null,
+      marca:              document.getElementById('f-marca').value.trim() || null,
+      clienteId:          document.getElementById('f-cliente').value || null,
+      dataFimInscricoes:  document.getElementById('f-fim-inscricoes').value || null,
+      checagemInicio:     document.getElementById('f-checagem-inicio').value || null,
+      checagemFim:        document.getElementById('f-checagem-fim').value || null,
     };
     if (tipo === 'liga') {
       dados.escopo = document.getElementById('f-escopo').value;
