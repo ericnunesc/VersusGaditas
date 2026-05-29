@@ -601,18 +601,51 @@
           const sub = document.querySelector('.subtitle');
           if (sub) sub.textContent = `Inscrição — ${c.nome}`;
 
-          // Bloqueia se inscrições estiverem encerradas
-          if (c.status === 'encerrado') {
-            document.getElementById('formBox')?.remove();
-            const enc = document.createElement('div');
-            enc.style.cssText = 'max-width:500px;margin:60px auto;text-align:center;padding:32px;background:#FFFBEB;border:2px solid #FDE68A;border-radius:16px;';
-            enc.innerHTML = `
+          // ── Status automático por data/hora ──────────────────────────
+          const agora = new Date();
+          const fimDt  = c.dataFimInscricoes    ? new Date(c.dataFimInscricoes)    : null;
+          const iniDt  = c.dataInicioInscricoes ? new Date(c.dataInicioInscricoes) : null;
+          const isEncerrado = c.status === 'encerrado' || (fimDt && agora > fimDt);
+          const isAindaNaoAberto = !isEncerrado && iniDt && agora < iniDt;
+
+          function fmtDt(dt) {
+            return new Date(dt).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+          }
+
+          const formBox = document.getElementById('formBox');
+          const targetEl = document.querySelector('main') || document.querySelector('.container') || document.body;
+
+          if (isEncerrado) {
+            formBox?.remove();
+            const el = document.createElement('div');
+            el.style.cssText = 'max-width:500px;margin:60px auto;text-align:center;padding:32px;background:#FFFBEB;border:2px solid #FDE68A;border-radius:16px;';
+            el.innerHTML = `
               <div style="font-size:3rem;margin-bottom:12px">🔒</div>
               <h2 style="color:#92400E;font-size:1.2rem;margin-bottom:8px">Inscrições encerradas</h2>
-              <p style="color:#B45309;font-size:0.88rem;line-height:1.6">As inscrições para <strong>${c.nome}</strong> foram encerradas.<br>Entre em contato com a organização para mais informações.</p>
-              ${c.checagemInicio ? `<hr style="margin:16px 0;border:none;border-top:1px solid #FDE68A"><p style="color:#B45309;font-size:0.82rem">🔍 Período de checagem disponível — <a href="checagem.html?id=${id}" style="color:#7C3AED;font-weight:600">acesse aqui</a></p>` : ''}
+              <p style="color:#B45309;font-size:0.88rem;line-height:1.6">
+                As inscrições para <strong>${c.nome}</strong> foram encerradas${fimDt ? ` em ${fmtDt(fimDt)}` : ''}.
+                <br>Entre em contato com a organização para mais informações.
+              </p>
+              ${c.checagemInicio ? `<hr style="margin:16px 0;border:none;border-top:1px solid #FDE68A">
+                <p style="color:#B45309;font-size:0.82rem">🔍 Período de checagem disponível —
+                  <a href="checagem.html?id=${id}" style="color:#7C3AED;font-weight:600">acesse aqui</a>
+                </p>` : ''}
             `;
-            document.querySelector('main, .container, body').prepend(enc);
+            targetEl.prepend(el);
+
+          } else if (isAindaNaoAberto) {
+            if (formBox) formBox.style.display = 'none';
+            const el = document.createElement('div');
+            el.style.cssText = 'max-width:500px;margin:60px auto;text-align:center;padding:32px;background:#EFF6FF;border:2px solid #BFDBFE;border-radius:16px;';
+            el.innerHTML = `
+              <div style="font-size:3rem;margin-bottom:12px">⏳</div>
+              <h2 style="color:#1E40AF;font-size:1.2rem;margin-bottom:8px">Inscrições ainda não abertas</h2>
+              <p style="color:#1D4ED8;font-size:0.88rem;line-height:1.6">
+                As inscrições para <strong>${c.nome}</strong> abrem em:<br>
+                <strong style="font-size:1rem">${fmtDt(iniDt)}</strong>
+              </p>
+            `;
+            targetEl.prepend(el);
           }
         }
       });

@@ -243,12 +243,22 @@ function janelaCheagem() {
 }
 
 // ── Status bar ─────────────────────────────────────────────────────────
+function isInscricoesEncerradas() {
+  if (!campeonato) return false;
+  if (campeonato.status === 'encerrado') return true;
+  const fimDt = campeonato.dataFimInscricoes ? new Date(campeonato.dataFimInscricoes) : null;
+  return !!(fimDt && new Date() > fimDt);
+}
+
 function renderStatusBar() {
   const bar = document.getElementById('status-bar');
   const j   = janelaCheagem();
-  if (campeonato?.status !== 'encerrado') {
+  if (!isInscricoesEncerradas()) {
+    const iniDt = campeonato?.dataInicioInscricoes ? new Date(campeonato.dataInicioInscricoes) : null;
+    const fimDt = campeonato?.dataFimInscricoes    ? new Date(campeonato.dataFimInscricoes)    : null;
+    const info  = fimDt ? ` · Encerram em ${fmtDt(campeonato.dataFimInscricoes)}` : '';
     bar.className = 'status-bar aguardando';
-    bar.innerHTML = `<div class="status-icon">📝</div><div class="status-info"><h3>Inscrições ainda abertas</h3><p>A checagem estará disponível após o encerramento das inscrições.</p></div>`;
+    bar.innerHTML = `<div class="status-icon">📝</div><div class="status-info"><h3>Inscrições ainda abertas</h3><p>A checagem estará disponível após o encerramento das inscrições${info}.</p></div>`;
     return;
   }
   if (j === 'sem_janela') {

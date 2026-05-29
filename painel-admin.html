@@ -402,14 +402,31 @@
     </select>
 
     <div class="modal-section" style="margin-top:18px;padding:14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;">
-      <div class="modal-section-title" style="margin-bottom:12px">📅 Inscrições & Checagem</div>
-      <label>Data fim das inscrições <span style="font-weight:400;color:#8A9CB0">(informativo)</span></label>
-      <input type="date" id="f-fim-inscricoes">
-      <label style="margin-top:12px">Checagem — início <span style="font-weight:400;color:#8A9CB0">(atletas ajustam categoria)</span></label>
-      <input type="datetime-local" id="f-checagem-inicio">
-      <label style="margin-top:8px">Checagem — fim</label>
-      <input type="datetime-local" id="f-checagem-fim">
-      <p style="font-size:0.68rem;color:#8A9CB0;margin-top:8px;line-height:1.5">Durante o período de checagem, atletas inscritos e aprovados podem ajustar a própria categoria usando CPF + e-mail, sem precisar do admin.</p>
+      <div class="modal-section-title" style="margin-bottom:12px">📅 Período de Inscrições</div>
+      <p style="font-size:0.68rem;color:#8A9CB0;margin-bottom:10px;line-height:1.5">As inscrições abrem e fecham automaticamente nas datas abaixo. O admin pode encerrar antecipadamente ou prorrogar alterando a data fim.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label>Início das inscrições</label>
+          <input type="datetime-local" id="f-inicio-inscricoes">
+        </div>
+        <div>
+          <label>Fim das inscrições</label>
+          <input type="datetime-local" id="f-fim-inscricoes">
+        </div>
+      </div>
+
+      <div class="modal-section-title" style="margin-top:16px;margin-bottom:8px">🔍 Período de Checagem</div>
+      <p style="font-size:0.68rem;color:#8A9CB0;margin-bottom:10px;line-height:1.5">Após o encerramento, atletas aprovados podem ajustar a própria categoria usando CPF + e-mail, sem precisar do admin.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label>Início da checagem</label>
+          <input type="datetime-local" id="f-checagem-inicio">
+        </div>
+        <div>
+          <label>Fim da checagem</label>
+          <input type="datetime-local" id="f-checagem-fim">
+        </div>
+      </div>
     </div>
 
     <label style="margin-top:16px">Logo / Marca da Organização <span style="font-weight:400;color:#8A9CB0">(URL da imagem)</span></label>
@@ -625,16 +642,36 @@
              <button class="btn-sm" onclick="editar('${c.id}')">✏️</button>
              <button class="btn-sm danger" onclick="excluir('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>`
           : (() => {
-              const enc = c.status === 'encerrado';
-              const inscBtn  = enc
+              // Status calculado automaticamente por datas (com fallback para status manual)
+              const now = new Date();
+              const fimDt  = c.dataFimInscricoes    ? new Date(c.dataFimInscricoes)    : null;
+              const iniDt  = c.dataInicioInscricoes ? new Date(c.dataInicioInscricoes) : null;
+              const enc    = c.status === 'encerrado' || (fimDt && now > fimDt);
+              const breve  = !enc && iniDt && now < iniDt;
+
+              // Linha de datas no card
+              const fmtDt = dt => dt ? new Date(dt).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : null;
+              const linhaDatas = (iniDt || fimDt)
+                ? `<div style="font-size:0.68rem;color:#8A9CB0;padding:4px 0 2px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                    <span>📋 Inscrições:</span>
+                    ${iniDt  ? `<span>${fmtDt(c.dataInicioInscricoes)}</span>` : ''}
+                    ${iniDt && fimDt ? '<span style="color:#C9A03D">→</span>' : ''}
+                    ${fimDt  ? `<span>${fmtDt(c.dataFimInscricoes)}</span>` : ''}
+                    ${enc    ? '<span style="color:#EF4444;font-weight:700">· ENCERRADAS</span>'
+                      : breve ? '<span style="color:#F59E0B;font-weight:700">· AINDA NÃO ABERTAS</span>'
+                      : '<span style="color:#10B981;font-weight:700">· ABERTAS</span>'}
+                  </div>`
+                : '';
+
+              const inscBtn = enc
                 ? `<span class="btn-sm" style="background:#FEE2E2;color:#EF4444;border-color:#FCA5A5;cursor:default">🔒 Encerradas</span>`
                 : `<a href="inscricao.html?id=${c.id}" target="_blank" class="btn-sm">📝 Inscrição</a>`;
-              const pubBtn   = enc
+              const pubBtn  = enc
                 ? `<a href="checagem.html?id=${c.id}" target="_blank" class="btn-sm" style="background:#7C3AED;color:#fff;border-color:#7C3AED">🔍 Checagem</a>`
                 : `<a href="atletas-publico.html?id=${c.id}" target="_blank" class="btn-sm">👥 Atletas</a>`;
-              const togBtn   = enc
-                ? `<button class="btn-sm" onclick="reabrirInscricoes('${c.id}')" title="Reabrir inscrições" style="background:#D1FAE5;color:#059669;border-color:#6EE7B7">🔓 Reabrir</button>`
-                : `<button class="btn-sm" onclick="encerrarInscricoes('${c.id}')" title="Encerrar inscrições" style="background:#FEE2E2;color:#EF4444;border-color:#FCA5A5">🔒 Encerrar</button>`;
+              const togBtn  = enc
+                ? `<button class="btn-sm" onclick="reabrirInscricoes('${c.id}')" title="Prorrogar / reabrir" style="background:#D1FAE5;color:#059669;border-color:#6EE7B7">🔓 Prorrogar</button>`
+                : `<button class="btn-sm" onclick="encerrarInscricoes('${c.id}')" title="Encerrar agora" style="background:#FEE2E2;color:#EF4444;border-color:#FCA5A5">🔒 Encerrar</button>`;
               return `<a href="adm-inscricoes.html?id=${c.id}" class="btn-sm primary">📋 Inscrições / Aprovações</a>
              <a href="adm-chaveamento.html?id=${c.id}" class="btn-sm" style="background:#1A2C3E;color:#fff;border-color:#1A2C3E">🥊 Chaveamento</a>
              <a href="placar-adm.html?id=${c.id}" class="btn-sm" style="background:#10B981;color:#fff;border-color:#10B981">🎙️ Placar</a>
@@ -648,6 +685,18 @@
           <div style="margin-bottom:5px">${tagCliente}${tagEscopo}<span class="status-pill status-${c.status||'ativo'}">${{ativo:'✅ Aberto',breve:'🕐 Em breve',encerrado:'🔒 Encerrado'}[c.status||'ativo']}</span>${isLiga?' <span style="background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">⚽ Liga</span>':''}</div>
           <div class="card-nome">${c.nome}</div>
           <div class="card-info">📅 ${data}${c.local?' · 📍 '+c.local:''}</div>
+          ${!isLiga && (c.dataInicioInscricoes||c.dataFimInscricoes) ? (() => {
+            const now2=new Date(), fD=c.dataFimInscricoes?new Date(c.dataFimInscricoes):null, iD=c.dataInicioInscricoes?new Date(c.dataInicioInscricoes):null;
+            const e2=c.status==='encerrado'||(fD&&now2>fD), b2=!e2&&iD&&now2<iD;
+            const f2=dt=>dt?new Date(dt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+            return `<div style="font-size:0.68rem;color:#8A9CB0;margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+              <span>📋</span>
+              ${iD?`<span>${f2(c.dataInicioInscricoes)}</span>`:''}
+              ${iD&&fD?'<span>→</span>':''}
+              ${fD?`<span>${f2(c.dataFimInscricoes)}</span>`:''}
+              <span style="font-weight:700;color:${e2?'#EF4444':b2?'#F59E0B':'#10B981'}">${e2?'· Encerradas':b2?'· Não abertas':'· Abertas'}</span>
+            </div>`;
+          })() : ''}
           <div class="card-acoes">${acoes}</div>
         </div></div>`;
       }).join('');
@@ -667,8 +716,9 @@
     document.getElementById('f-status').value    = dados?.status   || 'breve';
     document.getElementById('f-emoji').value     = dados?.emoji    || '🥋';
     document.getElementById('f-escopo').value          = dados?.escopo          || 'academia';
-    document.getElementById('f-fim-inscricoes').value  = dados?.dataFimInscricoes || '';
-    document.getElementById('f-checagem-inicio').value = dados?.checagemInicio    || '';
+    document.getElementById('f-inicio-inscricoes').value = dados?.dataInicioInscricoes || '';
+    document.getElementById('f-fim-inscricoes').value    = dados?.dataFimInscricoes    || '';
+    document.getElementById('f-checagem-inicio').value   = dados?.checagemInicio       || '';
     document.getElementById('f-checagem-fim').value    = dados?.checagemFim       || '';
     document.getElementById('f-marca').value           = dados?.marca             || '';
     document.getElementById('f-cartaz').value    = '';
@@ -817,8 +867,9 @@
       cartaz:    cartazBase64 || null,
       marca:              document.getElementById('f-marca').value.trim() || null,
       clienteId:          document.getElementById('f-cliente').value || null,
-      dataFimInscricoes:  document.getElementById('f-fim-inscricoes').value || null,
-      checagemInicio:     document.getElementById('f-checagem-inicio').value || null,
+      dataInicioInscricoes: document.getElementById('f-inicio-inscricoes').value || null,
+      dataFimInscricoes:    document.getElementById('f-fim-inscricoes').value || null,
+      checagemInicio:       document.getElementById('f-checagem-inicio').value || null,
       checagemFim:        document.getElementById('f-checagem-fim').value || null,
     };
     if (tipo === 'liga') {
