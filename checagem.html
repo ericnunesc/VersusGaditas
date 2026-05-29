@@ -467,10 +467,7 @@ function abrirModalReal(insc) {
   const selPeso = document.getElementById('mr-peso');
   selPeso.innerHTML = '';
   const pesosDisp = isMasc(insc) ? PESOS_MASC_C : PESOS_FEM_C;
-  // Regra CBJJ: só pode subir de peso (mais pesado), nunca descer
-  const idxPesoAtual = pesosDisp.indexOf(catPesoAtual);
-  const pesosPermitidos = idxPesoAtual >= 0 ? pesosDisp.slice(idxPesoAtual) : pesosDisp;
-  pesosPermitidos.forEach(p => {
+  pesosDisp.forEach(p => {
     const o = document.createElement('option');
     o.value = p; o.textContent = p;
     if (p === catPesoAtual) o.selected = true;
@@ -478,9 +475,8 @@ function abrirModalReal(insc) {
   });
 
   const hints = [];
-  if (ehMasterMax) hints.push(`⬇️ Master: pode lutar de Adulto até ${catMaxNome} (limite pela idade).`);
+  if (ehMasterMax) hints.push(`Master: pode lutar de Adulto até ${catMaxNome} (limite pela idade).`);
   else hints.push('ℹ️ Categoria de idade bloqueada. Apenas o peso pode ser alterado.');
-  hints.push('⚖️ Peso só pode subir (mais pesado) — não é permitido descer de categoria.');
   hints.push('🥋 Faixa não pode ser alterada (regras CBJJ).');
   document.getElementById('mr-hint').textContent = hints.join(' ');
 
