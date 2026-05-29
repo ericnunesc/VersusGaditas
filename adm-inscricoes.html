@@ -65,6 +65,24 @@
     .lightbox.open { display:flex; }
     .lightbox img { max-width:90vw; max-height:90vh; border-radius:8px; }
     .lightbox-close { position:fixed; top:16px; right:20px; color:#fff; font-size:2rem; cursor:pointer; }
+
+    /* Realocação */
+    .btn-realocar { background:transparent; border:1px solid #7C3AED; color:#7C3AED; }
+    .btn-realocar:hover { background:#7C3AED; color:#fff; }
+    .modal-real-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1200; align-items:center; justify-content:center; padding:16px; }
+    .modal-real-bg.open { display:flex; }
+    .modal-real { background:#fff; border-radius:16px; padding:26px; width:100%; max-width:460px; box-shadow:0 8px 40px rgba(0,0,0,0.15); }
+    .modal-real h3 { font-size:1rem; font-weight:700; margin-bottom:4px; color:#1A2C3E; }
+    .modal-real .atleta-atual { font-size:0.82rem; color:#8A9CB0; margin-bottom:18px; }
+    .modal-real label { display:block; font-size:0.78rem; font-weight:600; margin-bottom:4px; color:#1A2C3E; margin-top:14px; }
+    .modal-real select, .modal-real input { width:100%; border:1px solid #E2E8F0; border-radius:8px; padding:9px 12px; font-size:0.85rem; outline:none; }
+    .modal-real select:focus, .modal-real input:focus { border-color:#7C3AED; }
+    .modal-real .faixa-locked { background:#F5F7FA; border:1px solid #E2E8F0; border-radius:8px; padding:9px 12px; font-size:0.85rem; color:#64748B; font-weight:600; }
+    .modal-real .regras-hint { background:#F5F3FF; border:1px solid #DDD6FE; border-radius:8px; padding:10px 12px; font-size:0.75rem; color:#5B21B6; margin-top:14px; line-height:1.6; }
+    .modal-real-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:18px; }
+    .btn-cancelar-real { background:transparent; border:1px solid #E2E8F0; padding:9px 18px; border-radius:40px; font-size:0.82rem; cursor:pointer; }
+    .btn-salvar-real { background:#7C3AED; border:none; color:#fff; padding:9px 22px; border-radius:40px; font-size:0.82rem; font-weight:700; cursor:pointer; }
+    .btn-salvar-real:hover { background:#6D28D9; }
   </style>
 </head>
 <body>
@@ -97,13 +115,82 @@
 </div>
 
 <!-- Lightbox -->
+<!-- MODAL: REALOCAÇÃO DE ATLETA -->
+<div class="modal-real-bg" id="modal-real-bg">
+  <div class="modal-real">
+    <h3>🔀 Realocar Atleta</h3>
+    <div class="atleta-atual" id="real-atleta-info"></div>
+
+    <label>Categoria de Idade</label>
+    <select id="real-categoria"></select>
+
+    <label>Faixa (não alterável)</label>
+    <div class="faixa-locked" id="real-faixa"></div>
+
+    <label>Peso (kg)</label>
+    <input type="number" id="real-peso" step="0.1" min="1" max="200">
+
+    <div class="regras-hint">
+      ℹ️ <strong>Regras de realocação:</strong><br>
+      • A <strong>faixa permanece a mesma</strong><br>
+      • Pode <strong>subir de peso</strong> (categoria mais pesada)<br>
+      • Masters: pode mover entre categorias Master (ex: Master 2 → Master 1 ou 3)
+    </div>
+
+    <div class="modal-real-footer">
+      <button class="btn-cancelar-real" onclick="fecharRealocacao()">Cancelar</button>
+      <button class="btn-salvar-real" onclick="salvarRealocacao()">💾 Salvar Realocação</button>
+    </div>
+  </div>
+</div>
+
 <div class="lightbox" id="lightbox" onclick="fecharLightbox()">
   <span class="lightbox-close">✕</span>
   <img id="lightbox-img" src="">
 </div>
 
 <script type="module">
-  import { listarInscricoes, atualizarInscricao, salvarAtleta, deletarAtleta, buscarCampeonato, onLogin } from './js/firebase.js';
+  import { listarInscricoes, atualizarInscricao, salvarAtleta, deletarAtleta, buscarCampeonato, onLogin, atualizarAtleta } from './js/firebase.js';
+
+  // Tabela de categorias de idade CBJJ
+  const CATEGORIAS_IDADE = [
+    { nome:"Pré-Mirim",       idadeMin:4,  idadeMax:5  },
+    { nome:"Mirim 1",         idadeMin:6,  idadeMax:7  },
+    { nome:"Mirim 2",         idadeMin:8,  idadeMax:9  },
+    { nome:"Infantil 1",      idadeMin:10, idadeMax:11 },
+    { nome:"Infantil 2",      idadeMin:12, idadeMax:13 },
+    { nome:"Infanto-Juvenil", idadeMin:14, idadeMax:15 },
+    { nome:"Juvenil",         idadeMin:16, idadeMax:17 },
+    { nome:"Adulto",          idadeMin:18, idadeMax:29 },
+    { nome:"Master 1",        idadeMin:30, idadeMax:35 },
+    { nome:"Master 2",        idadeMin:36, idadeMax:40 },
+    { nome:"Master 3",        idadeMin:41, idadeMax:45 },
+    { nome:"Master 4",        idadeMin:46, idadeMax:50 },
+    { nome:"Master 5",        idadeMin:51, idadeMax:55 },
+    { nome:"Master 6",        idadeMin:56, idadeMax:99 },
+  ];
+
+  // Categorias permitidas para realocação dado a categoria atual
+  function categoriasPermitidas(categoriaAtual) {
+    const idx = CATEGORIAS_IDADE.findIndex(c => c.nome === categoriaAtual);
+    if (idx === -1) return CATEGORIAS_IDADE.map(c => c.nome);
+
+    const isMaster = categoriaAtual.startsWith('Master');
+    const isAdulto = categoriaAtual === 'Adulto';
+
+    if (isMaster) {
+      // Masters podem mover entre todos os Masters
+      return CATEGORIAS_IDADE.filter(c => c.nome.startsWith('Master')).map(c => c.nome);
+    }
+    if (isAdulto) {
+      // Adulto pode mover para Masters
+      return ['Adulto', ...CATEGORIAS_IDADE.filter(c => c.nome.startsWith('Master')).map(c => c.nome)];
+    }
+    // Outros: pode ir para mesma categoria ou mais velha
+    return CATEGORIAS_IDADE.slice(idx).map(c => c.nome);
+  }
+
+  let _realocacaoId = null;
 
   const campeonatoId = new URLSearchParams(location.search).get('id');
   if (!campeonatoId) {
@@ -199,6 +286,7 @@
             <button class="btn btn-aprovar" onclick="aprovar('${i.id}')">✅ Aprovar</button>
           ` : `
             <button class="btn btn-pendente" onclick="deixarPendente('${i.id}')">↩️ Deixar Pendente</button>
+            ${i.status === 'aprovado' ? `<button class="btn btn-realocar" onclick="abrirRealocacao('${i.id}')">🔀 Realocar</button>` : ''}
             ${i.status === 'rejeitado' ? `<button class="btn btn-aprovar" onclick="aprovar('${i.id}')">✅ Aprovar</button>` : ''}
           `}
         </div>
@@ -297,6 +385,77 @@
       localStorage.setItem('gaditas_last_update', Date.now().toString());
     } catch(e) {
       alert('Erro ao reverter: ' + e.message);
+    }
+  };
+
+  // ── Realocação ──────────────────────────────────────────
+  window.abrirRealocacao = function(id) {
+    const i = todasInscricoes.find(x => x.id === id);
+    if (!i) return;
+    _realocacaoId = id;
+
+    document.getElementById('real-atleta-info').textContent =
+      `${i.nome} · ${i.categoria || '—'} · ${i.faixa || '—'} · ${i.peso || '—'} kg`;
+    document.getElementById('real-faixa').textContent = i.faixa || '—';
+    document.getElementById('real-peso').value = i.peso || '';
+
+    // Popula dropdown de categorias
+    const sel = document.getElementById('real-categoria');
+    const permitidas = categoriasPermitidas(i.categoria || '');
+    sel.innerHTML = permitidas.map(nome =>
+      `<option value="${nome}" ${nome === i.categoria ? 'selected' : ''}>${nome}</option>`
+    ).join('');
+
+    document.getElementById('modal-real-bg').classList.add('open');
+  };
+
+  window.fecharRealocacao = function() {
+    document.getElementById('modal-real-bg').classList.remove('open');
+    _realocacaoId = null;
+  };
+
+  window.salvarRealocacao = async function() {
+    if (!_realocacaoId || !campeonatoId) return;
+    const i = todasInscricoes.find(x => x.id === _realocacaoId);
+    if (!i) return;
+
+    const novaCategoria = document.getElementById('real-categoria').value;
+    const novoPeso      = parseFloat(document.getElementById('real-peso').value);
+
+    if (!novaCategoria) { alert('Selecione a categoria.'); return; }
+    if (!novoPeso || novoPeso <= 0) { alert('Informe o peso.'); return; }
+
+    const btn = document.querySelector('.btn-salvar-real');
+    btn.textContent = 'Salvando...'; btn.disabled = true;
+
+    try {
+      // Atualiza inscrição
+      await atualizarInscricao(campeonatoId, _realocacaoId, {
+        categoria: novaCategoria,
+        peso: novoPeso
+      });
+
+      // Atualiza atleta na subcoleção (se já aprovado)
+      if (i.atletaId) {
+        await atualizarAtleta(campeonatoId, i.atletaId, {
+          categoria: novaCategoria,
+          peso: novoPeso
+        });
+      }
+
+      // Atualiza local
+      i.categoria = novaCategoria;
+      i.peso = novoPeso;
+
+      fecharRealocacao();
+      renderizar();
+
+      // Notifica painel.html
+      localStorage.setItem('gaditas_last_update', Date.now().toString());
+    } catch(e) {
+      alert('Erro ao realocar: ' + e.message);
+    } finally {
+      btn.textContent = '💾 Salvar Realocação'; btn.disabled = false;
     }
   };
 
