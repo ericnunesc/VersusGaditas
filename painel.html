@@ -527,7 +527,8 @@
       'atletas-publico.html': `atletas-publico.html?id=${campeonatoId}`,
       'adm-inscricoes.html':  `adm-inscricoes.html?id=${campeonatoId}`,
       'inscricao.html':       `inscricao.html?id=${campeonatoId}`,
-      'admin-equipes.html':   `admin-equipes.html?id=${campeonatoId}`
+      'admin-equipes.html':   `admin-equipes.html?id=${campeonatoId}`,
+      'tv-chaveamento.html':  `tv-chaveamento.html?id=${campeonatoId}`
     };
     document.querySelectorAll('a[href]').forEach(a => {
       const base = a.getAttribute('href').split('?')[0];
@@ -684,6 +685,11 @@
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                             <button onclick="removerChaveamento()" class="btn-danger" id="btn-remover-chave" style="display:none;">🗑️ Remover</button>
                             <button onclick="abrirModalAbsoluto()" class="btn-secondary" id="btn-gerar-absoluto" title="Escolha qual faixa do Absoluto gerar">🏆 Gerar Absoluto</button>
+                            <a href="tv-chaveamento.html" id="link-chave-publica" target="_blank"
+                               class="btn-secondary"
+                               style="text-decoration:none;background:#1A2C3E;color:#C9A03D;border-color:#C9A03D;">
+                               🌐 Chave Pública
+                            </a>
                             <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#8A9CB0;white-space:nowrap;">
                                 🏟️ Tatames
                                 <input type="number" id="num-tatames-chave" min="1" max="20" value="3"
