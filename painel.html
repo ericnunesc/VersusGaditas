@@ -465,11 +465,13 @@
 <script>verificarAuth();</script>
 
 <script type="module">
-  import { buscarCampeonato, salvarConfig, listarAtletas } from './js/firebase.js';
+  import { buscarCampeonato, salvarConfig, listarAtletas, atualizarCampeonato } from './js/firebase.js';
 
   const campeonatoId = new URLSearchParams(location.search).get('id');
   window._campeonatoId = campeonatoId;
   window._fbSalvarConfig = salvarConfig;
+  window._fbBuscarCampeonato = buscarCampeonato;
+  window._fbAtualizarCampeonato = atualizarCampeonato;
 
   // ── Sincroniza atletas do Firestore → localStorage/appState ──
   async function sincronizarAtletasFirebase(silencioso = false) {
@@ -890,6 +892,40 @@
                             </div>
 
                             <button class="btn-primary" onclick="salvarConfigPagamento()">💾 Salvar configurações</button>
+                        </div>
+
+                        <div class="config-section">
+                            <h4>📅 Período de Inscrições e Checagem</h4>
+                            <p style="font-size:0.75rem;color:#8A9CB0;margin-bottom:16px">Controla quando as inscrições abrem/fecham automaticamente e o prazo para checagem dos atletas.</p>
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+                                <div>
+                                    <label style="font-size:0.82rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px">📅 Início das inscrições</label>
+                                    <input type="datetime-local" id="cfg-inicio-inscricoes" class="input" style="width:100%">
+                                </div>
+                                <div>
+                                    <label style="font-size:0.82rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px">🔒 Fim das inscrições</label>
+                                    <input type="datetime-local" id="cfg-fim-inscricoes" class="input" style="width:100%">
+                                    <div style="font-size:0.7rem;color:#8A9CB0;margin-top:4px">Encerra automaticamente ao chegar nesta data/hora</div>
+                                </div>
+                            </div>
+
+                            <div style="border-top:1px solid #E2E8F0;padding-top:14px;margin-bottom:16px">
+                                <p style="font-size:0.82rem;font-weight:600;color:#1A2C3E;margin-bottom:4px">🔍 Janela de Checagem</p>
+                                <p style="font-size:0.75rem;color:#8A9CB0;margin-bottom:12px">Período em que atletas podem se realocar de categoria via página de checagem</p>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                                    <div>
+                                        <label style="font-size:0.82rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px">🟢 Início da checagem</label>
+                                        <input type="datetime-local" id="cfg-checagem-inicio" class="input" style="width:100%">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.82rem;font-weight:600;color:#1A2C3E;display:block;margin-bottom:6px">🔴 Fim da checagem</label>
+                                        <input type="datetime-local" id="cfg-checagem-fim" class="input" style="width:100%">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="btn-primary" onclick="salvarDatasInscricao()">💾 Salvar datas</button>
                         </div>
 
                         <div class="config-section">
@@ -1701,6 +1737,43 @@ async function salvarConfigPagamento() {
     }
 }
 document.addEventListener('DOMContentLoaded', carregarConfigPagamento);
+
+// ---- Datas de Inscrição e Checagem ----
+async function carregarDatasInscricao() {
+    if (!window._campeonatoId || !window._fbBuscarCampeonato) return;
+    try {
+        const c = await window._fbBuscarCampeonato(window._campeonatoId);
+        if (!c) return;
+        const mapa = [
+            ['cfg-inicio-inscricoes', 'dataInicioInscricoes'],
+            ['cfg-fim-inscricoes',    'dataFimInscricoes'],
+            ['cfg-checagem-inicio',   'checagemInicio'],
+            ['cfg-checagem-fim',      'checagemFim'],
+        ];
+        mapa.forEach(([id, chave]) => {
+            const el = document.getElementById(id);
+            if (el && c[chave]) el.value = c[chave];
+        });
+    } catch(e) { /* silencioso — pode não ter campeonato no Firebase */ }
+}
+async function salvarDatasInscricao() {
+    const id = window._campeonatoId;
+    if (!id) { mostrarToast('ID do campeonato não encontrado', 'erro'); return; }
+    if (!window._fbAtualizarCampeonato) { mostrarToast('Firebase não disponível', 'erro'); return; }
+    const dados = {
+        dataInicioInscricoes: document.getElementById('cfg-inicio-inscricoes').value || null,
+        dataFimInscricoes:    document.getElementById('cfg-fim-inscricoes').value    || null,
+        checagemInicio:       document.getElementById('cfg-checagem-inicio').value   || null,
+        checagemFim:          document.getElementById('cfg-checagem-fim').value      || null,
+    };
+    try {
+        await window._fbAtualizarCampeonato(id, dados);
+        mostrarToast('✅ Datas salvas com sucesso!', 'sucesso');
+    } catch(e) {
+        mostrarToast('Erro ao salvar datas: ' + e.message, 'erro');
+    }
+}
+document.addEventListener('DOMContentLoaded', carregarDatasInscricao);
 
 function abrirModalSenha() {
     document.getElementById('ms-atual').value = '';
