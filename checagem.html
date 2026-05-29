@@ -445,17 +445,18 @@ function abrirModalReal(insc) {
   document.getElementById('mr-faixa').value = insc.faixa || '';
   document.getElementById('mr-erro').style.display = 'none';
 
-  // Limite máximo pela data de nascimento (autoridade CBJJ)
-  const catMaxNome  = getMaxCatNome(insc.dataNascimento, catIdadeAtual);
-  const ehMasterMax = catMaxNome.startsWith('Master');
-  const idxMax      = CATS_IDADE_C.indexOf(catMaxNome);
+  // ── Categoria de idade ──────────────────────────────────────────────
+  // Regra: pode descer de categoria (mais jovem/leve), NÃO pode subir.
+  // Master desce até Adulto. Adulto fica em Adulto.
+  const ehMasterAtual = catIdadeAtual.startsWith('Master');
+  const idxAtual      = CATS_IDADE_C.indexOf(catIdadeAtual);
 
   const selCat = document.getElementById('mr-catidade');
   selCat.innerHTML = '';
-  const opcoes = ehMasterMax
-    // Masters: Adulto + todos os Masters até o seu limite de idade
-    ? CATS_IDADE_C.filter((c, i) => c === 'Adulto' || (c.startsWith('Master') && i <= idxMax))
-    // Não-masters: somente a categoria atual
+  const opcoes = ehMasterAtual
+    // Master: Adulto + todos os Masters até a categoria ATUAL (não acima)
+    ? CATS_IDADE_C.filter((c, i) => c === 'Adulto' || (c.startsWith('Master') && i <= idxAtual))
+    // Adulto / Kids: apenas a categoria atual (sem subir nem descer fora da faixa)
     : [catIdadeAtual];
   opcoes.forEach(op => {
     const o = document.createElement('option');
@@ -464,10 +465,17 @@ function abrirModalReal(insc) {
     selCat.appendChild(o);
   });
 
+  // ── Categoria de peso ────────────────────────────────────────────────
+  // Regra: mínimo = categoria do peso físico registrado (insc.peso).
+  // Pode ir para mais pesado ou voltar ao original. Nunca abaixo do peso real.
+  const pesosDisp      = isMasc(insc) ? PESOS_MASC_C : PESOS_FEM_C;
+  const catPesoFisico  = calcCatPeso(insc.peso, insc.sexo); // base no peso real
+  const idxPesoFisico  = pesosDisp.indexOf(catPesoFisico);
+  const pesosPermitidos = idxPesoFisico >= 0 ? pesosDisp.slice(idxPesoFisico) : pesosDisp;
+
   const selPeso = document.getElementById('mr-peso');
   selPeso.innerHTML = '';
-  const pesosDisp = isMasc(insc) ? PESOS_MASC_C : PESOS_FEM_C;
-  pesosDisp.forEach(p => {
+  pesosPermitidos.forEach(p => {
     const o = document.createElement('option');
     o.value = p; o.textContent = p;
     if (p === catPesoAtual) o.selected = true;
@@ -475,8 +483,9 @@ function abrirModalReal(insc) {
   });
 
   const hints = [];
-  if (ehMasterMax) hints.push(`Master: pode lutar de Adulto até ${catMaxNome} (limite pela idade).`);
+  if (ehMasterAtual) hints.push(`Idade: pode descer até Adulto (não pode subir acima de ${catIdadeAtual}).`);
   else hints.push('ℹ️ Categoria de idade bloqueada. Apenas o peso pode ser alterado.');
+  hints.push(`⚖️ Peso: ${catPesoFisico} ou mais pesado (baseado no peso cadastrado).`);
   hints.push('🥋 Faixa não pode ser alterada (regras CBJJ).');
   document.getElementById('mr-hint').textContent = hints.join(' ');
 
