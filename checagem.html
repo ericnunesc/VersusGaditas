@@ -388,12 +388,16 @@ window.verificarIdentidade = async function() {
   }
 
   // Identidade confirmada — abre modal de realocação
+  // Salva ref antes de fecharModal() que zera inscAtual
+  const inscVerificada = inscAtual;
   fecharModal();
-  abrirModalReal(inscAtual);
+  abrirModalReal(inscVerificada);
 };
 
 // ── Modal realocação ────────────────────────────────────────────────────
 function abrirModalReal(insc) {
+  if (!insc) return;
+  inscAtual = insc; // garante que inscAtual aponta para a inscrição correta
   const catIdadeAtual = getCatIdade(insc);
   const catPesoAtual  = getCatPeso(insc);
   const catAtual = `${isMasc(insc) ? 'Masculino' : 'Feminino'} | ${catIdadeAtual} | ${insc.faixa || '?'} | ${catPesoAtual}`;
