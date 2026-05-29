@@ -1081,6 +1081,28 @@ function carregarTV(){
                 '<div class="campeao-nome">'+cat.campeao.nome+'</div>'+
                 '<div class="campeao-acad">'+cat.campeao.academia+'</div>'+
                 '</div>';
+        } else if((cat.atletas||[]).length<=1 && !(cat.lutas||[]).length){
+            // ── Categoria WO: único atleta, sem adversário ──
+            var aw=(cat.atletas||[])[0];
+            if(aw){
+                html+=
+                    '<div style="margin:14px;padding:18px 20px;display:flex;align-items:center;gap:16px;'+
+                    'background:rgba(201,160,61,0.07);border:1px solid rgba(201,160,61,0.25);border-radius:14px;">'+
+                        '<div style="font-size:2.2rem">🥇</div>'+
+                        '<div style="flex:1">'+
+                            '<div style="font-family:\'Oswald\',sans-serif;font-size:1.15rem;font-weight:700;color:var(--ouro);letter-spacing:1px">'+aw.nome+'</div>'+
+                            '<div style="font-size:0.72rem;color:var(--texto-fraco);margin-top:3px">'+(aw.academia||'')+(aw.peso?' · '+aw.peso+' kg':'')+' · Faixa '+( aw.faixa||'')+'</div>'+
+                        '</div>'+
+                        '<div style="background:#D97706;color:#fff;padding:5px 14px;border-radius:12px;font-size:0.68rem;font-weight:800;letter-spacing:1px;text-align:center">'+
+                            '🏆 CAMPEÃO<br>POR W.O.'+
+                        '</div>'+
+                    '</div>'+
+                    '<div style="text-align:center;font-size:0.7rem;color:var(--texto-fraco);padding-bottom:12px">'+
+                        'Único atleta na categoria — sem adversário inscrito'+
+                    '</div>';
+            } else {
+                html+='<div style="padding:18px;text-align:center;color:var(--texto-fraco);font-size:0.78rem">Nenhum atleta nesta categoria.</div>';
+            }
         } else {
             html+=montarChaveVisual(cat, cronoCat, chave);
         }

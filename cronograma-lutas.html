@@ -745,15 +745,34 @@ function renderArea(area, cats) {
         var faseAtual = getNomeFase(lutasRodAtualCat.length, cat);
         if (lutasRodAtualCat.length === 0) faseAtual = cat.campeao ? 'Finalizada' : '';
 
-        html +=
-            '<div class="lutas-table-wrap">' +
+        // ── WO: 1 atleta, sem lutas ──
+        var isWOCat = (cat.atletas||[]).length<=1 && !lutas.length && !cat.campeao;
+        var aw = isWOCat ? ((cat.atletas||[])[0]||null) : null;
+
+        html += '<div class="lutas-table-wrap">' +
             '<div class="table-cat-header">' +
             '<span class="cat-nome">🏅 ' + cat.nome + '</span>' +
             '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
-            (faseAtual?'<span style="background:rgba(201,160,61,0.15);color:var(--ouro);border:1px solid rgba(201,160,61,0.3);padding:2px 8px;border-radius:10px;font-size:0.58rem;font-weight:700;letter-spacing:1px">'+faseAtual+'</span>':'')+
-            '<span class="cat-info">' + fin + '/' + lutas.length + ' lutas' + (catFin?' · ✅ FINALIZADA':'') + '</span>' +
+            (isWOCat?'<span style="background:rgba(217,119,6,0.2);color:#D97706;border:1px solid rgba(217,119,6,0.4);padding:2px 8px;border-radius:10px;font-size:0.58rem;font-weight:700;letter-spacing:1px">W.O.</span>':
+                (faseAtual?'<span style="background:rgba(201,160,61,0.15);color:var(--ouro);border:1px solid rgba(201,160,61,0.3);padding:2px 8px;border-radius:10px;font-size:0.58rem;font-weight:700;letter-spacing:1px">'+faseAtual+'</span>':''))+
+            '<span class="cat-info">' + (isWOCat?'1 atleta · sem adversário':(fin + '/' + lutas.length + ' lutas' + (catFin?' · ✅ FINALIZADA':''))) + '</span>' +
             '</div>' +
-            '</div>' +
+            '</div>';
+
+        if (isWOCat) {
+            html += aw
+                ? '<div style="padding:14px 18px;display:flex;align-items:center;gap:14px;">' +
+                  '<div style="font-size:1.8rem">🥇</div>' +
+                  '<div style="flex:1">' +
+                    '<div style="font-weight:700;color:var(--ouro);font-size:0.92rem">' + aw.nome + '</div>' +
+                    '<div style="font-size:0.72rem;color:var(--texto-fraco);margin-top:2px">' + (aw.academia||'') + (aw.peso?' · '+aw.peso+' kg':'') + '</div>' +
+                  '</div>' +
+                  '<div style="background:#D97706;color:#fff;padding:4px 12px;border-radius:10px;font-size:0.7rem;font-weight:700">🏆 CAMPEÃO POR W.O.</div>' +
+                  '</div>'
+                : '<div style="padding:14px 18px;color:var(--texto-fraco);font-size:0.78rem">Nenhum atleta nesta categoria.</div>';
+            html += '</div>'; // fecha .lutas-table-wrap
+        } else {
+            html +=
             '<div class="luta-row-header">' +
             '<span>#</span><span>Horário</span><span>Atleta A</span><span style="text-align:center">VS</span><span>Atleta B</span><span>Status</span>' +
             '</div><div class="lutas-rows">';
@@ -858,7 +877,8 @@ function renderArea(area, cats) {
                 '</div>';
         }
 
-        html += '</div></div>'; // fecha .lutas-rows e .lutas-table-wrap
+            html += '</div></div>'; // fecha .lutas-rows e .lutas-table-wrap
+        } // fecha else (não-WO)
     }
     return html;
 }
