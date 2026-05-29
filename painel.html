@@ -603,7 +603,7 @@
             <a href="admin-equipes.html" target="_blank" class="tab" style="text-decoration:none;">🏫 Equipe / Inscrições</a>
             <a href="adm-inscricoes.html" target="_blank" class="tab" style="text-decoration:none;">📋 Aprovações <span class="tab-badge" id="badge-pendentes" style="background:#FEF9C3;color:#92400E;">0</span></a>
             <button class="tab" data-tab="atletas">👥 Atletas <span class="tab-badge" id="tab-badge-atletas">0</span></button>
-            <button class="tab" data-tab="torneio">🥋 Chaveamento</button>
+            <button class="tab" data-tab="torneio" onclick="sincronizarInputTatames()">🥋 Chaveamento</button>
             <a href="atletas-publico.html" target="_blank" class="tab" style="text-decoration:none;">👥 Atletas por categoria</a>
             <button class="tab" data-tab="categorias">📋 Categorias</button>
             <button class="tab" data-tab="ranking">⭐ Ranking</button>
@@ -681,10 +681,16 @@
                 <div class="card">
                     <div class="card-header">
                         <h3>🥋 Chaveamento</h3>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                             <button onclick="removerChaveamento()" class="btn-danger" id="btn-remover-chave" style="display:none;">🗑️ Remover</button>
                             <button onclick="abrirModalAbsoluto()" class="btn-secondary" id="btn-gerar-absoluto" title="Escolha qual faixa do Absoluto gerar">🏆 Gerar Absoluto</button>
-                            <button onclick="gerarChaveamento()" class="btn-primary">🎯 Gerar Chaveamento</button>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#8A9CB0;white-space:nowrap;">
+                                🏟️ Tatames
+                                <input type="number" id="num-tatames-chave" min="1" max="20" value="3"
+                                    style="width:52px;padding:6px 8px;border:1px solid #E2E8F0;border-radius:8px;font-size:0.85rem;text-align:center;"
+                                    title="Número de tatames">
+                            </label>
+                            <button onclick="gerarChaveamentoComTatames()" class="btn-primary">🎯 Gerar Chaveamento</button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -1279,6 +1285,30 @@
     }
     function configurarAreas() { mostrarToast('Defina o número de tatames ao gerar o chaveamento', 'info'); }
 
+    // Lê o input de tatames, atualiza window.areasLuta e chama gerarChaveamento
+    function gerarChaveamentoComTatames() {
+        const inp = document.getElementById('num-tatames-chave');
+        const n = inp ? (parseInt(inp.value) || 3) : 3;
+        if (n < 1 || n > 20) { mostrarToast('Número de tatames inválido (1-20)!', 'erro'); return; }
+        const areas = [];
+        for (let i = 1; i <= n; i++) areas.push('Tatame ' + i);
+        window.areasLuta = areas;
+        localStorage.setItem('gaditas_areas_luta', JSON.stringify(areas));
+        if (typeof gerarChaveamento === 'function') gerarChaveamento();
+    }
+
+    // Sincroniza o input com o valor atual de areasLuta ao abrir a aba
+    function sincronizarInputTatames() {
+        const inp = document.getElementById('num-tatames-chave');
+        if (!inp) return;
+        const salvas = localStorage.getItem('gaditas_areas_luta');
+        if (salvas) {
+            try { inp.value = JSON.parse(salvas).length; } catch(_) {}
+        } else if (window.areasLuta) {
+            inp.value = window.areasLuta.length;
+        }
+    }
+
     // ===== MODAL NOVA COMPETIÇÃO =====
     function abrirModalNovaCompeticao() {
         const modal = document.getElementById('modal-nova-competicao');
@@ -1718,6 +1748,7 @@ function atualizarBadgePendentes() {
     if (badge) badge.textContent = pendentes;
 }
 document.addEventListener('DOMContentLoaded', atualizarBadgePendentes);
+document.addEventListener('DOMContentLoaded', sincronizarInputTatames);
 window.addEventListener('storage', function(e) {
     atualizarBadgePendentes();
     // Recarrega atletas quando aprovados em outra aba (adm-inscricoes.html)
