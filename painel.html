@@ -1869,12 +1869,21 @@ window.onRealocAtleta = function(atletaId, chaveCategoria) {
     document.getElementById('rp-nome').value  = atleta.nome || '';
     document.getElementById('rp-faixa').value = faixaAtual;
 
-    const isMaster = catIdadeAtual.startsWith('Master');
+    // Limite máximo pela data de nascimento — autoridade CBJJ
+    let catMaxNomeRP = catIdadeAtual;
+    if (atleta.dataNascimento && typeof calcularIdade === 'function' && typeof determinarCategoriaIdade === 'function') {
+        const idadeAtl = calcularIdade(atleta.dataNascimento);
+        catMaxNomeRP = determinarCategoriaIdade(idadeAtl).nome;
+    }
+    const ehMasterMaxRP = catMaxNomeRP.startsWith('Master');
+    const idxMaxRP      = CATS_IDADE_RP.indexOf(catMaxNomeRP);
+
     const selCat = document.getElementById('rp-catidade');
     selCat.innerHTML = '';
-    const idxAtual = CATS_IDADE_RP.indexOf(catIdadeAtual);
-    const opcoes = isMaster
-        ? CATS_IDADE_RP.filter((c, i) => c.startsWith('Master') && i <= idxAtual)
+    const opcoes = ehMasterMaxRP
+        // Masters: Adulto + todos os Masters até o limite de idade
+        ? CATS_IDADE_RP.filter((c, i) => c === 'Adulto' || (c.startsWith('Master') && i <= idxMaxRP))
+        // Não-masters: somente a categoria atual
         : [catIdadeAtual];
     opcoes.forEach(op => {
         const o = document.createElement('option');
@@ -1894,7 +1903,7 @@ window.onRealocAtleta = function(atletaId, chaveCategoria) {
     });
 
     const hints = [];
-    if (isMaster) hints.push('⬇️ Master: somente descer de categoria de idade.');
+    if (ehMasterMaxRP) hints.push(`⬇️ Master: pode lutar de Adulto até ${catMaxNomeRP} (limite pela idade).`);
     else hints.push('ℹ️ Categoria de idade bloqueada pelas regras CBJJ.');
     hints.push('🥋 Faixa não pode ser alterada.');
     document.getElementById('rp-hint').textContent = hints.join(' ');

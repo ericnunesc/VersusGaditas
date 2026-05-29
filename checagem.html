@@ -341,6 +341,32 @@ function fecharModal() {
 
 // ── Verificar identidade ────────────────────────────────────────────────
 const CATS_IDADE_C = ['Pré-Mirim','Mirim 1','Mirim 2','Infantil 1','Infantil 2','Infanto-Juvenil','Juvenil','Adulto','Master 1','Master 2','Master 3','Master 4','Master 5','Master 6'];
+
+// Limites de cada categoria de idade (min e max de idade inclusivos)
+const CATS_LIMITES_C = {
+  'Pré-Mirim':[4,5],'Mirim 1':[6,7],'Mirim 2':[8,9],
+  'Infantil 1':[10,11],'Infantil 2':[12,13],
+  'Infanto-Juvenil':[14,15],'Juvenil':[16,17],
+  'Adulto':[18,29],'Master 1':[30,35],'Master 2':[36,40],
+  'Master 3':[41,45],'Master 4':[46,50],'Master 5':[51,55],'Master 6':[56,99]
+};
+
+// Calcula a categoria máxima do atleta pela data de nascimento
+function _calcIdadeSimples(dataNasc) {
+  if (!dataNasc) return null;
+  const n = new Date(dataNasc); if (isNaN(n)) return null;
+  const h = new Date(); let a = h.getFullYear() - n.getFullYear();
+  if (h.getMonth() < n.getMonth() || (h.getMonth()===n.getMonth()&&h.getDate()<n.getDate())) a--;
+  return a;
+}
+function getMaxCatNome(dataNasc, fallback) {
+  const idade = _calcIdadeSimples(dataNasc);
+  if (idade == null) return fallback;
+  const enc = CATS_IDADE_C.find(nome => {
+    const b = CATS_LIMITES_C[nome]; return b && idade >= b[0] && idade <= b[1];
+  });
+  return enc || (idade > 55 ? 'Master 6' : fallback);
+}
 const PESOS_MASC_C = ['Galo','Pluma','Pena','Leve','Médio','Meio-Pesado','Pesado','Super-Pesado','Pesadíssimo'];
 const PESOS_FEM_C  = ['Galo','Pluma','Pena','Leve','Médio','Meio-Pesado','Pesado','Super-Pesado'];
 
@@ -419,12 +445,17 @@ function abrirModalReal(insc) {
   document.getElementById('mr-faixa').value = insc.faixa || '';
   document.getElementById('mr-erro').style.display = 'none';
 
-  const ehMaster = catIdadeAtual.startsWith('Master');
-  const selCat   = document.getElementById('mr-catidade');
+  // Limite máximo pela data de nascimento (autoridade CBJJ)
+  const catMaxNome  = getMaxCatNome(insc.dataNascimento, catIdadeAtual);
+  const ehMasterMax = catMaxNome.startsWith('Master');
+  const idxMax      = CATS_IDADE_C.indexOf(catMaxNome);
+
+  const selCat = document.getElementById('mr-catidade');
   selCat.innerHTML = '';
-  const idxAtual = CATS_IDADE_C.indexOf(catIdadeAtual);
-  const opcoes = ehMaster
-    ? CATS_IDADE_C.filter((c, i) => c.startsWith('Master') && i <= idxAtual)
+  const opcoes = ehMasterMax
+    // Masters: Adulto + todos os Masters até o seu limite de idade
+    ? CATS_IDADE_C.filter((c, i) => c === 'Adulto' || (c.startsWith('Master') && i <= idxMax))
+    // Não-masters: somente a categoria atual
     : [catIdadeAtual];
   opcoes.forEach(op => {
     const o = document.createElement('option');
@@ -433,7 +464,7 @@ function abrirModalReal(insc) {
     selCat.appendChild(o);
   });
 
-  const selPeso   = document.getElementById('mr-peso');
+  const selPeso = document.getElementById('mr-peso');
   selPeso.innerHTML = '';
   const pesosDisp = isMasc(insc) ? PESOS_MASC_C : PESOS_FEM_C;
   pesosDisp.forEach(p => {
@@ -444,7 +475,7 @@ function abrirModalReal(insc) {
   });
 
   const hints = [];
-  if (ehMaster) hints.push('⬇️ Masters: somente descer de categoria de idade.');
+  if (ehMasterMax) hints.push(`⬇️ Master: pode lutar de Adulto até ${catMaxNome} (limite pela idade).`);
   else hints.push('ℹ️ Categoria de idade bloqueada. Apenas o peso pode ser alterado.');
   hints.push('🥋 Faixa não pode ser alterada (regras CBJJ).');
   document.getElementById('mr-hint').textContent = hints.join(' ');

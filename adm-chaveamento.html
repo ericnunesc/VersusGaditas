@@ -1133,6 +1133,30 @@
     var PESOS_MASC_REAL = ['Galo','Pluma','Pena','Leve','Médio','Meio-Pesado','Pesado','Super-Pesado','Pesadíssimo'];
     var PESOS_FEM_REAL  = ['Galo','Pluma','Pena','Leve','Médio','Meio-Pesado','Pesado','Super-Pesado'];
 
+    // Limite por idade para realocação
+    var CATS_LIM_REAL = {
+      'Pré-Mirim':[4,5],'Mirim 1':[6,7],'Mirim 2':[8,9],
+      'Infantil 1':[10,11],'Infantil 2':[12,13],
+      'Infanto-Juvenil':[14,15],'Juvenil':[16,17],
+      'Adulto':[18,29],'Master 1':[30,35],'Master 2':[36,40],
+      'Master 3':[41,45],'Master 4':[46,50],'Master 5':[51,55],'Master 6':[56,99]
+    };
+    function _calcIdadeReal(dataNasc) {
+      if (!dataNasc) return null;
+      var n = new Date(dataNasc); if (isNaN(n)) return null;
+      var h = new Date(); var a = h.getFullYear() - n.getFullYear();
+      if (h.getMonth() < n.getMonth() || (h.getMonth()===n.getMonth()&&h.getDate()<n.getDate())) a--;
+      return a;
+    }
+    function getMaxCatReal(dataNasc, fallback) {
+      var idade = _calcIdadeReal(dataNasc);
+      if (idade == null) return fallback;
+      var enc = CATS_IDADE_REAL.find(function(nome) {
+        var b = CATS_LIM_REAL[nome]; return b && idade >= b[0] && idade <= b[1];
+      });
+      return enc || (idade > 55 ? 'Master 6' : fallback);
+    }
+
     function abrirRealocacaoChave(atletaId, chaveCategoria) {
       var t = getTorneio();
       var cat = (t.categorias || []).find(function(c){ return c.chave === chaveCategoria; });
@@ -1154,13 +1178,16 @@
       document.getElementById('real-nome').value = atleta.nome || '';
       document.getElementById('real-faixa').value = faixaAtual;
 
+      // Limite máximo pela data de nascimento
+      var catMaxReal    = getMaxCatReal(atleta.dataNascimento, catIdadeAtual);
+      var ehMasterReal  = catMaxReal.startsWith('Master');
+      var idxMaxReal    = CATS_IDADE_REAL.indexOf(catMaxReal);
+
       // Categoria de idade
-      var isMaster = catIdadeAtual.startsWith('Master');
       var selCatidade = document.getElementById('real-catidade');
       selCatidade.innerHTML = '';
-      var idxAtual = CATS_IDADE_REAL.indexOf(catIdadeAtual);
-      var opcoes = isMaster
-        ? CATS_IDADE_REAL.filter(function(c, i){ return c.startsWith('Master') && i <= idxAtual; })
+      var opcoes = ehMasterReal
+        ? CATS_IDADE_REAL.filter(function(c, i){ return c === 'Adulto' || (c.startsWith('Master') && i <= idxMaxReal); })
         : [catIdadeAtual];
       opcoes.forEach(function(op) {
         var o = document.createElement('option');
@@ -1182,7 +1209,7 @@
 
       // Dica
       var hints = [];
-      if (isMaster) hints.push('⬇️ Master: somente descer de categoria de idade (para categoria mais nova).');
+      if (ehMasterReal) hints.push('⬇️ Master: pode lutar de Adulto até ' + catMaxReal + ' (limite pela idade).');
       else hints.push('ℹ️ Categoria de idade bloqueada pelas regras CBJJ.');
       hints.push('🥋 Faixa não pode ser alterada.');
       document.getElementById('real-hint').textContent = hints.join(' ');
