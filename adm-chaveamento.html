@@ -402,6 +402,98 @@
       .luta-acoes { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
       .btn-placar { grid-column: 1 / -1; }
     }
+
+    /* ── Modal Realocar ── */
+    .modal-real-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-real-bg.aberto { display: flex; }
+    .modal-real {
+      background: #14141f;
+      border: 1px solid #7C3AED;
+      border-radius: 16px;
+      padding: 24px;
+      width: min(420px, 94vw);
+      box-shadow: 0 0 40px rgba(124,58,237,0.35);
+    }
+    .modal-real h3 {
+      font-family: 'Oswald', sans-serif;
+      color: #C4B5FD;
+      font-size: 1.05rem;
+      letter-spacing: .04em;
+      margin-bottom: 18px;
+    }
+    .real-field { margin-bottom: 13px; }
+    .real-field label {
+      display: block;
+      font-size: 0.7rem;
+      color: #7A7A9A;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .real-field input, .real-field select {
+      width: 100%;
+      background: #0C0C18;
+      border: 1px solid #2A2A40;
+      border-radius: 8px;
+      color: #E8E8F0;
+      padding: 9px 12px;
+      font-size: 0.88rem;
+      font-family: 'Barlow', sans-serif;
+    }
+    .real-field select:focus { outline: none; border-color: #7C3AED; }
+    .real-field input[disabled] { opacity: 0.45; cursor: default; }
+    .real-hint {
+      font-size: 0.72rem;
+      color: #A78BFA;
+      margin-top: 4px;
+      min-height: 16px;
+    }
+    .real-acoes { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-real-cancelar {
+      flex: 1;
+      background: transparent;
+      border: 1px solid #333350;
+      color: #888;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: 'Barlow', sans-serif;
+    }
+    .btn-real-salvar {
+      flex: 2;
+      background: linear-gradient(135deg, #7C3AED, #5B21B6);
+      border: none;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 700;
+      font-family: 'Barlow', sans-serif;
+    }
+    .btn-real-salvar:hover { filter: brightness(1.1); }
+    .btn-realocar-wo {
+      background: #7C3AED;
+      border: none;
+      color: #fff;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: 8px;
+      font-family: 'Barlow', sans-serif;
+    }
+    .btn-realocar-wo:hover { background: #6D28D9; }
   </style>
 </head>
 <body>
@@ -906,8 +998,8 @@
             html += '  <div style="margin-left:auto;background:#D97706;color:#fff;padding:5px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;">🏆 CAMPEÃO POR WO</div>';
             html += '</div>';
             html += '<div style="padding:10px 20px 14px;font-size:0.75rem;color:#8A9CB0;text-align:center;">';
-            html += '  Único atleta na categoria — sem adversário. Considere realocar para outra categoria.';
-            html += '  <a href="adm-inscricoes.html?id=' + (window._campeonatoId || '') + '" style="color:#7C3AED;font-weight:600;margin-left:6px;">🔀 Realocar atleta</a>';
+            html += '  Único atleta na categoria — sem adversário.';
+            html += '  <button class="btn-realocar-wo" data-id="' + atletaWO.id + '" data-chave="' + (cat.chave || '').replace(/"/g,'&quot;') + '" onclick="abrirRealocacaoChave(this.dataset.id, this.dataset.chave)">🔀 Realocar</button>';
             html += '</div>';
           } else {
             html += '<div style="padding:18px 20px;text-align:center;color:#8A9CB0;font-size:0.82rem;">Nenhum atleta nesta categoria.</div>';
@@ -1016,6 +1108,204 @@
         carregarRenderizar();
       }
     });
+
+    // ── Realocar Atleta ──────────────────────────────────────────────
+    window._campeonatoId = new URLSearchParams(window.location.search).get('id') || '';
+
+    var _realAtletaId = null;
+    var _realChaveCategoria = null;
+    var _realSexo = null;
+
+    var CATS_IDADE_REAL = [
+      'Pré-Mirim','Mirim 1','Mirim 2','Infantil 1','Infantil 2',
+      'Infanto-Juvenil','Juvenil','Adulto',
+      'Master 1','Master 2','Master 3','Master 4','Master 5','Master 6'
+    ];
+    var PESOS_MASC_REAL = ['Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Super Pesadíssimo','Absoluto'];
+    var PESOS_FEM_REAL  = ['Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Absoluto'];
+
+    function abrirRealocacaoChave(atletaId, chaveCategoria) {
+      var t = getTorneio();
+      var cat = (t.categorias || []).find(function(c){ return c.chave === chaveCategoria; });
+      if (!cat) { alert('Categoria não encontrada.'); return; }
+      var atleta = (cat.atletas || []).find(function(a){ return String(a.id) === String(atletaId); });
+      if (!atleta) { alert('Atleta não encontrado.'); return; }
+
+      // Parse "Masculino | Master 2 | Marrom | Leve"
+      var partes = (cat.nome || '').split(' | ');
+      var sexoLabel   = partes[0] || 'Masculino';
+      var catIdadeAtual = partes[1] || 'Adulto';
+      var faixaAtual  = partes[2] || (atleta.faixa || '');
+      var catPesoAtual = partes[3] || '';
+
+      _realAtletaId = String(atletaId);
+      _realChaveCategoria = chaveCategoria;
+      _realSexo = sexoLabel === 'Masculino' ? 'M' : 'F';
+
+      document.getElementById('real-nome').value = atleta.nome || '';
+      document.getElementById('real-faixa').value = faixaAtual;
+
+      // Categoria de idade
+      var isMaster = catIdadeAtual.startsWith('Master');
+      var selCatidade = document.getElementById('real-catidade');
+      selCatidade.innerHTML = '';
+      var idxAtual = CATS_IDADE_REAL.indexOf(catIdadeAtual);
+      var opcoes = isMaster
+        ? CATS_IDADE_REAL.filter(function(c, i){ return c.startsWith('Master') && i <= idxAtual; })
+        : [catIdadeAtual];
+      opcoes.forEach(function(op) {
+        var o = document.createElement('option');
+        o.value = op; o.textContent = op;
+        if (op === catIdadeAtual) o.selected = true;
+        selCatidade.appendChild(o);
+      });
+
+      // Peso
+      var selPeso = document.getElementById('real-peso');
+      selPeso.innerHTML = '';
+      var pesosDisp = _realSexo === 'M' ? PESOS_MASC_REAL : PESOS_FEM_REAL;
+      pesosDisp.forEach(function(p) {
+        var o = document.createElement('option');
+        o.value = p; o.textContent = p;
+        if (p === catPesoAtual) o.selected = true;
+        selPeso.appendChild(o);
+      });
+
+      // Dica
+      var hints = [];
+      if (isMaster) hints.push('⬇️ Master: somente descer de categoria de idade (para categoria mais nova).');
+      else hints.push('ℹ️ Categoria de idade bloqueada pelas regras CBJJ.');
+      hints.push('🥋 Faixa não pode ser alterada.');
+      document.getElementById('real-hint').textContent = hints.join(' ');
+
+      document.getElementById('modal-real-bg').classList.add('aberto');
+    }
+
+    function fecharRealocacaoChave() {
+      document.getElementById('modal-real-bg').classList.remove('aberto');
+      _realAtletaId = null; _realChaveCategoria = null; _realSexo = null;
+    }
+
+    function salvarRealocacaoChave() {
+      if (!_realAtletaId || !_realChaveCategoria) return;
+
+      var t = getTorneio();
+      var catIdx = (t.categorias || []).findIndex(function(c){ return c.chave === _realChaveCategoria; });
+      if (catIdx === -1) { alert('Categoria não encontrada.'); return; }
+
+      var cat = t.categorias[catIdx];
+      var atletaIdx = (cat.atletas || []).findIndex(function(a){ return String(a.id) === String(_realAtletaId); });
+      if (atletaIdx === -1) { alert('Atleta não encontrado.'); return; }
+
+      var atleta = JSON.parse(JSON.stringify(cat.atletas[atletaIdx])); // deep copy
+      var novaCatidade = document.getElementById('real-catidade').value;
+      var novoPeso     = document.getElementById('real-peso').value;
+      var sexoLabel    = _realSexo === 'M' ? 'Masculino' : 'Feminino';
+      var faixa        = document.getElementById('real-faixa').value;
+      var novoNomeCat  = sexoLabel + ' | ' + novaCatidade + ' | ' + faixa + ' | ' + novoPeso;
+
+      if (novoNomeCat === cat.nome) {
+        fecharRealocacaoChave(); return;
+      }
+
+      // Atualiza props do atleta
+      atleta.categoria_idade = novaCatidade;
+      atleta.categoria_peso  = novoPeso;
+
+      // Remove atleta da categoria origem
+      cat.atletas.splice(atletaIdx, 1);
+
+      // Remove lutas do atleta na origem (caso tenha alguma com BYE)
+      if (cat.lutas && cat.lutas.length) {
+        cat.lutas = cat.lutas.filter(function(l){
+          return String((l.atletaA||{}).id) !== _realAtletaId
+              && String((l.atletaB||{}).id) !== _realAtletaId;
+        });
+      }
+
+      // Remove categoria origem se ficou vazia
+      if (!cat.atletas || cat.atletas.length === 0) {
+        t.categorias.splice(catIdx, 1);
+      }
+
+      // Encontra ou cria categoria destino
+      var destIdx = t.categorias.findIndex(function(c){ return c.nome === novoNomeCat; });
+      if (destIdx === -1) {
+        t.categorias.push({
+          chave: novoNomeCat + '_' + Date.now(),
+          nome: novoNomeCat,
+          atletas: [atleta],
+          lutas: [],
+          rodadaAtual: 1,
+          rodadaTotal: 1,
+          campeao: null,
+          area: cat.area || 'Tatame 1',
+          status: 'em_andamento',
+          diretosProximaRodada: []
+        });
+      } else {
+        t.categorias[destIdx].atletas.push(atleta);
+        // Limpa lutas só se nenhuma foi iniciada
+        var algumIniciada = (t.categorias[destIdx].lutas || []).some(function(l){ return l.inicioMs || l.finalizada; });
+        if (!algumIniciada) {
+          t.categorias[destIdx].lutas = [];
+          t.categorias[destIdx].rodadaAtual = 1;
+          t.categorias[destIdx].diretosProximaRodada = [];
+        }
+      }
+
+      saveTorneio(t);
+
+      // Atualiza gaditas_atletas
+      try {
+        var atletas = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
+        var aIdx = atletas.findIndex(function(a){ return String(a.id) === String(_realAtletaId); });
+        if (aIdx !== -1) {
+          atletas[aIdx].categoria_idade = novaCatidade;
+          atletas[aIdx].categoria_peso  = novoPeso;
+          localStorage.setItem('gaditas_atletas', JSON.stringify(atletas));
+        }
+      } catch(e) { console.error(e); }
+
+      fecharRealocacaoChave();
+
+      // Toast
+      var toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#7C3AED;color:#fff;padding:12px 24px;border-radius:10px;font-size:0.9rem;font-weight:600;z-index:9999;box-shadow:0 4px 24px rgba(124,58,237,.5);white-space:nowrap';
+      toast.textContent = '✅ Atleta movido para: ' + novoNomeCat;
+      document.body.appendChild(toast);
+      setTimeout(function(){ toast.remove(); }, 3500);
+
+      carregarRenderizar();
+    }
   </script>
+
+  <!-- Modal Realocar Atleta -->
+  <div class="modal-real-bg" id="modal-real-bg" onclick="if(event.target===this)fecharRealocacaoChave()">
+    <div class="modal-real">
+      <h3>🔀 Realocar Atleta</h3>
+      <div class="real-field">
+        <label>Atleta</label>
+        <input type="text" id="real-nome" disabled />
+      </div>
+      <div class="real-field">
+        <label>Faixa (bloqueada)</label>
+        <input type="text" id="real-faixa" disabled />
+      </div>
+      <div class="real-field">
+        <label>Categoria de Idade</label>
+        <select id="real-catidade"></select>
+      </div>
+      <div class="real-field">
+        <label>Categoria de Peso</label>
+        <select id="real-peso"></select>
+      </div>
+      <p class="real-hint" id="real-hint"></p>
+      <div class="real-acoes">
+        <button class="btn-real-cancelar" onclick="fecharRealocacaoChave()">Cancelar</button>
+        <button class="btn-real-salvar" onclick="salvarRealocacaoChave()">✅ Salvar Realocação</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
