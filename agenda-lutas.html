@@ -239,6 +239,57 @@
 
         /* MODAL */
 
+        /* MODAL SEQUÊNCIA DE FAIXAS */
+        .modal-ord-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.88); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-ord-overlay.open { display: flex; }
+        .modal-ord {
+            background: var(--bg3); border: 1px solid var(--borda);
+            border-radius: 16px; padding: 24px;
+            max-width: 380px; width: 92%; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-ord h3 {
+            font-family: 'Oswald', sans-serif; font-size: 1.05rem;
+            color: var(--ouro); margin-bottom: 4px; letter-spacing: 1px;
+        }
+        .modal-ord .ord-sub { font-size: 0.72rem; color: var(--texto-fraco); margin-bottom: 14px; }
+        .ord-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+        .ord-preset-btn {
+            background: var(--bg2); border: 1px solid var(--borda); color: var(--texto-fraco);
+            padding: 5px 11px; border-radius: 20px; font-size: 0.68rem;
+            font-family: 'Barlow', sans-serif; cursor: pointer; transition: all 0.2s;
+        }
+        .ord-preset-btn:hover { border-color: var(--ouro); color: var(--ouro); }
+        .ord-lista { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .ord-item {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--bg2); border: 1px solid var(--borda);
+            border-radius: 10px; padding: 10px 12px; transition: border-color 0.2s;
+        }
+        .ord-item:hover { border-color: rgba(201,160,61,0.3); }
+        .ord-num {
+            font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 700;
+            color: var(--ouro); min-width: 26px; text-align: right;
+        }
+        .ord-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .ord-nome { font-family: 'Oswald', sans-serif; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.5px; }
+        .ord-abs-note { font-size: 0.58rem; color: var(--texto-fraco); margin-top: 1px; }
+        .ord-btns { display: flex; flex-direction: column; gap: 3px; margin-left: auto; }
+        .ord-btn {
+            background: var(--bg3); border: 1px solid var(--borda); color: var(--texto-fraco);
+            width: 28px; height: 22px; border-radius: 5px; font-size: 0.65rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+        }
+        .ord-btn:hover:not(:disabled) { border-color: var(--ouro); color: var(--ouro); }
+        .ord-btn:disabled { opacity: 0.2; cursor: default; }
+        .ord-nota {
+            font-size: 0.68rem; color: var(--texto-fraco);
+            padding: 8px 12px; background: rgba(201,160,61,0.06);
+            border: 1px solid rgba(201,160,61,0.15); border-radius: 8px; margin-bottom: 14px;
+        }
 
         /* EMPTY */
         .empty-state { text-align:center; padding:70px 20px; color:var(--texto-fraco); }
@@ -374,6 +425,7 @@
             <div class="relogio" id="relogio">--:--:--</div>
             <button class="btn-cfg" onclick="configurarHorario()">⚙️ Horário</button>
             <button class="btn-cfg" onclick="abrirConfigDuracao()">⏱️ Duração</button>
+            <button class="btn-cfg" onclick="abrirOrdemFaixas()" style="color:var(--ouro);border-color:rgba(201,160,61,0.4)">🎯 Sequência</button>
             <button class="btn-cfg" onclick="window.location.href='painel.html'">← Voltar</button>
         </div>
     </div>
@@ -937,6 +989,10 @@ function carregarAgenda() {
         if (!porArea[a]) porArea[a] = [];
         porArea[a].push(cat);
     });
+    // Ordenar categorias dentro de cada área pela sequência de faixas configurada
+    Object.keys(porArea).forEach(function(area) {
+        porArea[area] = sortByOrdemFaixas(porArea[area]);
+    });
     var areas = Object.keys(porArea);
     if (!areaAtiva || areas.indexOf(areaAtiva)===-1) areaAtiva = areas[0];
 
@@ -1061,26 +1117,144 @@ function carregarTodasDuracoes() {
 }
 var carregarDuracoesConfig = carregarTodasDuracoes;
 
+// ===== SEQUÊNCIA DE FAIXAS =====
+var FAIXAS_ORD_DEFAULT = ['Kids','Branca','Azul','Roxa','Marrom','Preta'];
+var ordemFaixasAtual = (function() {
+    try { var s = localStorage.getItem('gaditas_ordem_faixas'); return s ? JSON.parse(s) : null; } catch(e) { return null; }
+})() || FAIXAS_ORD_DEFAULT.slice();
+
+var FAIXAS_ORD_CORES = { Kids:'#10B981', Branca:'#E8E8F0', Azul:'#3B8BFF', Roxa:'#8B5CF6', Marrom:'#C2845A', Preta:'#9CA3AF' };
+var KIDS_BELTS_SET = ['Cinza','Amarela','Laranja','Verde'];
+
+function getBeltGrupo(catNome) {
+    var parts = (catNome || '').split(' | ');
+    // Absoluto: "🏆 ABSOLUTO | Masculino | Preta" → parts[2]
+    // Normal:   "Masculino | Adulto | Preta | Leve" → parts[2]
+    var belt = (parts[2] || '').trim();
+    return KIDS_BELTS_SET.indexOf(belt) >= 0 ? 'Kids' : (belt || 'Outros');
+}
+
+function isAbsolutoCat(catNome) {
+    return (catNome || '').indexOf('ABSOLUTO') !== -1;
+}
+
+function sortByOrdemFaixas(cats) {
+    return cats.slice().sort(function(a, b) {
+        var ga = getBeltGrupo(a.nome || '');
+        var gb = getBeltGrupo(b.nome || '');
+        var ia = ordemFaixasAtual.indexOf(ga);
+        var ib = ordemFaixasAtual.indexOf(gb);
+        // grupos não listados vão pro fim
+        var oa = ia === -1 ? 999 : ia;
+        var ob = ib === -1 ? 999 : ib;
+        if (oa !== ob) return oa - ob;
+        // Mesmo grupo: categorias normais antes dos absolutos
+        var absA = isAbsolutoCat(a.nome || '') ? 1 : 0;
+        var absB = isAbsolutoCat(b.nome || '') ? 1 : 0;
+        return absA - absB;
+    });
+}
+
+function abrirOrdemFaixas() {
+    renderOrdemLista();
+    document.getElementById('modal-ord-overlay').classList.add('open');
+}
+
+function fecharOrdemFaixas() {
+    document.getElementById('modal-ord-overlay').classList.remove('open');
+}
+
+function renderOrdemLista() {
+    var html = '';
+    ordemFaixasAtual.forEach(function(grupo, idx) {
+        var cor = FAIXAS_ORD_CORES[grupo] || '#888';
+        var first = idx === 0;
+        var last  = idx === ordemFaixasAtual.length - 1;
+        html += '<div class="ord-item">';
+        html += '<span class="ord-num">' + (idx + 1) + 'º</span>';
+        html += '<span class="ord-dot" style="background:' + cor + '"></span>';
+        html += '<div style="flex:1"><div class="ord-nome">' + grupo + '</div>';
+        html += '<div class="ord-abs-note">🏆 Absoluto luta logo após</div></div>';
+        html += '<div class="ord-btns">';
+        html += '<button class="ord-btn" onclick="moverFaixaOrdem(' + idx + ',-1)"' + (first ? ' disabled' : '') + '>▲</button>';
+        html += '<button class="ord-btn" onclick="moverFaixaOrdem(' + idx + ',1)"'  + (last  ? ' disabled' : '') + '>▼</button>';
+        html += '</div></div>';
+    });
+    document.getElementById('ord-lista').innerHTML = html;
+}
+
+function moverFaixaOrdem(idx, dir) {
+    var novo = idx + dir;
+    if (novo < 0 || novo >= ordemFaixasAtual.length) return;
+    var tmp = ordemFaixasAtual[idx];
+    ordemFaixasAtual[idx] = ordemFaixasAtual[novo];
+    ordemFaixasAtual[novo] = tmp;
+    renderOrdemLista();
+}
+
+function aplicarPresetOrdem(tipo) {
+    var presets = {
+        cbjj:   ['Kids','Branca','Azul','Roxa','Marrom','Preta'],
+        pretas: ['Preta','Marrom','Roxa','Azul','Branca','Kids'],
+        kids:   ['Kids','Preta','Marrom','Roxa','Azul','Branca']
+    };
+    if (presets[tipo]) { ordemFaixasAtual = presets[tipo].slice(); renderOrdemLista(); }
+}
+
+function salvarOrdemFaixas() {
+    localStorage.setItem('gaditas_ordem_faixas', JSON.stringify(ordemFaixasAtual));
+    fecharOrdemFaixas();
+    carregarAgenda();
+}
+
 // ===== INICIAR =====
 carregarDuracoesConfig();
 carregarAgenda();
 setInterval(carregarAgenda, 5000);
 
-// Fechar modal de duração clicando fora
+// Fechar modais clicando fora
 document.addEventListener('click', function(e) {
-    var overlay = document.getElementById('modal-duracao');
-    if (e.target === overlay) fecharConfigDuracao();
+    var overlayDur = document.getElementById('modal-duracao');
+    if (e.target === overlayDur) fecharConfigDuracao();
+    var overlayOrd = document.getElementById('modal-ord-overlay');
+    if (e.target === overlayOrd) fecharOrdemFaixas();
 });
 
 window.addEventListener('storage', function(e) {
-    if (['gaditas_torneio_atual','gaditas_lutas_ativas','gaditas_horario_inicio'].indexOf(e.key)!==-1) {
+    if (['gaditas_torneio_atual','gaditas_lutas_ativas','gaditas_horario_inicio','gaditas_ordem_faixas'].indexOf(e.key)!==-1) {
         if (e.key==='gaditas_horario_inicio') horarioInicio=e.newValue||horarioInicio;
+        if (e.key==='gaditas_ordem_faixas') {
+            try { ordemFaixasAtual = JSON.parse(e.newValue || 'null') || FAIXAS_ORD_DEFAULT.slice(); } catch(x) {}
+        }
         carregarAgenda();
     }
 });
 
 
 </script>
+<!-- MODAL SEQUÊNCIA DE FAIXAS -->
+<div class="modal-ord-overlay" id="modal-ord-overlay">
+    <div class="modal-ord">
+        <h3>🎯 Sequência de Faixas</h3>
+        <p class="ord-sub">Defina a ordem em que as faixas lutas no cronograma. Use ▲ ▼ para reordenar.</p>
+
+        <div class="ord-presets">
+            <button class="ord-preset-btn" onclick="aplicarPresetOrdem('cbjj')">📋 Padrão CBJJ</button>
+            <button class="ord-preset-btn" onclick="aplicarPresetOrdem('pretas')">🥋 Pretas Primeiro</button>
+            <button class="ord-preset-btn" onclick="aplicarPresetOrdem('kids')">👦 Kids Primeiro</button>
+        </div>
+
+        <div class="ord-lista" id="ord-lista"></div>
+
+        <div class="ord-nota">
+            💡 O <strong>Absoluto</strong> de cada faixa sempre luta logo após todas as categorias de peso daquela faixa — automaticamente.
+        </div>
+
+        <button class="btn-dur-salvar" onclick="salvarOrdemFaixas()">✅ Salvar Sequência</button>
+        <button class="btn-dur-cancelar" onclick="fecharOrdemFaixas()">Cancelar</button>
+    </div>
+</div>
+
 <!-- MODAL DURAÇÃO DAS FAIXAS -->
 <div class="modal-dur-overlay" id="modal-duracao">
     <div class="modal-dur">
