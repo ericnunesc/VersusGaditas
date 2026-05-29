@@ -148,7 +148,7 @@
 </div>
 
 <!-- Modal: Verificar identidade -->
-<div class="modal-bg" id="modal-verif" onclick="if(event.target===this)fecharModal()">
+<div class="modal-bg" id="modal-verif">
   <div class="modal">
     <h3 id="mv-titulo">Verificar Identidade</h3>
     <p class="sub" id="mv-sub">Informe seus dados para confirmar sua identidade e acessar a realocação.</p>
@@ -163,14 +163,14 @@
       <input type="email" id="mv-email" placeholder="seuemail@exemplo.com" />
     </div>
     <div class="modal-acoes">
-      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-confirmar" id="btn-verificar" onclick="verificarIdentidade()">Confirmar →</button>
+      <button class="btn-cancelar" id="btn-fechar-verif">Cancelar</button>
+      <button class="btn-confirmar" id="btn-verificar">Confirmar →</button>
     </div>
   </div>
 </div>
 
 <!-- Modal: Realocar categoria -->
-<div class="modal-bg" id="modal-real" onclick="if(event.target===this)fecharModalReal()">
+<div class="modal-bg" id="modal-real">
   <div class="modal">
     <h3>🔀 Realocar Categoria</h3>
     <p class="sub">Selecione a nova categoria desejada. As regras CBJJ se aplicam.</p>
@@ -200,8 +200,8 @@
     </div>
     <p class="hint" id="mr-hint" style="font-size:0.7rem;color:#A78BFA;margin-top:-8px;margin-bottom:8px"></p>
     <div class="modal-acoes">
-      <button class="btn-cancelar" onclick="fecharModalReal()">Cancelar</button>
-      <button class="btn-confirmar" id="btn-salvar-real" onclick="salvarRealocacao()">✅ Confirmar Realocação</button>
+      <button class="btn-cancelar" id="btn-fechar-real">Cancelar</button>
+      <button class="btn-confirmar" id="btn-salvar-real">✅ Confirmar Realocação</button>
     </div>
   </div>
 </div>
@@ -334,10 +334,10 @@ window.clicarAtleta = function(inscId) {
   document.getElementById('modal-verif').classList.add('aberto');
 };
 
-window.fecharModal = function() {
+function fecharModal() {
   document.getElementById('modal-verif').classList.remove('aberto');
   inscAtual = null;
-};
+}
 
 // ── Verificar identidade ────────────────────────────────────────────────
 const CATS_IDADE_C = ['Pré-Mirim','Mirim 1','Mirim 2','Infantil 1','Infantil 2','Infanto-Juvenil','Juvenil','Adulto','Master 1','Master 2','Master 3','Master 4','Master 5','Master 6'];
@@ -367,32 +367,39 @@ function getCatPeso(insc) {
   return insc.categoria_peso || calcCatPeso(insc.peso, insc.sexo);
 }
 
-window.verificarIdentidade = async function() {
+async function verificarIdentidade() {
   const cpfInput   = normCPF(document.getElementById('mv-cpf').value);
   const emailInput = document.getElementById('mv-email').value.trim().toLowerCase();
   const erroEl     = document.getElementById('mv-erro');
-  const btn        = document.getElementById('btn-verificar');
 
   erroEl.style.display = 'none';
-  if (!cpfInput || !emailInput) {
-    erroEl.textContent = 'Preencha CPF e e-mail.';
-    erroEl.style.display = 'block'; return;
+  try {
+    if (!cpfInput || !emailInput) {
+      erroEl.textContent = 'Preencha CPF e e-mail.';
+      erroEl.style.display = 'block'; return;
+    }
+    if (!inscAtual) {
+      erroEl.textContent = 'Nenhum atleta selecionado. Feche e tente novamente.';
+      erroEl.style.display = 'block'; return;
+    }
+
+    const cpfCad   = normCPF(inscAtual.cpf);
+    const emailCad = (inscAtual.email || '').trim().toLowerCase();
+
+    if (cpfCad !== cpfInput || emailCad !== emailInput) {
+      erroEl.textContent = 'CPF ou e-mail não correspondem à inscrição. Verifique os dados.';
+      erroEl.style.display = 'block'; return;
+    }
+
+    // Identidade confirmada — salva ref antes de fechar (fecharModal zera inscAtual)
+    const inscVerificada = inscAtual;
+    fecharModal();
+    abrirModalReal(inscVerificada);
+  } catch(e) {
+    erroEl.textContent = 'Erro: ' + e.message;
+    erroEl.style.display = 'block';
   }
-
-  const cpfCad   = normCPF(inscAtual.cpf);
-  const emailCad = (inscAtual.email || '').trim().toLowerCase();
-
-  if (cpfCad !== cpfInput || emailCad !== emailInput) {
-    erroEl.textContent = 'CPF ou e-mail não correspondem à inscrição. Verifique os dados.';
-    erroEl.style.display = 'block'; return;
-  }
-
-  // Identidade confirmada — abre modal de realocação
-  // Salva ref antes de fecharModal() que zera inscAtual
-  const inscVerificada = inscAtual;
-  fecharModal();
-  abrirModalReal(inscVerificada);
-};
+}
 
 // ── Modal realocação ────────────────────────────────────────────────────
 function abrirModalReal(insc) {
@@ -439,12 +446,12 @@ function abrirModalReal(insc) {
   document.getElementById('modal-real').classList.add('aberto');
 }
 
-window.fecharModalReal = function() {
+function fecharModalReal() {
   document.getElementById('modal-real').classList.remove('aberto');
-};
+}
 
 // ── Salvar realocação ────────────────────────────────────────────────────
-window.salvarRealocacao = async function() {
+async function salvarRealocacao() {
   if (!inscAtual && !document.getElementById('mr-nome').value) return;
   const insc = inscAtual || inscricoes.find(i => (i.nome||i.nomeAtleta) === document.getElementById('mr-nome').value);
   if (!insc) return;
@@ -496,6 +503,14 @@ window.salvarRealocacao = async function() {
   // eslint-disable-next-line no-unused-vars
   inscAtual = insc; // mantém ref
 };
+
+// ── Bind botões estáticos (não usar onclick em module scripts) ────────────
+document.getElementById('btn-verificar').addEventListener('click', verificarIdentidade);
+document.getElementById('btn-fechar-verif').addEventListener('click', fecharModal);
+document.getElementById('modal-verif').addEventListener('click', e => { if (e.target === e.currentTarget) fecharModal(); });
+document.getElementById('btn-salvar-real').addEventListener('click', salvarRealocacao);
+document.getElementById('btn-fechar-real').addEventListener('click', fecharModalReal);
+document.getElementById('modal-real').addEventListener('click', e => { if (e.target === e.currentTarget) fecharModalReal(); });
 
 // ── Carregar dados ──────────────────────────────────────────────────────
 async function init() {
