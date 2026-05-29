@@ -394,7 +394,13 @@ async function verificarIdentidade() {
     // Identidade confirmada — salva ref antes de fechar (fecharModal zera inscAtual)
     const inscVerificada = inscAtual;
     fecharModal();
-    abrirModalReal(inscVerificada);
+    try {
+      abrirModalReal(inscVerificada);
+    } catch(e2) {
+      // Erro ao abrir modal de realocação — modal-verif já está fechado,
+      // então exibe toast visível em vez de erro no elemento oculto
+      toast('Erro ao abrir realocação: ' + e2.message, 5000);
+    }
   } catch(e) {
     erroEl.textContent = 'Erro: ' + e.message;
     erroEl.style.display = 'block';
@@ -438,7 +444,7 @@ function abrirModalReal(insc) {
   });
 
   const hints = [];
-  if (isMaster) hints.push('⬇️ Masters: somente descer de categoria de idade.');
+  if (ehMaster) hints.push('⬇️ Masters: somente descer de categoria de idade.');
   else hints.push('ℹ️ Categoria de idade bloqueada. Apenas o peso pode ser alterado.');
   hints.push('🥋 Faixa não pode ser alterada (regras CBJJ).');
   document.getElementById('mr-hint').textContent = hints.join(' ');
