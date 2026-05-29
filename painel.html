@@ -437,11 +437,57 @@
 <script>verificarAuth();</script>
 
 <script type="module">
-  import { buscarCampeonato, salvarConfig } from './js/firebase.js';
+  import { buscarCampeonato, salvarConfig, listarAtletas } from './js/firebase.js';
 
   const campeonatoId = new URLSearchParams(location.search).get('id');
   window._campeonatoId = campeonatoId;
   window._fbSalvarConfig = salvarConfig;
+
+  // ── Sincroniza atletas do Firestore → localStorage/appState ──
+  async function sincronizarAtletasFirebase(silencioso = false) {
+    if (!campeonatoId) return 0;
+    try {
+      const atletasFb = await listarAtletas(campeonatoId);
+      if (!atletasFb.length) return 0;
+
+      // Converte para formato do sistema local
+      const atletasLocal = atletasFb.map((a, idx) => ({
+        id: a.id || (Date.now() + idx),
+        nome: a.nome || '',
+        cpf: a.cpf || '',
+        dataNascimento: a.dataNascimento || '',
+        sexo: a.sexo || 'M',
+        faixa: a.faixa || 'Branca',
+        peso: parseFloat(a.peso) || 0,
+        academia: a.academia || a.equipe || '',
+        absoluto: a.absoluto || false,
+        foto: a.foto || null,
+        origem: 'firebase'
+      }));
+
+      // Salva no localStorage
+      localStorage.setItem('gaditas_atletas', JSON.stringify(atletasLocal));
+
+      // Atualiza appState se já foi inicializado
+      if (window.appState) {
+        window.appState.atletas = atletasLocal;
+        if (typeof window.atualizarListaAtletas === 'function') window.atualizarListaAtletas();
+        if (typeof window.atualizarDashboard    === 'function') window.atualizarDashboard();
+      }
+
+      if (!silencioso) {
+        const msg = `✅ ${atletasLocal.length} atleta(s) sincronizado(s) do Firebase!`;
+        if (typeof window.mostrarToast === 'function') window.mostrarToast(msg, 'sucesso');
+        else alert(msg);
+      }
+      return atletasLocal.length;
+    } catch(e) {
+      if (!silencioso) alert('Erro ao sincronizar: ' + e.message);
+      return 0;
+    }
+  }
+
+  window.sincronizarDoFirebase = sincronizarAtletasFirebase;
 
   document.addEventListener('DOMContentLoaded', async () => {
     if (!campeonatoId) return;
@@ -467,6 +513,9 @@
         if (sub) sub.textContent = camp.nome;
       }
     } catch(_) {}
+
+    // Sincroniza atletas automaticamente ao abrir (silencioso)
+    await sincronizarAtletasFirebase(true);
   });
 </script>
 
@@ -504,7 +553,7 @@
                 <a href="tv-chaveamento.html" class="icon-btn" target="_blank">📺 TV</a>
                 <a href="agenda-lutas.html" class="icon-btn" target="_blank">⏰ Agenda</a>
                 <a href="atletas-publico.html" class="icon-btn" target="_blank">👥 Atletas Público</a>
-                <button onclick="forcarSalvamentoTV()" class="icon-btn">🔄 Sincronizar</button>
+                <button onclick="sincronizarDoFirebase ? sincronizarDoFirebase() : forcarSalvamentoTV()" class="icon-btn">🔄 Sincronizar</button>
                 <button onclick="exportarDados()" class="icon-btn">📤 Exportar</button>
                 <button onclick="importarDados()" class="icon-btn">📥 Importar</button>
                 <button onclick="abrirModalSenha()" class="icon-btn">🔒 Senha</button>
