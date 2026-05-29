@@ -785,25 +785,46 @@
   async function carregarEventos() {
     try {
       const todos = await listarCampeonatos();
-      const ativos = todos.filter(c => c.status === 'ativo' || c.status === 'breve');
-      if (!ativos.length) return;
+      // Mostra ativos, breve, e encerrados com checagem ainda aberta
+      const now = new Date();
+      const visiveis = todos.filter(c => {
+        if (c.status === 'ativo' || c.status === 'breve') return true;
+        if (c.status === 'encerrado') {
+          // Mostra se ainda há janela de checagem
+          const chkFim = c.checagemFim ? new Date(c.checagemFim) : null;
+          return chkFim && now <= chkFim;
+        }
+        return false;
+      });
+      if (!visiveis.length) return;
 
       document.getElementById('events-section').style.display = 'block';
       const grid = document.getElementById('grid-events');
 
-      grid.innerHTML = ativos.map(c => {
+      grid.innerHTML = visiveis.map(c => {
         const data    = c.data ? new Date(c.data + 'T12:00').toLocaleDateString('pt-BR') : '—';
         const isLiga  = c.tipo === 'liga';
-        const pillLbl = { ativo:'✅ Inscrições abertas', breve:'🕐 Em breve' }[c.status] || c.status;
-        const pillCls = { ativo:'ativo', breve:'breve' }[c.status] || 'enc';
+
+        // Calcular status efetivo das inscrições a partir das datas
+        const fimDt = c.dataFimInscricoes ? new Date(c.dataFimInscricoes) : null;
+        const iniDt = c.dataInicioInscricoes ? new Date(c.dataInicioInscricoes) : null;
+        const isEnc    = c.status === 'encerrado' || (fimDt && now > fimDt);
+        const isBreve  = !isEnc && iniDt && now < iniDt;
+
+        const pillLbl = isEnc ? '🔒 Encerradas' : (isBreve ? '🕐 Em breve' : '✅ Inscrições abertas');
+        const pillCls = isEnc ? 'enc'            : (isBreve ? 'breve'       : 'ativo');
 
         const links = isLiga
-          ? `${c.status === 'ativo' ? `<a href="liga-inscricao.html?id=${c.id}" class="ev-link prim">📝 Inscrever Equipe</a>` : ''}
+          ? `${!isEnc && !isBreve ? `<a href="liga-inscricao.html?id=${c.id}" class="ev-link prim">📝 Inscrever Equipe</a>` : ''}
              <a href="liga-cronograma.html?id=${c.id}" class="ev-link">📅 Calendário</a>
              <a href="liga-placar-publico.html?id=${c.id}" class="ev-link">🏆 Placar</a>`
-          : `${c.status === 'ativo' ? `<a href="inscricao.html?id=${c.id}" class="ev-link prim">📝 Inscrever-se</a>` : ''}
-             <a href="atletas-publico.html?id=${c.id}" class="ev-link">👥 Atletas</a>
-             <a href="cronograma-lutas.html?id=${c.id}" class="ev-link">📅 Cronograma</a>`;
+          : isEnc
+            ? `<a href="checagem.html?id=${c.id}" class="ev-link prim">🔍 Checagem</a>
+               <a href="atletas-publico.html?id=${c.id}" class="ev-link">👥 Atletas</a>
+               <a href="cronograma-lutas.html?id=${c.id}" class="ev-link">📅 Cronograma</a>`
+            : `${!isBreve ? `<a href="inscricao.html?id=${c.id}" class="ev-link prim">📝 Inscrever-se</a>` : ''}
+               <a href="atletas-publico.html?id=${c.id}" class="ev-link">👥 Atletas</a>
+               <a href="cronograma-lutas.html?id=${c.id}" class="ev-link">📅 Cronograma</a>`;
 
         const banner = c.cartaz
           ? `<img src="${c.cartaz}" alt="${c.nome}">`

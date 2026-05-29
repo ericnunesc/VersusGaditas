@@ -287,7 +287,7 @@ function renderLista() {
   // Agrupar por categoria
   const grupos = {};
   inscricoes.forEach(i => {
-    const cat = `${i.sexo === 'M' ? 'Masculino' : 'Feminino'} | ${i.categoria_idade || '?'} | ${i.faixa || '?'} | ${i.categoria_peso || '?'}`;
+    const cat = `${isMasc(i) ? 'Masculino' : 'Feminino'} | ${getCatIdade(i)} | ${i.faixa || '?'} | ${getCatPeso(i)}`;
     if (!grupos[cat]) grupos[cat] = [];
     grupos[cat].push(i);
   });
@@ -344,6 +344,29 @@ const CATS_IDADE_C = ['Pré-Mirim','Mirim 1','Mirim 2','Infantil 1','Infantil 2'
 const PESOS_MASC_C = ['Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Super Pesadíssimo','Absoluto'];
 const PESOS_FEM_C  = ['Pluma','Leve','Médio','Meio-Pesado','Pesado','Super Pesado','Pesadíssimo','Absoluto'];
 
+// Helpers de compatibilidade — inscrições antigas salvam "categoria" e "peso" (número)
+// Novas realocações de checagem salvam "categoria_idade" e "categoria_peso"
+function isMasc(insc) {
+  const s = (insc.sexo || '').toUpperCase();
+  return s === 'M' || s === 'MASCULINO';
+}
+function getCatIdade(insc) {
+  return insc.categoria_idade || insc.categoria || '?';
+}
+const _PESOS_MASC_LIM = [57.5, 64, 70, 76, 82.3, 88.3, 94.3, 100.5, 999];
+const _PESOS_FEM_LIM  = [48.5, 53.5, 58.5, 64, 69, 74, 79.3, 999];
+function calcCatPeso(peso, sexo) {
+  const p = parseFloat(peso) || 0;
+  const m = (sexo || '').toUpperCase() === 'M' || (sexo || '').toUpperCase() === 'MASCULINO';
+  const nomes  = m ? PESOS_MASC_C : PESOS_FEM_C;
+  const limits = m ? _PESOS_MASC_LIM : _PESOS_FEM_LIM;
+  for (let i = 0; i < limits.length; i++) { if (p <= limits[i]) return nomes[i]; }
+  return nomes[nomes.length - 1];
+}
+function getCatPeso(insc) {
+  return insc.categoria_peso || calcCatPeso(insc.peso, insc.sexo);
+}
+
 window.verificarIdentidade = async function() {
   const cpfInput   = normCPF(document.getElementById('mv-cpf').value);
   const emailInput = document.getElementById('mv-email').value.trim().toLowerCase();
@@ -371,18 +394,19 @@ window.verificarIdentidade = async function() {
 
 // ── Modal realocação ────────────────────────────────────────────────────
 function abrirModalReal(insc) {
-  const catAtual = `${insc.sexo === 'M' ? 'Masculino' : 'Feminino'} | ${insc.categoria_idade || '?'} | ${insc.faixa || '?'} | ${insc.categoria_peso || '?'}`;
+  const catIdadeAtual = getCatIdade(insc);
+  const catPesoAtual  = getCatPeso(insc);
+  const catAtual = `${isMasc(insc) ? 'Masculino' : 'Feminino'} | ${catIdadeAtual} | ${insc.faixa || '?'} | ${catPesoAtual}`;
   document.getElementById('mr-cat-atual').textContent = catAtual;
   document.getElementById('mr-nome').value  = insc.nome || insc.nomeAtleta || '';
   document.getElementById('mr-faixa').value = insc.faixa || '';
   document.getElementById('mr-erro').style.display = 'none';
 
-  const catIdadeAtual = insc.categoria_idade || 'Adulto';
-  const isMaster = catIdadeAtual.startsWith('Master');
+  const ehMaster = catIdadeAtual.startsWith('Master');
   const selCat   = document.getElementById('mr-catidade');
   selCat.innerHTML = '';
   const idxAtual = CATS_IDADE_C.indexOf(catIdadeAtual);
-  const opcoes = isMaster
+  const opcoes = ehMaster
     ? CATS_IDADE_C.filter((c, i) => c.startsWith('Master') && i <= idxAtual)
     : [catIdadeAtual];
   opcoes.forEach(op => {
@@ -394,8 +418,7 @@ function abrirModalReal(insc) {
 
   const selPeso   = document.getElementById('mr-peso');
   selPeso.innerHTML = '';
-  const pesosDisp = insc.sexo === 'M' ? PESOS_MASC_C : PESOS_FEM_C;
-  const catPesoAtual = insc.categoria_peso || '';
+  const pesosDisp = isMasc(insc) ? PESOS_MASC_C : PESOS_FEM_C;
   pesosDisp.forEach(p => {
     const o = document.createElement('option');
     o.value = p; o.textContent = p;
@@ -427,7 +450,7 @@ window.salvarRealocacao = async function() {
   const erroEl       = document.getElementById('mr-erro');
   const btn          = document.getElementById('btn-salvar-real');
 
-  if (novaCatidade === (insc.categoria_idade||'') && novoPeso === (insc.categoria_peso||'')) {
+  if (novaCatidade === getCatIdade(insc) && novoPeso === getCatPeso(insc)) {
     fecharModalReal(); return;
   }
 
@@ -439,7 +462,7 @@ window.salvarRealocacao = async function() {
     const dataHora = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
     const historico = insc.historicoChecagem || [];
     historico.push({
-      de: `${insc.categoria_idade} | ${insc.categoria_peso}`,
+      de: `${getCatIdade(insc)} | ${getCatPeso(insc)}`,
       para: `${novaCatidade} | ${novoPeso}`,
       em: agora.toISOString(),
       via: 'checagem_atleta'
