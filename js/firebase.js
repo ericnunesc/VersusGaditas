@@ -212,38 +212,30 @@ export async function deletarLigaHistorico(campeonatoId, historicoId) {
   await deleteDoc(doc(db, "campeonatos", campeonatoId, "liga-historico", historicoId));
 }
 
-// ── Planos (coleção de planos individuais) ───────────────
-export async function listarPlanos() {
-  const snap = await getDocs(query(collection(db, 'planos'), orderBy('criadoEm', 'desc')));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-}
-export async function buscarPlano(id) {
-  const snap = await getDoc(doc(db, 'planos', id));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
-}
-
-// ── Planos config (documento único de configuração de preços) ──
-export async function salvarPlanos(dados) {
-  await setDoc(doc(db, 'config-global', 'planos'), dados);
+// ── Planos (configuração de preços) ─────────────────────────
+export async function salvarPlanos(planos) {
+  await setDoc(doc(db, "configuracoes", "planos"), planos);
 }
 export async function buscarPlanos() {
-  const snap = await getDoc(doc(db, 'config-global', 'planos'));
+  const snap = await getDoc(doc(db, "configuracoes", "planos"));
   return snap.exists() ? snap.data() : null;
 }
 
-// ── Clientes ─────────────────────────────────────────────
+// ── Clientes ─────────────────────────────────────────────────
 export async function criarCliente(dados) {
-  return await addDoc(collection(db, 'clientes'), { ...dados, criadoEm: serverTimestamp() });
+  return await addDoc(collection(db, "clientes"), {
+    ...dados, criadoEm: serverTimestamp()
+  });
 }
 export async function listarClientes() {
-  const snap = await getDocs(query(collection(db, 'clientes'), orderBy('criadoEm', 'desc')));
+  const snap = await getDocs(query(collection(db, "clientes"), orderBy("criadoEm", "desc")));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 export async function atualizarCliente(id, dados) {
-  await updateDoc(doc(db, 'clientes', id), dados);
+  await updateDoc(doc(db, "clientes", id), dados);
 }
 export async function deletarCliente(id) {
-  await deleteDoc(doc(db, 'clientes', id));
+  await deleteDoc(doc(db, "clientes", id));
 }
 
 export { db, auth, onSnapshot, collection, doc, query, where, orderBy, signInAnonymously };
