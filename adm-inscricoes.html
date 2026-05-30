@@ -66,6 +66,10 @@
     .lightbox img { max-width:90vw; max-height:90vh; border-radius:8px; }
     .lightbox-close { position:fixed; top:16px; right:20px; color:#fff; font-size:2rem; cursor:pointer; }
 
+    /* Editar */
+    .btn-editar { background:transparent; border:1px solid #0EA5E9; color:#0EA5E9; }
+    .btn-editar:hover { background:#0EA5E9; color:#fff; }
+
     /* Realocação */
     .btn-realocar { background:transparent; border:1px solid #7C3AED; color:#7C3AED; }
     .btn-realocar:hover { background:#7C3AED; color:#fff; }
@@ -83,6 +87,23 @@
     .btn-cancelar-real { background:transparent; border:1px solid #E2E8F0; padding:9px 18px; border-radius:40px; font-size:0.82rem; cursor:pointer; }
     .btn-salvar-real { background:#7C3AED; border:none; color:#fff; padding:9px 22px; border-radius:40px; font-size:0.82rem; font-weight:700; cursor:pointer; }
     .btn-salvar-real:hover { background:#6D28D9; }
+
+    /* Modal Editar Atleta */
+    .modal-edit-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1300; align-items:flex-start; justify-content:center; padding:16px; overflow-y:auto; }
+    .modal-edit-bg.open { display:flex; }
+    .modal-edit { background:#fff; border-radius:16px; padding:26px; width:100%; max-width:540px; box-shadow:0 8px 40px rgba(0,0,0,0.18); margin:auto; }
+    .modal-edit h3 { font-size:1rem; font-weight:700; margin-bottom:16px; color:#1A2C3E; border-bottom:1px solid #E2E8F0; padding-bottom:12px; }
+    .edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+    .edit-grid .full { grid-column:1/-1; }
+    .modal-edit label { display:block; font-size:0.72rem; font-weight:600; color:#8A9CB0; text-transform:uppercase; margin-top:12px; margin-bottom:3px; }
+    .modal-edit input, .modal-edit select { width:100%; border:1px solid #E2E8F0; border-radius:8px; padding:8px 11px; font-size:0.85rem; outline:none; font-family:inherit; }
+    .modal-edit input:focus, .modal-edit select:focus { border-color:#0EA5E9; }
+    .modal-edit .check-row { display:flex; align-items:center; gap:8px; margin-top:14px; font-size:0.85rem; font-weight:600; color:#1A2C3E; }
+    .modal-edit .check-row input[type=checkbox] { width:18px; height:18px; cursor:pointer; accent-color:#C9A03D; }
+    .modal-edit-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; padding-top:14px; border-top:1px solid #E2E8F0; }
+    .btn-cancelar-edit { background:transparent; border:1px solid #E2E8F0; padding:9px 18px; border-radius:40px; font-size:0.82rem; cursor:pointer; }
+    .btn-salvar-edit { background:#0EA5E9; border:none; color:#fff; padding:9px 22px; border-radius:40px; font-size:0.82rem; font-weight:700; cursor:pointer; }
+    .btn-salvar-edit:hover { background:#0284C7; }
   </style>
 </head>
 <body>
@@ -112,6 +133,87 @@
   </div>
 
   <div class="lista" id="lista"></div>
+</div>
+
+<!-- MODAL: EDITAR ATLETA -->
+<div class="modal-edit-bg" id="modal-edit-bg" onclick="if(event.target===this)fecharEdicao()">
+  <div class="modal-edit">
+    <h3>✏️ Editar Atleta</h3>
+    <div class="edit-grid">
+      <div class="full">
+        <label>Nome Completo *</label>
+        <input type="text" id="edit-nome" placeholder="Nome do atleta">
+      </div>
+      <div>
+        <label>Data de Nascimento</label>
+        <input type="date" id="edit-nascimento">
+      </div>
+      <div>
+        <label>CPF</label>
+        <input type="text" id="edit-cpf" placeholder="000.000.000-00" maxlength="14">
+      </div>
+      <div>
+        <label>Telefone</label>
+        <input type="tel" id="edit-telefone" placeholder="(00) 00000-0000">
+      </div>
+      <div>
+        <label>E-mail</label>
+        <input type="email" id="edit-email" placeholder="atleta@email.com">
+      </div>
+      <div>
+        <label>Sexo</label>
+        <select id="edit-sexo">
+          <option value="M">Masculino</option>
+          <option value="F">Feminino</option>
+        </select>
+      </div>
+      <div>
+        <label>Faixa</label>
+        <select id="edit-faixa">
+          <option>Branca</option><option>Cinza</option><option>Amarela</option>
+          <option>Laranja</option><option>Verde</option><option>Azul</option>
+          <option>Roxa</option><option>Marrom</option><option>Preta</option>
+        </select>
+      </div>
+      <div>
+        <label>Categoria de Idade</label>
+        <select id="edit-categoria">
+          <option>Pré-Mirim</option><option>Mirim 1</option><option>Mirim 2</option>
+          <option>Infantil 1</option><option>Infantil 2</option><option>Infanto-Juvenil</option>
+          <option>Juvenil</option><option>Adulto</option><option>Master 1</option>
+          <option>Master 2</option><option>Master 3</option><option>Master 4</option>
+          <option>Master 5</option><option>Master 6</option>
+        </select>
+      </div>
+      <div>
+        <label>Peso cadastrado (kg)</label>
+        <input type="number" id="edit-peso" step="0.1" min="1" max="300" placeholder="Ex: 73.5">
+      </div>
+      <div>
+        <label>Equipe / Academia</label>
+        <input type="text" id="edit-equipe" placeholder="Nome da equipe">
+      </div>
+      <div>
+        <label>Pagamento</label>
+        <select id="edit-pagamento">
+          <option value="">— não informado —</option>
+          <option value="pix">Pix</option>
+          <option value="dinheiro">Dinheiro</option>
+          <option value="cartão">Cartão</option>
+          <option value="transferência">Transferência</option>
+          <option value="pendente">Pendente</option>
+        </select>
+      </div>
+    </div>
+    <div class="check-row">
+      <input type="checkbox" id="edit-absoluto">
+      <label for="edit-absoluto" style="margin:0;text-transform:none;font-size:0.85rem;color:#1A2C3E">🏆 Inscrito no Absoluto</label>
+    </div>
+    <div class="modal-edit-footer">
+      <button class="btn-cancelar-edit" onclick="fecharEdicao()">Cancelar</button>
+      <button class="btn-salvar-edit" id="btn-salvar-edit" onclick="salvarEdicao()">💾 Salvar</button>
+    </div>
+  </div>
 </div>
 
 <!-- Lightbox -->
@@ -281,6 +383,7 @@
           </div>
         </div>
         <div class="card-footer">
+          <button class="btn btn-editar" onclick="abrirEdicao('${i.id}')">✏️ Editar</button>
           <button class="btn btn-absoluto" onclick="toggleAbsoluto('${i.id}')" title="${i.absoluto ? 'Remover do Absoluto' : 'Inscrever no Absoluto'}">
             🏆 ${i.absoluto ? 'Remover Absoluto' : 'Add Absoluto'}
           </button>
@@ -388,6 +491,94 @@
       localStorage.setItem('gaditas_last_update', Date.now().toString());
     } catch(e) {
       alert('Erro ao reverter: ' + e.message);
+    }
+  };
+
+  // ── Editar Atleta ─────────────────────────────────────
+  let _edicaoId = null;
+
+  window.abrirEdicao = function(id) {
+    const i = todasInscricoes.find(x => x.id === id);
+    if (!i) return;
+    _edicaoId = id;
+
+    document.getElementById('edit-nome').value        = i.nome || '';
+    document.getElementById('edit-nascimento').value  = i.dataNascimento || '';
+    document.getElementById('edit-cpf').value         = i.cpf || '';
+    document.getElementById('edit-telefone').value    = i.telefone || '';
+    document.getElementById('edit-email').value       = i.email || '';
+    document.getElementById('edit-sexo').value        = (i.sexo === 'F' || i.sexo === 'Feminino') ? 'F' : 'M';
+    document.getElementById('edit-faixa').value       = i.faixa || 'Branca';
+    document.getElementById('edit-categoria').value   = i.categoria || 'Adulto';
+    document.getElementById('edit-peso').value        = i.peso || '';
+    document.getElementById('edit-equipe').value      = i.equipeNome || i.equipe || '';
+    document.getElementById('edit-pagamento').value   = i.pagamento || '';
+    document.getElementById('edit-absoluto').checked  = !!i.absoluto;
+
+    document.getElementById('modal-edit-bg').classList.add('open');
+    document.getElementById('edit-nome').focus();
+  };
+
+  window.fecharEdicao = function() {
+    document.getElementById('modal-edit-bg').classList.remove('open');
+    _edicaoId = null;
+  };
+
+  window.salvarEdicao = async function() {
+    if (!_edicaoId || !campeonatoId) return;
+    const i = todasInscricoes.find(x => x.id === _edicaoId);
+    if (!i) return;
+
+    const nome      = document.getElementById('edit-nome').value.trim();
+    if (!nome) { alert('O nome é obrigatório.'); return; }
+
+    const peso = parseFloat(document.getElementById('edit-peso').value) || i.peso;
+    const sexo = document.getElementById('edit-sexo').value; // 'M' ou 'F'
+    const equipe = document.getElementById('edit-equipe').value.trim();
+
+    const dados = {
+      nome,
+      dataNascimento: document.getElementById('edit-nascimento').value || null,
+      cpf:       document.getElementById('edit-cpf').value.trim() || null,
+      telefone:  document.getElementById('edit-telefone').value.trim() || null,
+      email:     document.getElementById('edit-email').value.trim() || null,
+      sexo,
+      faixa:     document.getElementById('edit-faixa').value,
+      categoria: document.getElementById('edit-categoria').value,
+      peso,
+      equipe,
+      equipeNome: equipe,
+      pagamento: document.getElementById('edit-pagamento').value || null,
+      absoluto:  document.getElementById('edit-absoluto').checked,
+    };
+
+    const btn = document.getElementById('btn-salvar-edit');
+    btn.textContent = 'Salvando...'; btn.disabled = true;
+
+    try {
+      await atualizarInscricao(campeonatoId, _edicaoId, dados);
+
+      // Se já aprovado, atualiza também a subcoleção de atletas
+      if (i.atletaId) {
+        await atualizarAtleta(campeonatoId, i.atletaId, {
+          nome, cpf: dados.cpf || '', sexo, faixa: dados.faixa,
+          peso, categoria: dados.categoria,
+          academia: equipe,
+          dataNascimento: dados.dataNascimento || '',
+          absoluto: dados.absoluto,
+        });
+      }
+
+      // Atualiza objeto local
+      Object.assign(i, dados);
+
+      fecharEdicao();
+      renderizar();
+      localStorage.setItem('gaditas_last_update', Date.now().toString());
+    } catch(e) {
+      alert('Erro ao salvar: ' + e.message);
+    } finally {
+      btn.textContent = '💾 Salvar'; btn.disabled = false;
     }
   };
 
