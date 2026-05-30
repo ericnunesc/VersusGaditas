@@ -948,32 +948,10 @@ function gerarChaveamento() {
         });
     });
 
-    // ── Auto W.O. por pesagem reprovada ─────────────────────────────────
-    let wosAplicados = 0;
-    torneio.categorias.forEach(cat => {
-        (cat.lutas || []).filter(l => Number(l.rodada) === 1 && !l.finalizada && !l.bye).forEach(luta => {
-            const negA = luta.atletaA?.pesagem === 'negativa';
-            const negB = luta.atletaB?.pesagem === 'negativa';
-            let vencedor = null;
-            if (negA && !negB && luta.atletaB && Number(luta.atletaB.id) > 0) vencedor = luta.atletaB;
-            if (negB && !negA && luta.atletaA && Number(luta.atletaA.id) > 0) vencedor = luta.atletaA;
-            if (vencedor) {
-                luta.vencedor   = vencedor;
-                luta.finalizada = true;
-                luta.status     = 'finalizada';
-                luta.resultado  = 'wo';
-                luta.woPesagem  = true;  // flag para exibição
-                luta.motivo     = 'Pesagem reprovada';
-                wosAplicados++;
-            }
-        });
-    });
-
     salvarEstadoTorneio();
     renderizarChaveamento();
     const msgAbs = absGerados > 0 ? ` + ${absGerados} absoluto(s)` : '';
-    const msgWO  = wosAplicados > 0 ? ` · ⚖️ ${wosAplicados} W.O. automático(s) por pesagem` : '';
-    toast(`✅ Chaveamento gerado: ${torneio.categorias.length - absGerados} categoria(s)${msgAbs}${msgWO}!`, 'sucesso');
+    toast(`✅ Chaveamento gerado: ${torneio.categorias.length - absGerados} categoria(s)${msgAbs}!`, 'sucesso');
 }
 
 // ==================== GERAR ABSOLUTO DE UMA FAIXA ESPECÍFICA ====================

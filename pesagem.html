@@ -14,85 +14,77 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--texto); min-height: 100vh; }
 
-    /* Header */
     .header { background: var(--bg2); border-bottom: 2px solid var(--ouro); padding: 14px 20px;
       display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
     .header-logo { font-size: 1.8rem; }
     .header-text h1 { font-family: 'Oswald', sans-serif; font-size: 1.1rem; color: var(--ouro); letter-spacing: 1px; }
     .header-text p  { font-size: 0.72rem; color: var(--texto-fraco); margin-top: 2px; }
     .header-nav { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn-nav { font-family: 'Barlow', sans-serif; font-size: 0.75rem; font-weight: 600;
-      padding: 6px 14px; border-radius: 20px; border: 1px solid var(--borda);
-      background: var(--bg3); color: var(--texto); cursor: pointer; text-decoration: none; }
+    .btn-nav { font-size: 0.75rem; font-weight: 600; padding: 6px 14px; border-radius: 20px;
+      border: 1px solid var(--borda); background: var(--bg3); color: var(--texto);
+      cursor: pointer; text-decoration: none; font-family: 'Barlow', sans-serif; }
     .btn-nav:hover { border-color: var(--ouro); color: var(--ouro); }
 
-    /* Summary */
     .summary { display: flex; gap: 12px; flex-wrap: wrap; padding: 14px 20px;
       background: var(--bg2); border-bottom: 1px solid var(--borda); }
     .s-chip { display: flex; align-items: center; gap: 8px; padding: 8px 16px;
       border-radius: 20px; font-size: 0.82rem; font-weight: 600; }
-    .s-ok   { background: rgba(0,230,138,.12); border: 1px solid rgba(0,230,138,.3); color: var(--verde); }
-    .s-neg  { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.3);  color: var(--vermelho); }
-    .s-pend { background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3); color: var(--amarelo); }
+    .s-ok   { background: rgba(0,230,138,.12); border:1px solid rgba(0,230,138,.3); color:var(--verde); }
+    .s-neg  { background: rgba(239,68,68,.12);  border:1px solid rgba(239,68,68,.3);  color:var(--vermelho); }
+    .s-pend { background: rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.3); color:var(--amarelo); }
     .s-num  { font-size: 1.1rem; font-weight: 700; }
 
-    /* Container */
     .container { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
 
-    /* Category blocks */
     .cat-bloco { background: var(--bg2); border: 1px solid var(--borda); border-radius: 12px;
       overflow: hidden; margin-bottom: 14px; }
     .cat-header { padding: 10px 16px; background: var(--bg3); border-bottom: 1px solid var(--borda);
       display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
     .cat-nome  { font-family: 'Oswald', sans-serif; font-size: 0.88rem; color: var(--ouro); letter-spacing: 1px; }
-    .cat-stats { font-size: 0.7rem; color: var(--texto-fraco); display: flex; gap: 10px; }
-    .cat-ok-count  { color: var(--verde); }
-    .cat-neg-count { color: var(--vermelho); }
-    .cat-pend-count{ color: var(--amarelo); }
+    .cat-stats { font-size: 0.7rem; display: flex; gap: 10px; }
+    .cat-ok-count   { color: var(--verde); }
+    .cat-neg-count  { color: var(--vermelho); }
+    .cat-pend-count { color: var(--amarelo); }
 
-    /* Athlete rows */
-    .atleta-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    .atleta-row { display: flex; align-items: center; gap: 10px; padding: 11px 16px;
       border-bottom: 1px solid var(--borda); flex-wrap: wrap; transition: background .2s; }
     .atleta-row:last-child { border-bottom: none; }
-    .atleta-row.ok   { background: rgba(0,230,138,.04); }
-    .atleta-row.neg  { background: rgba(239,68,68,.06); }
-    .atleta-row.pend { background: transparent; }
+    .atleta-row.ok   { background: rgba(0,230,138,.05); }
+    .atleta-row.neg  { background: rgba(239,68,68,.07); }
 
-    .atleta-status-icon { font-size: 1.2rem; width: 26px; text-align: center; flex-shrink: 0; }
-    .atleta-info { flex: 1; min-width: 160px; }
+    .status-icon { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+    .atleta-info { flex: 1; min-width: 150px; }
     .atleta-nome { font-size: 0.9rem; font-weight: 600; }
     .atleta-sub  { font-size: 0.7rem; color: var(--texto-fraco); margin-top: 2px; }
+    .wo-badge { display:inline-block; margin-left:8px; font-size:0.62rem; font-weight:700;
+      background: rgba(239,68,68,.2); color:var(--vermelho); border:1px solid rgba(239,68,68,.4);
+      border-radius:6px; padding:1px 6px; vertical-align:middle; }
 
     .atleta-acoes { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .peso-input {
-      width: 80px; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 8px;
-      background: var(--bg3); color: var(--texto); font-size: 0.82rem; text-align: center;
-      font-family: 'Barlow', sans-serif;
-    }
-    .peso-input:focus { outline: none; border-color: var(--ouro); }
-    .peso-input::placeholder { color: var(--texto-fraco); }
+    .peso-input { width:82px; padding:6px 8px; border:1px solid var(--borda); border-radius:8px;
+      background:var(--bg3); color:var(--texto); font-size:0.82rem; text-align:center;
+      font-family:'Barlow',sans-serif; }
+    .peso-input:focus { outline:none; border-color:var(--ouro); }
+    .peso-input::placeholder { color:var(--texto-fraco); }
 
-    .btn-ok, .btn-neg {
-      padding: 7px 14px; border-radius: 20px; border: 1px solid;
-      font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'Barlow', sans-serif;
-      transition: all .15s; white-space: nowrap;
-    }
-    .btn-ok  { border-color: rgba(0,230,138,.4); background: transparent; color: #6EE7B7; }
-    .btn-ok:hover, .btn-ok.active {
-      background: var(--verde); color: #000; border-color: var(--verde); }
-    .btn-neg { border-color: rgba(239,68,68,.4); background: transparent; color: #FCA5A5; }
-    .btn-neg:hover, .btn-neg.active {
-      background: var(--vermelho); color: #fff; border-color: var(--vermelho); }
+    .btn-ok, .btn-neg { padding:7px 14px; border-radius:20px; border:1px solid;
+      font-size:0.78rem; font-weight:700; cursor:pointer; font-family:'Barlow',sans-serif;
+      transition:all .15s; white-space:nowrap; }
+    .btn-ok  { border-color:rgba(0,230,138,.4); background:transparent; color:#6EE7B7; }
+    .btn-ok.active, .btn-ok:hover  { background:var(--verde);    color:#000; border-color:var(--verde); }
+    .btn-neg { border-color:rgba(239,68,68,.4); background:transparent; color:#FCA5A5; }
+    .btn-neg.active, .btn-neg:hover { background:var(--vermelho); color:#fff; border-color:var(--vermelho); }
 
-    .loading { text-align: center; padding: 60px 20px; color: var(--texto-fraco); font-size: 1rem; }
+    .loading { text-align:center; padding:60px 20px; color:var(--texto-fraco); }
 
     /* Toast */
-    .toast { position: fixed; bottom: 20px; right: 20px; padding: 10px 18px; border-radius: 10px;
-      font-size: 0.82rem; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity .3s;
-      pointer-events: none; }
-    .toast.show { opacity: 1; }
-    .toast.ok  { background: #052e16; border: 1px solid var(--verde); color: var(--verde); }
-    .toast.neg { background: #2d0a0a; border: 1px solid var(--vermelho); color: var(--vermelho); }
+    .toast { position:fixed; bottom:20px; right:20px; padding:12px 20px; border-radius:12px;
+      font-size:0.82rem; font-weight:600; z-index:9999; opacity:0; transition:opacity .3s;
+      pointer-events:none; max-width:340px; line-height:1.4; }
+    .toast.show { opacity:1; }
+    .toast.ok   { background:#052e16; border:1px solid var(--verde); color:var(--verde); }
+    .toast.neg  { background:#2d0a0a; border:1px solid var(--vermelho); color:var(--vermelho); }
+    .toast.info { background:#1a1a0a; border:1px solid var(--amarelo); color:var(--amarelo); }
   </style>
 </head>
 <body>
@@ -104,7 +96,7 @@
   <div class="header-logo">⚖️</div>
   <div class="header-text">
     <h1>PESAGEM</h1>
-    <p id="header-sub">Carregando competição...</p>
+    <p id="header-sub">Carregando...</p>
   </div>
   <div class="header-nav">
     <a href="#" id="link-painel" class="btn-nav">🏠 Painel</a>
@@ -112,7 +104,7 @@
   </div>
 </div>
 
-<div class="summary" id="summary">
+<div class="summary">
   <div class="s-chip s-ok">  <span class="s-num" id="cnt-ok">0</span>  ✅ OK</div>
   <div class="s-chip s-neg"> <span class="s-num" id="cnt-neg">0</span> ❌ Passou do peso</div>
   <div class="s-chip s-pend"><span class="s-num" id="cnt-pend">0</span> ⏳ Pendente</div>
@@ -127,37 +119,38 @@
 <script type="module">
 import { buscarCampeonato, listarInscricoes, atualizarInscricao } from './js/firebase.js';
 
-const params = new URLSearchParams(location.search);
-const campId = params.get('id');
+const params  = new URLSearchParams(location.search);
+const campId  = params.get('id');
 
 // ── Ordem de faixas ──────────────────────────────────────────────────────
-const _FAIXAS_DEF  = ['Kids','Branca','Azul','Roxa','Marrom','Preta'];
-const _KIDS_BELTS  = ['Cinza','Amarela','Laranja','Verde'];
-function _getBelt(nomeCategoria) {
-  const b = (nomeCategoria.split(' | ')[2] || '').trim();
+const _FAIXAS_DEF = ['Kids','Branca','Azul','Roxa','Marrom','Preta'];
+const _KIDS_BELTS = ['Cinza','Amarela','Laranja','Verde'];
+function _getBelt(cat) {
+  const b = (cat.split(' | ')[2] || '').trim();
   return _KIDS_BELTS.includes(b) ? 'Kids' : (b || 'Outros');
 }
-function _ordemFaixas() {
+function _getOrdem() {
   try { const s = localStorage.getItem('gaditas_ordem_faixas'); return s ? JSON.parse(s) : null; }
   catch(e) { return null; }
 }
 function sortCats(cats) {
-  const ord = _ordemFaixas() || _FAIXAS_DEF.slice();
-  return cats.slice().sort((a, b) => {
+  const ord = _getOrdem() || _FAIXAS_DEF;
+  return cats.slice().sort((a,b) => {
     const ia = ord.indexOf(_getBelt(a)), ib = ord.indexOf(_getBelt(b));
-    return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+    return (ia<0?999:ia) - (ib<0?999:ib);
   });
 }
 
-// ── Dados ─────────────────────────────────────────────────────────────────
+// ── Estado ───────────────────────────────────────────────────────────────
 let inscricoes = [];
-let campeonato  = null;
+let campeonato = null;
 
-function catKey(insc) {
-  const sx = (insc.sexo||'').toUpperCase()==='M'||insc.sexo==='Masculino' ? 'Masculino' : 'Feminino';
-  return `${sx} | ${insc.categoria_idade||insc.categoria||'?'} | ${insc.faixa||'?'} | ${insc.categoria_peso||'?'}`;
+function catKey(i) {
+  const sx = (i.sexo||'').toUpperCase()==='M'||i.sexo==='Masculino' ? 'Masculino':'Feminino';
+  return `${sx} | ${i.categoria_idade||i.categoria||'?'} | ${i.faixa||'?'} | ${i.categoria_peso||'?'}`;
 }
 
+// ── Init ─────────────────────────────────────────────────────────────────
 async function init() {
   if (!campId) {
     document.getElementById('container').innerHTML = '<div class="loading">❌ ID de campeonato não informado.</div>';
@@ -168,53 +161,49 @@ async function init() {
     document.getElementById('container').innerHTML = '<div class="loading">❌ Campeonato não encontrado.</div>';
     return;
   }
-
   document.title = `Pesagem — ${campeonato.nome}`;
   document.getElementById('header-sub').textContent = campeonato.nome;
   document.getElementById('link-painel').href = `painel.html?id=${campId}`;
   document.getElementById('link-chave').href  = `adm-chaveamento.html?id=${campId}`;
 
   const todas = await listarInscricoes(campId);
-  inscricoes = todas.filter(i => i.status === 'aprovado' || i.status === 'confirmado' || i.status === 'pago');
-
+  inscricoes  = todas.filter(i =>
+    i.status === 'aprovado' || i.status === 'confirmado' || i.status === 'pago'
+  );
   render();
 }
 
-// ── Render ─────────────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────
 function render() {
-  // Agrupar por categoria
   const grupos = new Map();
   inscricoes.forEach(insc => {
     const k = catKey(insc);
     if (!grupos.has(k)) grupos.set(k, []);
     grupos.get(k).push(insc);
   });
+  const cats = sortCats([...grupos.keys()]);
 
-  const catsSorted = sortCats([...grupos.keys()]);
-
-  // Contadores globais
-  let ok = 0, neg = 0, pend = 0;
+  let ok=0, neg=0, pend=0;
   inscricoes.forEach(i => {
-    if (i.pesagem === 'ok') ok++;
-    else if (i.pesagem === 'negativa') neg++;
-    else pend++;
+    if      (i.pesagem==='ok')       ok++;
+    else if (i.pesagem==='negativa') neg++;
+    else                             pend++;
   });
   document.getElementById('cnt-ok').textContent   = ok;
   document.getElementById('cnt-neg').textContent  = neg;
   document.getElementById('cnt-pend').textContent = pend;
 
-  if (catsSorted.length === 0) {
+  if (!cats.length) {
     document.getElementById('container').innerHTML =
       '<div class="loading">Nenhum atleta aprovado encontrado.</div>';
     return;
   }
 
-  document.getElementById('container').innerHTML = catsSorted.map(cat => {
+  document.getElementById('container').innerHTML = cats.map(cat => {
     const lista = grupos.get(cat);
-    const cOk   = lista.filter(i => i.pesagem === 'ok').length;
-    const cNeg  = lista.filter(i => i.pesagem === 'negativa').length;
-    const cPend = lista.filter(i => !i.pesagem || i.pesagem === 'pendente').length;
-
+    const cOk   = lista.filter(i=>i.pesagem==='ok').length;
+    const cNeg  = lista.filter(i=>i.pesagem==='negativa').length;
+    const cPend = lista.filter(i=>!i.pesagem||i.pesagem==='pendente').length;
     return `
       <div class="cat-bloco">
         <div class="cat-header">
@@ -225,105 +214,194 @@ function render() {
             <span class="cat-pend-count">⏳ ${cPend}</span>
           </div>
         </div>
-        ${lista.map(insc => renderAtleta(insc)).join('')}
+        ${lista.map(i => rowHtml(i)).join('')}
       </div>`;
   }).join('');
 }
 
-function renderAtleta(insc) {
-  const status    = insc.pesagem || 'pend';
-  const statusCls = status === 'ok' ? 'ok' : status === 'negativa' ? 'neg' : 'pend';
-  const icon      = status === 'ok' ? '✅' : status === 'negativa' ? '❌' : '⏳';
-  const nome      = insc.nome || insc.nomeAtleta || '?';
-  const equipe    = insc.academia || insc.equipe || '';
-  const pesoReg   = insc.peso ? `${insc.peso} kg cadastrado` : '';
-  const pesoAfer  = insc.pesoPesagem || '';
+function rowHtml(insc) {
+  const st   = insc.pesagem || 'pend';
+  const cls  = st==='ok' ? 'ok' : st==='negativa' ? 'neg' : '';
+  const icon = st==='ok' ? '✅' : st==='negativa' ? '❌' : '⏳';
+  const nome = insc.nome || insc.nomeAtleta || '?';
+  const eq   = insc.academia || insc.equipe || '';
+  const pr   = insc.peso ? `${insc.peso} kg` : '';
+  const pa   = insc.pesoPesagem || '';
+  const woInfo = insc.pesagem==='negativa' && insc._woCategoria
+    ? `<span class="wo-badge">W.O. em ${insc._woCategoria}</span>` : '';
 
   return `
-    <div class="atleta-row ${statusCls}" id="row-${insc.id}">
-      <div class="atleta-status-icon">${icon}</div>
+    <div class="atleta-row ${cls}" id="row-${insc.id}">
+      <div class="status-icon">${icon}</div>
       <div class="atleta-info">
-        <div class="atleta-nome">${nome}</div>
-        <div class="atleta-sub">${equipe}${pesoReg ? ' · ' + pesoReg : ''}</div>
+        <div class="atleta-nome">${nome}${woInfo}</div>
+        <div class="atleta-sub">${eq}${pr ? ' · Cadastrado: '+pr : ''}</div>
       </div>
       <div class="atleta-acoes">
         <input type="number" step="0.1" min="0" max="300" class="peso-input"
-               id="pesoAfer-${insc.id}" value="${pesoAfer}" placeholder="kg aferido"
-               onchange="salvarPesoAferido('${insc.id}', this.value)">
-        <button class="btn-ok ${status==='ok'?'active':''}"
+               id="pa-${insc.id}" value="${pa}" placeholder="kg aferido"
+               onchange="salvarPeso('${insc.id}', this.value)">
+        <button class="btn-ok  ${st==='ok'?'active':''}"
                 onclick="marcar('${insc.id}','ok')">✅ OK</button>
-        <button class="btn-neg ${status==='negativa'?'active':''}"
+        <button class="btn-neg ${st==='negativa'?'active':''}"
                 onclick="marcar('${insc.id}','negativa')">❌ Passou</button>
       </div>
     </div>`;
 }
 
-// ── Marcar resultado de pesagem ───────────────────────────────────────────
+// ── Marcar pesagem ────────────────────────────────────────────────────────
 window.marcar = async function(inscId, resultado) {
   const insc = inscricoes.find(i => i.id === inscId);
   if (!insc) return;
-
-  const pesoInput = document.getElementById(`pesoAfer-${inscId}`);
-  const pesoPesagem = pesoInput ? (parseFloat(pesoInput.value) || null) : null;
+  const nome = insc.nome || insc.nomeAtleta || '';
+  const pa   = parseFloat(document.getElementById(`pa-${inscId}`)?.value) || null;
 
   try {
     await atualizarInscricao(campId, inscId, {
-      pesagem:    resultado,
-      pesoPesagem: pesoPesagem,
-      pesagemEm:  new Date().toISOString()
+      pesagem:     resultado,
+      pesoPesagem: pa,
+      pesagemEm:   new Date().toISOString()
     });
     insc.pesagem     = resultado;
-    insc.pesoPesagem = pesoPesagem;
+    insc.pesoPesagem = pa;
 
-    // Atualiza gaditas_atletas no localStorage para refletir no chaveamento
-    _syncPesagemLocalStorage(inscId, resultado, pesoPesagem);
+    if (resultado === 'negativa' && nome) {
+      // Aplica W.O. na próxima luta pendente deste atleta no bracket
+      const catWO = aplicarWONoBracket(nome);
+      insc._woCategoria = catWO || null;
+      if (catWO) {
+        showToast(`❌ ${nome} — Passou do peso\nW.O. aplicado em: ${catWO}`, 'neg');
+      } else {
+        showToast(`❌ ${nome} — Passou do peso\n⚠️ Nenhuma luta pendente encontrada no chaveamento`, 'neg');
+      }
+    } else if (resultado === 'ok') {
+      // Tenta desfazer W.O. de pesagem se a luta ainda não foi usada
+      const desfeito = desfazerWO(nome);
+      insc._woCategoria = null;
+      showToast(`✅ ${nome} — OK${desfeito ? '\nW.O. de pesagem desfeito' : ''}`, 'ok');
+    }
 
     render();
-    showToast(
-      resultado === 'ok' ? `✅ ${insc.nome || insc.nomeAtleta} — OK` : `❌ ${insc.nome || insc.nomeAtleta} — Passou do peso`,
-      resultado === 'ok' ? 'ok' : 'neg'
-    );
   } catch(e) {
     showToast('Erro ao salvar: ' + e.message, 'neg');
   }
 };
 
-window.salvarPesoAferido = async function(inscId, valor) {
+window.salvarPeso = async function(inscId, valor) {
   const insc = inscricoes.find(i => i.id === inscId);
   if (!insc) return;
   const v = parseFloat(valor) || null;
   try {
     await atualizarInscricao(campId, inscId, { pesoPesagem: v });
     insc.pesoPesagem = v;
-    _syncPesagemLocalStorage(inscId, insc.pesagem, v);
   } catch(e) { /* silencioso */ }
 };
 
-// Sincroniza pesagem no gaditas_atletas (localStorage) para uso no chaveamento
-function _syncPesagemLocalStorage(inscId, pesagem, pesoPesagem) {
+// ── Aplica W.O. no bracket (localStorage gaditas_torneio_atual) ───────────
+function aplicarWONoBracket(nomeAtleta) {
   try {
-    const atletas = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
-    // Tenta match por ID (inscricaoId) ou por nome
-    const insc = inscricoes.find(i => i.id === inscId);
-    const nome  = insc ? (insc.nome || insc.nomeAtleta || '') : '';
-    let found = false;
-    atletas.forEach(a => {
-      if (String(a.id) === String(inscId) || (nome && (a.nome === nome || a.nomeAtleta === nome))) {
-        a.pesagem     = pesagem || null;
-        a.pesoPesagem = pesoPesagem || null;
-        found = true;
+    const raw = localStorage.getItem('gaditas_torneio_atual');
+    if (!rawValid(raw)) return null;
+    const torneio = JSON.parse(raw);
+    if (!torneio?.categorias) return null;
+
+    const busca = normalizar(nomeAtleta);
+    let catNome = null;
+
+    for (const cat of torneio.categorias) {
+      // Procura primeira luta PENDENTE deste atleta na categoria
+      const luta = (cat.lutas || []).find(l =>
+        !l.finalizada && !l.bye &&
+        (normalizar(l.atletaA?.nome)===busca || normalizar(l.atletaB?.nome)===busca)
+      );
+      if (!luta) continue;
+
+      const ehA      = normalizar(luta.atletaA?.nome) === busca;
+      const vencedor = ehA ? luta.atletaB : luta.atletaA;
+      if (!vencedor || Number(vencedor.id) <= 0) continue;
+
+      luta.vencedor   = vencedor;
+      luta.finalizada = true;
+      luta.status     = 'finalizada';
+      luta.resultado  = 'wo';
+      luta.woPesagem  = true;
+      luta.motivo     = 'Pesagem reprovada';
+      catNome = cat.nome;
+
+      // Pontua equipe do vencedor
+      if (torneio.pontuacaoEquipes && vencedor.academia && vencedor.academia !== '---') {
+        const map = new Map(Object.entries(torneio.pontuacaoEquipes || {}));
+        map.set(vencedor.academia, (map.get(vencedor.academia)||0) + 1);
+        torneio.pontuacaoEquipes = Object.fromEntries(map);
       }
-    });
-    if (found) localStorage.setItem('gaditas_atletas', JSON.stringify(atletas));
-  } catch(e) { /* silencioso */ }
+      break; // só aplica na primeira luta pendente encontrada
+    }
+
+    if (catNome) {
+      localStorage.setItem('gaditas_torneio_atual', JSON.stringify(torneio));
+      _broadcast({ tipo: 'pesagem_wo', nomeAtleta, catNome });
+    }
+    return catNome;
+  } catch(e) { console.error(e); return null; }
 }
 
-// ── Toast ──────────────────────────────────────────────────────────────────
+// ── Desfaz W.O. de pesagem (se a luta ainda não avançou para próxima rodada) ──
+function desfazerWO(nomeAtleta) {
+  try {
+    const raw = localStorage.getItem('gaditas_torneio_atual');
+    if (!rawValid(raw)) return false;
+    const torneio = JSON.parse(raw);
+    if (!torneio?.categorias) return false;
+
+    const busca = normalizar(nomeAtleta);
+    let desfeito = false;
+
+    for (const cat of torneio.categorias) {
+      const rodadaAtual = Number(cat.rodadaAtual || 1);
+      const luta = (cat.lutas || []).find(l =>
+        l.woPesagem && !l.bye &&
+        Number(l.rodada) === rodadaAtual &&
+        (normalizar(l.atletaA?.nome)===busca || normalizar(l.atletaB?.nome)===busca)
+      );
+      if (!luta) continue;
+
+      // Desfaz apenas se ainda estamos na rodada onde o W.O. foi aplicado
+      luta.vencedor   = null;
+      luta.finalizada = false;
+      luta.status     = 'pendente';
+      luta.resultado  = null;
+      luta.woPesagem  = false;
+      luta.motivo     = null;
+      desfeito = true;
+
+      // Reverte ponto de equipe do ex-vencedor (se possível)
+      // (simplificado: não reverte — equipe pode ter pontos de outras lutas)
+      break;
+    }
+
+    if (desfeito) {
+      localStorage.setItem('gaditas_torneio_atual', JSON.stringify(torneio));
+      _broadcast({ tipo: 'pesagem_ok', nomeAtleta });
+    }
+    return desfeito;
+  } catch(e) { return false; }
+}
+
+function normalizar(s) { return (s || '').toLowerCase().trim(); }
+function rawValid(s)    { return s && s.startsWith('{'); }
+
+function _broadcast(msg) {
+  try { const bc = new BroadcastChannel('gaditas_sync'); bc.postMessage(msg); bc.close(); }
+  catch(e) {}
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
 function showToast(msg, tipo) {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className = `toast ${tipo} show`;
-  setTimeout(() => { el.classList.remove('show'); }, 2000);
+  el.className   = `toast ${tipo} show`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
 init();
