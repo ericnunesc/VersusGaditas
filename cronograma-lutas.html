@@ -641,8 +641,12 @@ function getStatus(item, idx, cronograma) {
         }
     }
 
-    // ATRASADA (vermelho): só a próxima imediata após a ao vivo em atraso
+    // ATRASADA (vermelho): próxima imediata após ao vivo em atraso
     if (ehProximaAposAoVivo && (horarioOriginalPassou || aoVivoEmAtraso)) {
+        return 'atrasada';
+    }
+    // ATRASADA: horário passou há mais de 2 min e luta ainda não iniciou
+    if (diff < -2) {
         return 'atrasada';
     }
 
