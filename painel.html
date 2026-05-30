@@ -528,7 +528,8 @@
       'adm-inscricoes.html':  `adm-inscricoes.html?id=${campeonatoId}`,
       'inscricao.html':       `inscricao.html?id=${campeonatoId}`,
       'admin-equipes.html':   `admin-equipes.html?id=${campeonatoId}`,
-      'tv-chaveamento.html':  `tv-chaveamento.html?id=${campeonatoId}`
+      'tv-chaveamento.html':  `tv-chaveamento.html?id=${campeonatoId}`,
+      'pesagem.html':         `pesagem.html?id=${campeonatoId}`
     };
     document.querySelectorAll('a[href]').forEach(a => {
       const base = a.getAttribute('href').split('?')[0];
@@ -577,6 +578,7 @@
                 </div>
             </div>
             <div class="top-actions">
+                <a href="pesagem.html" id="link-pesagem" class="icon-btn" target="_blank" style="background:#1A1A0A;color:#F59E0B;border-color:#F59E0B">⚖️ Pesagem</a>
                 <a href="placar-adm.html" class="icon-btn" target="_blank" style="background:#1A3A2A;color:#00E68A;border-color:#00E68A">🥋 ADM Placar</a>
                 <a href="adm-chaveamento.html" class="icon-btn" target="_blank" style="background:#1A2A3A;color:#4A9EFF;border-color:#4A9EFF">📋 ADM Chave</a>
                 <a href="cronograma-lutas.html" class="icon-btn" target="_blank">⏱ Cronograma</a>

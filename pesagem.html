@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pesagem — Competição BJJ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ouro: #C9A03D; --bg: #060608; --bg2: #0E0E12; --bg3: #161620;
+      --borda: #1E1E2A; --texto: #E8E8F0; --texto-fraco: #5A5A7A;
+      --verde: #00E68A; --vermelho: #EF4444; --amarelo: #F59E0B;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--texto); min-height: 100vh; }
+
+    /* Header */
+    .header { background: var(--bg2); border-bottom: 2px solid var(--ouro); padding: 14px 20px;
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .header-logo { font-size: 1.8rem; }
+    .header-text h1 { font-family: 'Oswald', sans-serif; font-size: 1.1rem; color: var(--ouro); letter-spacing: 1px; }
+    .header-text p  { font-size: 0.72rem; color: var(--texto-fraco); margin-top: 2px; }
+    .header-nav { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-nav { font-family: 'Barlow', sans-serif; font-size: 0.75rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 20px; border: 1px solid var(--borda);
+      background: var(--bg3); color: var(--texto); cursor: pointer; text-decoration: none; }
+    .btn-nav:hover { border-color: var(--ouro); color: var(--ouro); }
+
+    /* Summary */
+    .summary { display: flex; gap: 12px; flex-wrap: wrap; padding: 14px 20px;
+      background: var(--bg2); border-bottom: 1px solid var(--borda); }
+    .s-chip { display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+      border-radius: 20px; font-size: 0.82rem; font-weight: 600; }
+    .s-ok   { background: rgba(0,230,138,.12); border: 1px solid rgba(0,230,138,.3); color: var(--verde); }
+    .s-neg  { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.3);  color: var(--vermelho); }
+    .s-pend { background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3); color: var(--amarelo); }
+    .s-num  { font-size: 1.1rem; font-weight: 700; }
+
+    /* Container */
+    .container { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
+
+    /* Category blocks */
+    .cat-bloco { background: var(--bg2); border: 1px solid var(--borda); border-radius: 12px;
+      overflow: hidden; margin-bottom: 14px; }
+    .cat-header { padding: 10px 16px; background: var(--bg3); border-bottom: 1px solid var(--borda);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .cat-nome  { font-family: 'Oswald', sans-serif; font-size: 0.88rem; color: var(--ouro); letter-spacing: 1px; }
+    .cat-stats { font-size: 0.7rem; color: var(--texto-fraco); display: flex; gap: 10px; }
+    .cat-ok-count  { color: var(--verde); }
+    .cat-neg-count { color: var(--vermelho); }
+    .cat-pend-count{ color: var(--amarelo); }
+
+    /* Athlete rows */
+    .atleta-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+      border-bottom: 1px solid var(--borda); flex-wrap: wrap; transition: background .2s; }
+    .atleta-row:last-child { border-bottom: none; }
+    .atleta-row.ok   { background: rgba(0,230,138,.04); }
+    .atleta-row.neg  { background: rgba(239,68,68,.06); }
+    .atleta-row.pend { background: transparent; }
+
+    .atleta-status-icon { font-size: 1.2rem; width: 26px; text-align: center; flex-shrink: 0; }
+    .atleta-info { flex: 1; min-width: 160px; }
+    .atleta-nome { font-size: 0.9rem; font-weight: 600; }
+    .atleta-sub  { font-size: 0.7rem; color: var(--texto-fraco); margin-top: 2px; }
+
+    .atleta-acoes { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .peso-input {
+      width: 80px; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 8px;
+      background: var(--bg3); color: var(--texto); font-size: 0.82rem; text-align: center;
+      font-family: 'Barlow', sans-serif;
+    }
+    .peso-input:focus { outline: none; border-color: var(--ouro); }
+    .peso-input::placeholder { color: var(--texto-fraco); }
+
+    .btn-ok, .btn-neg {
+      padding: 7px 14px; border-radius: 20px; border: 1px solid;
+      font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'Barlow', sans-serif;
+      transition: all .15s; white-space: nowrap;
+    }
+    .btn-ok  { border-color: rgba(0,230,138,.4); background: transparent; color: #6EE7B7; }
+    .btn-ok:hover, .btn-ok.active {
+      background: var(--verde); color: #000; border-color: var(--verde); }
+    .btn-neg { border-color: rgba(239,68,68,.4); background: transparent; color: #FCA5A5; }
+    .btn-neg:hover, .btn-neg.active {
+      background: var(--vermelho); color: #fff; border-color: var(--vermelho); }
+
+    .loading { text-align: center; padding: 60px 20px; color: var(--texto-fraco); font-size: 1rem; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; right: 20px; padding: 10px 18px; border-radius: 10px;
+      font-size: 0.82rem; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity .3s;
+      pointer-events: none; }
+    .toast.show { opacity: 1; }
+    .toast.ok  { background: #052e16; border: 1px solid var(--verde); color: var(--verde); }
+    .toast.neg { background: #2d0a0a; border: 1px solid var(--vermelho); color: var(--vermelho); }
+  </style>
+</head>
+<body>
+
+<script src="js/auth.js"></script>
+<script>verificarAuth();</script>
+
+<div class="header">
+  <div class="header-logo">⚖️</div>
+  <div class="header-text">
+    <h1>PESAGEM</h1>
+    <p id="header-sub">Carregando competição...</p>
+  </div>
+  <div class="header-nav">
+    <a href="#" id="link-painel" class="btn-nav">🏠 Painel</a>
+    <a href="#" id="link-chave"  class="btn-nav">📋 Chaveamento</a>
+  </div>
+</div>
+
+<div class="summary" id="summary">
+  <div class="s-chip s-ok">  <span class="s-num" id="cnt-ok">0</span>  ✅ OK</div>
+  <div class="s-chip s-neg"> <span class="s-num" id="cnt-neg">0</span> ❌ Passou do peso</div>
+  <div class="s-chip s-pend"><span class="s-num" id="cnt-pend">0</span> ⏳ Pendente</div>
+</div>
+
+<div class="container" id="container">
+  <div class="loading">⚖️ Carregando atletas...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { buscarCampeonato, listarInscricoes, atualizarInscricao } from './js/firebase.js';
+
+const params = new URLSearchParams(location.search);
+const campId = params.get('id');
+
+// ── Ordem de faixas ──────────────────────────────────────────────────────
+const _FAIXAS_DEF  = ['Kids','Branca','Azul','Roxa','Marrom','Preta'];
+const _KIDS_BELTS  = ['Cinza','Amarela','Laranja','Verde'];
+function _getBelt(nomeCategoria) {
+  const b = (nomeCategoria.split(' | ')[2] || '').trim();
+  return _KIDS_BELTS.includes(b) ? 'Kids' : (b || 'Outros');
+}
+function _ordemFaixas() {
+  try { const s = localStorage.getItem('gaditas_ordem_faixas'); return s ? JSON.parse(s) : null; }
+  catch(e) { return null; }
+}
+function sortCats(cats) {
+  const ord = _ordemFaixas() || _FAIXAS_DEF.slice();
+  return cats.slice().sort((a, b) => {
+    const ia = ord.indexOf(_getBelt(a)), ib = ord.indexOf(_getBelt(b));
+    return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+  });
+}
+
+// ── Dados ─────────────────────────────────────────────────────────────────
+let inscricoes = [];
+let campeonato  = null;
+
+function catKey(insc) {
+  const sx = (insc.sexo||'').toUpperCase()==='M'||insc.sexo==='Masculino' ? 'Masculino' : 'Feminino';
+  return `${sx} | ${insc.categoria_idade||insc.categoria||'?'} | ${insc.faixa||'?'} | ${insc.categoria_peso||'?'}`;
+}
+
+async function init() {
+  if (!campId) {
+    document.getElementById('container').innerHTML = '<div class="loading">❌ ID de campeonato não informado.</div>';
+    return;
+  }
+  campeonato = await buscarCampeonato(campId);
+  if (!campeonato) {
+    document.getElementById('container').innerHTML = '<div class="loading">❌ Campeonato não encontrado.</div>';
+    return;
+  }
+
+  document.title = `Pesagem — ${campeonato.nome}`;
+  document.getElementById('header-sub').textContent = campeonato.nome;
+  document.getElementById('link-painel').href = `painel.html?id=${campId}`;
+  document.getElementById('link-chave').href  = `adm-chaveamento.html?id=${campId}`;
+
+  const todas = await listarInscricoes(campId);
+  inscricoes = todas.filter(i => i.status === 'aprovado' || i.status === 'confirmado' || i.status === 'pago');
+
+  render();
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render() {
+  // Agrupar por categoria
+  const grupos = new Map();
+  inscricoes.forEach(insc => {
+    const k = catKey(insc);
+    if (!grupos.has(k)) grupos.set(k, []);
+    grupos.get(k).push(insc);
+  });
+
+  const catsSorted = sortCats([...grupos.keys()]);
+
+  // Contadores globais
+  let ok = 0, neg = 0, pend = 0;
+  inscricoes.forEach(i => {
+    if (i.pesagem === 'ok') ok++;
+    else if (i.pesagem === 'negativa') neg++;
+    else pend++;
+  });
+  document.getElementById('cnt-ok').textContent   = ok;
+  document.getElementById('cnt-neg').textContent  = neg;
+  document.getElementById('cnt-pend').textContent = pend;
+
+  if (catsSorted.length === 0) {
+    document.getElementById('container').innerHTML =
+      '<div class="loading">Nenhum atleta aprovado encontrado.</div>';
+    return;
+  }
+
+  document.getElementById('container').innerHTML = catsSorted.map(cat => {
+    const lista = grupos.get(cat);
+    const cOk   = lista.filter(i => i.pesagem === 'ok').length;
+    const cNeg  = lista.filter(i => i.pesagem === 'negativa').length;
+    const cPend = lista.filter(i => !i.pesagem || i.pesagem === 'pendente').length;
+
+    return `
+      <div class="cat-bloco">
+        <div class="cat-header">
+          <span class="cat-nome">${cat}</span>
+          <div class="cat-stats">
+            <span class="cat-ok-count">✅ ${cOk}</span>
+            <span class="cat-neg-count">❌ ${cNeg}</span>
+            <span class="cat-pend-count">⏳ ${cPend}</span>
+          </div>
+        </div>
+        ${lista.map(insc => renderAtleta(insc)).join('')}
+      </div>`;
+  }).join('');
+}
+
+function renderAtleta(insc) {
+  const status    = insc.pesagem || 'pend';
+  const statusCls = status === 'ok' ? 'ok' : status === 'negativa' ? 'neg' : 'pend';
+  const icon      = status === 'ok' ? '✅' : status === 'negativa' ? '❌' : '⏳';
+  const nome      = insc.nome || insc.nomeAtleta || '?';
+  const equipe    = insc.academia || insc.equipe || '';
+  const pesoReg   = insc.peso ? `${insc.peso} kg cadastrado` : '';
+  const pesoAfer  = insc.pesoPesagem || '';
+
+  return `
+    <div class="atleta-row ${statusCls}" id="row-${insc.id}">
+      <div class="atleta-status-icon">${icon}</div>
+      <div class="atleta-info">
+        <div class="atleta-nome">${nome}</div>
+        <div class="atleta-sub">${equipe}${pesoReg ? ' · ' + pesoReg : ''}</div>
+      </div>
+      <div class="atleta-acoes">
+        <input type="number" step="0.1" min="0" max="300" class="peso-input"
+               id="pesoAfer-${insc.id}" value="${pesoAfer}" placeholder="kg aferido"
+               onchange="salvarPesoAferido('${insc.id}', this.value)">
+        <button class="btn-ok ${status==='ok'?'active':''}"
+                onclick="marcar('${insc.id}','ok')">✅ OK</button>
+        <button class="btn-neg ${status==='negativa'?'active':''}"
+                onclick="marcar('${insc.id}','negativa')">❌ Passou</button>
+      </div>
+    </div>`;
+}
+
+// ── Marcar resultado de pesagem ───────────────────────────────────────────
+window.marcar = async function(inscId, resultado) {
+  const insc = inscricoes.find(i => i.id === inscId);
+  if (!insc) return;
+
+  const pesoInput = document.getElementById(`pesoAfer-${inscId}`);
+  const pesoPesagem = pesoInput ? (parseFloat(pesoInput.value) || null) : null;
+
+  try {
+    await atualizarInscricao(campId, inscId, {
+      pesagem:    resultado,
+      pesoPesagem: pesoPesagem,
+      pesagemEm:  new Date().toISOString()
+    });
+    insc.pesagem     = resultado;
+    insc.pesoPesagem = pesoPesagem;
+
+    // Atualiza gaditas_atletas no localStorage para refletir no chaveamento
+    _syncPesagemLocalStorage(inscId, resultado, pesoPesagem);
+
+    render();
+    showToast(
+      resultado === 'ok' ? `✅ ${insc.nome || insc.nomeAtleta} — OK` : `❌ ${insc.nome || insc.nomeAtleta} — Passou do peso`,
+      resultado === 'ok' ? 'ok' : 'neg'
+    );
+  } catch(e) {
+    showToast('Erro ao salvar: ' + e.message, 'neg');
+  }
+};
+
+window.salvarPesoAferido = async function(inscId, valor) {
+  const insc = inscricoes.find(i => i.id === inscId);
+  if (!insc) return;
+  const v = parseFloat(valor) || null;
+  try {
+    await atualizarInscricao(campId, inscId, { pesoPesagem: v });
+    insc.pesoPesagem = v;
+    _syncPesagemLocalStorage(inscId, insc.pesagem, v);
+  } catch(e) { /* silencioso */ }
+};
+
+// Sincroniza pesagem no gaditas_atletas (localStorage) para uso no chaveamento
+function _syncPesagemLocalStorage(inscId, pesagem, pesoPesagem) {
+  try {
+    const atletas = JSON.parse(localStorage.getItem('gaditas_atletas') || '[]');
+    // Tenta match por ID (inscricaoId) ou por nome
+    const insc = inscricoes.find(i => i.id === inscId);
+    const nome  = insc ? (insc.nome || insc.nomeAtleta || '') : '';
+    let found = false;
+    atletas.forEach(a => {
+      if (String(a.id) === String(inscId) || (nome && (a.nome === nome || a.nomeAtleta === nome))) {
+        a.pesagem     = pesagem || null;
+        a.pesoPesagem = pesoPesagem || null;
+        found = true;
+      }
+    });
+    if (found) localStorage.setItem('gaditas_atletas', JSON.stringify(atletas));
+  } catch(e) { /* silencioso */ }
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function showToast(msg, tipo) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${tipo} show`;
+  setTimeout(() => { el.classList.remove('show'); }, 2000);
+}
+
+init();
+</script>
+</body>
+</html>
