@@ -850,8 +850,8 @@
                <a href="atletas-publico.html?id=${c.id}" class="ev-link">👥 Atletas</a>
                <a href="cronograma-lutas.html?id=${c.id}" class="ev-link">📅 Cronograma</a>`
             : `${!isBreve ? `<a href="inscricao.html?id=${c.id}" class="ev-link prim">📝 Inscrever-se</a>` : ''}
-               <a href="atletas-publico.html?id=${c.id}" class="ev-link">👥 Atletas</a>
-               <a href="cronograma-lutas.html?id=${c.id}" class="ev-link">📅 Cronograma</a>`;
+               ${c.edital ? `<a href="${c.edital}" class="ev-link" target="_blank" rel="noopener">📋 Edital</a>` : ''}
+               <a href="atletas-publico.html?id=${c.id}" class="ev-link">👥 Atletas</a>`;
 
         const banner = c.cartaz
           ? `<img src="${c.cartaz}" alt="${c.nome}">`

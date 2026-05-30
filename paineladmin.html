@@ -372,6 +372,10 @@
     <label>Descrição</label>
     <textarea id="f-descricao" placeholder="Informações gerais sobre o campeonato..."></textarea>
 
+    <label>📋 Edital <span style="font-weight:400;color:#8A9CB0">(URL — PDF ou página externa)</span></label>
+    <input type="url" id="f-edital" placeholder="https://drive.google.com/... ou https://...">
+    <p style="font-size:0.68rem;color:#8A9CB0;margin-top:4px;">Link exibido no card público durante as inscrições. Cole a URL do PDF do Google Drive, Dropbox ou similar.</p>
+
     <label>Tipo de Competição</label>
     <select id="f-tipo" onchange="onTipoChange()">
       <option value="chaveamento">🥋 Chaveamento (Eliminatórias)</option>
@@ -645,6 +649,7 @@
     document.getElementById('f-emoji').value     = dados?.emoji    || '🥋';
     document.getElementById('f-escopo').value    = dados?.escopo   || 'academia';
     document.getElementById('f-marca').value     = dados?.marca    || '';
+    document.getElementById('f-edital').value    = dados?.edital   || '';
     document.getElementById('f-cartaz').value    = '';
     document.getElementById('modal-titulo').textContent = dados ? 'Editar Campeonato' : 'Novo Campeonato';
     selecionarEmoji(dados?.emoji || '🥋');
@@ -764,6 +769,7 @@
       emoji:     document.getElementById('f-emoji').value,
       cartaz:    cartazBase64 || null,
       marca:     document.getElementById('f-marca').value.trim() || null,
+      edital:    document.getElementById('f-edital').value.trim() || null,
       clienteId: document.getElementById('f-cliente').value || null,
     };
     if (tipo === 'liga') {
