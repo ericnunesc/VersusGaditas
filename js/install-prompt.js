@@ -7,7 +7,7 @@
 
   var STORAGE_KEY   = 'gdt_install_dismissed';
   var DIAS_ESPERA   = 7;   // não mostrar de novo por X dias após dispensar
-  var DELAY_MS      = 4000; // esperar X ms após carregar antes de mostrar
+  var DELAY_MS      = 800; // pequeno delay só para a página terminar de renderizar
 
   // ── Detectar plataforma ─────────────────────────────────
   var ua      = navigator.userAgent || '';
@@ -192,15 +192,70 @@
     }, DELAY_MS);
   });
 
-  // iOS Safari: não tem beforeinstallprompt, mostrar instruções manuais
+  // iOS Safari: não tem beforeinstallprompt — mostrar instruções diretamente no banner
   if (isSafari && !foiDispensado()) {
     window.addEventListener('load', function () {
-      setTimeout(mostrarIOS, DELAY_MS);
+      setTimeout(mostrarBannerIOS, DELAY_MS);
+    });
+  }
+
+  function mostrarBannerIOS() {
+    if (foiDispensado()) return;
+
+    var banner = document.createElement('div');
+    banner.id  = 'gdt-install-banner';
+    banner.innerHTML = [
+      '<div id="gdt-ib-inner" style="flex-direction:column;align-items:stretch;gap:10px;padding:16px 16px 20px">',
+      '  <div style="display:flex;align-items:center;gap:10px">',
+      '    <img id="gdt-ib-logo" src="images/logo_favicon.png" alt="BudoFlow">',
+      '    <div id="gdt-ib-texto" style="flex:1">',
+      '      <strong>Instalar BudoFlow no iPhone</strong>',
+      '      <span>Siga os passos abaixo</span>',
+      '    </div>',
+      '    <button id="gdt-ib-fechar" title="Dispensar">✕</button>',
+      '  </div>',
+      '  <div style="display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.05);border-radius:10px;padding:10px 12px">',
+      '    <span style="font-size:1.4rem;flex-shrink:0">1️⃣</span>',
+      '    <span style="font-size:.8rem;color:#C8D8E8">Toque em <strong style="color:#fff">Compartilhar</strong> <span style="font-size:1rem">⬆️</span> na barra do Safari</span>',
+      '  </div>',
+      '  <div style="display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.05);border-radius:10px;padding:10px 12px">',
+      '    <span style="font-size:1.4rem;flex-shrink:0">2️⃣</span>',
+      '    <span style="font-size:.8rem;color:#C8D8E8">Toque em <strong style="color:#fff">"Adicionar à Tela de Início"</strong> e confirme</span>',
+      '  </div>',
+      '  <div id="gdt-ios-seta" style="text-align:center;font-size:1.8rem;animation:gdt-bounce .8s infinite alternate">⬇️</div>',
+      '</div>',
+    ].join('');
+
+    var style = document.createElement('style');
+    style.textContent = [
+      '#gdt-install-banner {',
+      '  position:fixed; bottom:0; left:0; right:0; z-index:99999;',
+      '  background:#1A2C3E; border-top:2px solid #C9A03D;',
+      '  box-shadow:0 -4px 24px rgba(0,0,0,0.5);',
+      '  transform:translateY(110%); transition:transform .4s cubic-bezier(.22,1,.36,1);',
+      '  font-family:"Barlow","Inter",sans-serif;',
+      '}',
+      '#gdt-install-banner.visivel { transform:translateY(0); }',
+      '#gdt-ib-logo { width:44px; height:44px; border-radius:10px; flex-shrink:0; object-fit:cover; }',
+      '#gdt-ib-texto strong { display:block; font-size:.92rem; font-weight:700; color:#E8E8F0; }',
+      '#gdt-ib-texto span   { display:block; font-size:.72rem; color:#8A9CB0; margin-top:2px; }',
+      '#gdt-ib-fechar { background:transparent; border:none; color:#5A5A7A; font-size:1.1rem; cursor:pointer; padding:4px 6px; }',
+      '#gdt-ib-fechar:hover { color:#E8E8F0; }',
+      '@keyframes gdt-bounce { from { transform:translateY(0) } to { transform:translateY(6px) } }',
+    ].join('\n');
+
+    document.head.appendChild(style);
+    document.body.appendChild(banner);
+
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { banner.classList.add('visivel'); });
     });
 
-    function mostrarIOS() {
-      criarBanner(mostrarModalIOS, null);
-    }
+    document.getElementById('gdt-ib-fechar').addEventListener('click', function () {
+      banner.classList.remove('visivel');
+      setTimeout(function () { banner.remove(); }, 450);
+      marcarDispensado();
+    });
   }
 
 })();
