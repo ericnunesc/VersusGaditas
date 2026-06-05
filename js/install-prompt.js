@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY   = 'gdt_install_dismissed';
+  var STORAGE_KEY   = 'gdt_install_dismissed_v2'; // v2 = reseta cache anterior
   var DIAS_ESPERA   = 7;   // não mostrar de novo por X dias após dispensar
   var DELAY_MS      = 800; // pequeno delay só para a página terminar de renderizar
 
