@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="images/logo-budoflow.png">
-  <link rel="apple-touch-icon" href="images/logo-budoflow.png">
+  <link rel="icon" type="image/png" href="images/logo_favicon.png">
+  <link rel="apple-touch-icon" href="images/logo_favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Liga BJJ - Admin - COMPETIÇÃO BJJ</title>
   <style>
@@ -1247,7 +1247,7 @@ function renderClassificacao() {
   const fl = FAIXAS_LABEL[faixaSelecionada];
   const ranking = calcularClassificacao(faixaSelecionada);
   const el = document.getElementById('classificacao-content');
-  if (!ranking.length) { el.innerHTML=`<div class="vazio"><img src="images/logo-budoflow.png" alt="BudoFlow" style="height:68px;width:auto;border-radius:50%;display:block;margin:0 auto;">Nenhuma equipe para ${fl}.</div>`; return; }
+  if (!ranking.length) { el.innerHTML=`<div class="vazio"><img src="images/logo_favicon.png" alt="BudoFlow" style="height:68px;width:auto;border-radius:50%;display:block;margin:0 auto;">Nenhuma equipe para ${fl}.</div>`; return; }
   const medals = ['🥇','🥈','🥉'];
   let html = `<div class="card">
     <div class="card-header"><h3>🏆 Classificação — ${fl}</h3></div>

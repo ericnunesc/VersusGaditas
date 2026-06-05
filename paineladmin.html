@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="images/logo-budoflow.png">
-  <link rel="apple-touch-icon" href="images/logo-budoflow.png">
+  <link rel="icon" type="image/png" href="images/logo_favicon.png">
+  <link rel="apple-touch-icon" href="images/logo_favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Admin - COMPETIÇÃO BJJ</title>
   <style>
@@ -151,7 +151,7 @@
 
 <header>
   <div class="header-logo">
-    <img src="images/logo-budoflow.png" alt="BudoFlow" style="height:38px;width:auto;border-radius:50%;flex-shrink:0;">
+    <img src="images/logo_favicon.png" alt="BudoFlow" style="height:38px;width:auto;border-radius:50%;flex-shrink:0;">
     <div><h1>COMPETIÇÃO BJJ</h1><p>Painel Administrativo</p></div>
   </div>
   <div class="header-right">
@@ -594,7 +594,7 @@
       try { clientesData = await listarClientes(); } catch(e) { console.warn('Clientes indisponível:', e.message); clientesData = []; }
       campsData = camps;
       if (!camps.length) {
-        grid.innerHTML = `<div class="vazio"><img src="images/logo-budoflow.png" alt="BudoFlow" style="height:68px;width:auto;border-radius:50%;display:block;margin:0 auto;">Nenhum campeonato ainda.<br>Crie o primeiro!</div>`;
+        grid.innerHTML = `<div class="vazio"><img src="images/logo_favicon.png" alt="BudoFlow" style="height:68px;width:auto;border-radius:50%;display:block;margin:0 auto;">Nenhum campeonato ainda.<br>Crie o primeiro!</div>`;
         return;
       }
       const cliMap = {};

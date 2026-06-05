@@ -9,7 +9,7 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "images/logo-budoflow.png",
+      "src": "images/logo_favicon.png",
       "sizes": "any",
       "type": "image/png",
       "purpose": "any maskable"
