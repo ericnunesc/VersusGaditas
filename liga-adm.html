@@ -234,6 +234,12 @@
     .vagas-input-row input{width:70px;border:1px solid #E2E8F0;border-radius:6px;padding:6px 8px;font-size:0.82rem;outline:none;text-align:center;}
     .vagas-input-row input:focus{border-color:#C9A03D;}
 
+    .edit-rodada-form{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:11px 14px;margin-bottom:10px;display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;}
+    .edit-rodada-form .erf-label{font-size:0.67rem;font-weight:700;color:#8A9CB0;margin-bottom:3px;}
+    .edit-rodada-form input{border:1px solid #E2E8F0;border-radius:6px;padding:7px 9px;font-size:0.8rem;outline:none;background:#fff;width:100%;}
+    .edit-rodada-form input:focus{border-color:#C9A03D;}
+    .edit-rodada-form .erf-col{display:flex;flex-direction:column;}
+
     @media(max-width:600px){
       .confronto-main{grid-template-columns:1fr 40px 1fr;}
     }
@@ -987,10 +993,22 @@ function renderCalendario() {
   el.innerHTML = Object.keys(byRound).map(r => {
     const ms = byRound[r];
     const done = ms.filter(m => m.status === 'concluido').length;
+    const prim = ms[0] || {};
     return `<div class="rodada-label">
       <span>Rodada ${r}</span>
-      <span style="font-size:0.65rem;font-weight:400">${ms[0]?.leg === 'volta' ? '🔄 Volta' : '➡️ Ida'}</span>
+      <span style="font-size:0.65rem;font-weight:400">${prim.leg === 'volta' ? '🔄 Volta' : '➡️ Ida'}</span>
       <span style="margin-left:auto;font-weight:400">${done}/${ms.length} concluídos</span>
+      <button class="btn btn-secondary btn-xs" onclick="toggleEditRodada('${r}')" style="margin-left:6px" title="Alterar data/hora desta rodada">✏️ Data</button>
+    </div>
+    <div id="edit-rod-${r}" class="edit-rodada-form" style="display:none">
+      <div style="width:100%;font-size:0.7rem;font-weight:700;color:#1A2C3E;margin-bottom:2px">📅 Alterar data/hora de todos os jogos da Rodada ${r}</div>
+      <div class="erf-col" style="min-width:130px"><div class="erf-label">Data *</div><input type="date" id="edr-data-${r}" value="${prim.data||''}"></div>
+      <div class="erf-col"><div class="erf-label">Horário</div><input type="time" id="edr-hora-${r}" value="${prim.hora||'19:00'}" style="width:110px"></div>
+      <div class="erf-col" style="flex:1;min-width:140px"><div class="erf-label">Local</div><input type="text" id="edr-local-${r}" value="${(prim.local||'').replace(/"/g,'&quot;')}" placeholder="Ex: Ginásio Municipal"></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary btn-sm" onclick="salvarDataRodada('${r}')">💾 Salvar</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleEditRodada('${r}')">Cancelar</button>
+      </div>
     </div>
     ${ms.map(m => renderConfrontoCard(m)).join('')}`;
   }).join('');
@@ -1091,6 +1109,34 @@ window.limparCalendario = async function() {
   for (const c of confrontos.filter(x => x.faixa === faixaSelecionada)) if (c.id) await deletarLigaConfronto(campeonatoId, c.id);
   confrontos = confrontos.filter(c => c.faixa !== faixaSelecionada);
   salvarEstado(); renderCalendario();
+};
+
+window.toggleEditRodada = function(r) {
+  const el = document.getElementById('edit-rod-' + r);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+};
+
+window.salvarDataRodada = async function(r) {
+  const novaData  = document.getElementById('edr-data-'  + r)?.value;
+  const novaHora  = document.getElementById('edr-hora-'  + r)?.value;
+  const novoLocal = document.getElementById('edr-local-' + r)?.value?.trim();
+  if (!novaData) { alert('Informe a data.'); return; }
+  const confsRodada = confrontos.filter(c => c.faixa === faixaSelecionada && String(c.rodada) === String(r));
+  if (!confsRodada.length) return;
+  const btn = document.querySelector(`#edit-rod-${r} .btn-primary`);
+  if (btn) { btn.textContent = 'Salvando...'; btn.disabled = true; }
+  try {
+    for (const c of confsRodada) {
+      await atualizarLigaConfronto(campeonatoId, c.id, { data: novaData, hora: novaHora, local: novoLocal });
+      c.data = novaData; c.hora = novaHora; c.local = novoLocal;
+    }
+    salvarEstado();
+    renderCalendario();
+  } catch(e) {
+    alert('Erro ao salvar: ' + e.message);
+    if (btn) { btn.textContent = '💾 Salvar'; btn.disabled = false; }
+  }
 };
 
 window.marcarAoVivo = async function(id) {
