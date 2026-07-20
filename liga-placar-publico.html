@@ -230,6 +230,15 @@ function render() {
           if(cr.vencedor==='1'){ badge=`<span class="cat-mini-badge cb-1">${cr.finalizacao?'🔒 Sub':'🥇 Casa'}</span>`; n1s=`<strong class="cat-mini-at" style="color:var(--azul)">${n1}</strong>`; }
           else if(cr.vencedor==='2'){ badge=`<span class="cat-mini-badge cb-2">${cr.finalizacao?'🔒 Sub':'🥇 Visit.'}</span>`; n2s=`<strong class="cat-mini-at" style="color:var(--vermelho)">${n2}</strong>`; }
           else if(cr.vencedor==='empate'){ badge=`<span class="cat-mini-badge cb-emp">🤝 Emp</span>`; }
+          if(cr.vencedor && cr.pts1 !== undefined) {
+            return `<div class="cat-mini-row">
+              <span class="cat-mini-nome">${cr.categoria}</span>
+              <div class="cat-mini-res" style="flex-direction:column;gap:2px">
+                <div style="display:flex;align-items:center;gap:8px">${n1s}${badge}${n2s}</div>
+                <div class="clive-det">${cr.pts1}pts ${cr.van1||0}van ${cr.pun1||0}pun × ${cr.pts2||0}pts ${cr.van2||0}van ${cr.pun2||0}pun</div>
+              </div>
+            </div>`;
+          }
           return `<div class="cat-mini-row">
             <span class="cat-mini-nome">${cr.categoria}</span>
             <div class="cat-mini-res">${n1s}${badge}${n2s}</div>
@@ -280,6 +289,58 @@ function render() {
         </div>`;
       }).join('')}
     </div>`;
+  }
+
+  // ── Resultados por Luta (confrontos encerrados) ──────────────
+  const concluidos = confsF.filter(c => c.status === 'concluido' && c.resultado).sort((a,b) => a.rodada - b.rodada);
+  if (concluidos.length) {
+    html += `<div class="section-title">📋 Resultados por Luta</div>`;
+    concluidos.forEach(c => {
+      const eq1 = nEq(c.equipe1Id), eq2 = nEq(c.equipe2Id);
+      const r = c.resultado;
+      const v1 = r.vitoriasEq1||0, v2 = r.vitoriasEq2||0;
+      const cor1 = v1 > v2 ? 'var(--verde)' : v2 > v1 ? 'var(--txt-fraco)' : 'var(--ouro)';
+      const cor2 = v2 > v1 ? 'var(--verde)' : v1 > v2 ? 'var(--txt-fraco)' : 'var(--ouro)';
+      const cats = r.categorias || [];
+      const logo1 = equipes.find(e=>e.id===c.equipe1Id)?.logoBase64;
+      const logo2 = equipes.find(e=>e.id===c.equipe2Id)?.logoBase64;
+      const lImg = src => src ? `<img src="${src}" style="width:20px;height:20px;object-fit:contain;border-radius:3px;flex-shrink:0;vertical-align:middle;">` : '';
+      html += `<div class="standings-card" style="margin-bottom:10px">
+        <div style="padding:9px 14px;background:var(--bg3);border-bottom:1px solid var(--borda);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+          <span style="font-family:'Oswald',sans-serif;font-size:0.7rem;color:var(--ouro);letter-spacing:1px">RODADA ${c.rodada} · ${c.leg==='volta'?'↩ VOLTA':'→ IDA'}</span>
+          <span style="font-size:0.63rem;color:var(--txt-fraco)">${c.data||'—'} ${c.hora||''} · ${c.local||''}</span>
+        </div>
+        <div style="padding:10px 14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:4px">
+            <div style="font-weight:700;font-size:0.88rem;display:flex;align-items:center;gap:6px">${lImg(logo1)}<span style="color:${cor1}">${eq1}</span></div>
+            <div style="font-family:'Oswald',sans-serif;font-size:1.4rem;font-weight:800;color:var(--ouro)">${v1}<span style="color:var(--txt-fraco);font-size:1rem">×</span>${v2}</div>
+            <div style="font-weight:700;font-size:0.88rem;text-align:right;display:flex;align-items:center;gap:6px"><span style="color:${cor2}">${eq2}</span>${lImg(logo2)}</div>
+          </div>
+          <div style="border-top:1px solid var(--borda);padding-top:7px">
+            ${cats.map(cr => {
+              const at1 = atletas.find(a=>a.equipeId===c.equipe1Id&&a.faixa===c.faixa&&a.categoria===cr.categoria);
+              const at2 = atletas.find(a=>a.equipeId===c.equipe2Id&&a.faixa===c.faixa&&a.categoria===cr.categoria);
+              const n1 = at1?.nome||(eq1.split(' ')[0]);
+              const n2 = at2?.nome||(eq2.split(' ')[0]);
+              let s1='color:var(--txt-fraco)', s2='color:var(--txt-fraco)', bdg='<span class="cat-mini-badge cb-pend">⏳</span>';
+              if(cr.vencedor==='1'){ s1='color:var(--azul);font-weight:700'; bdg=`<span class="cat-mini-badge cb-1">${cr.finalizacao?'🔒 Sub':'🥇 Casa'}</span>`; }
+              else if(cr.vencedor==='2'){ s2='color:var(--vermelho);font-weight:700'; bdg=`<span class="cat-mini-badge cb-2">${cr.finalizacao?'🔒 Sub':'🥇 Visit.'}</span>`; }
+              else if(cr.vencedor==='empate'){ s1=s2='color:var(--laranja)'; bdg='<span class="cat-mini-badge cb-emp">🤝 Emp</span>'; }
+              const hasScore = cr.vencedor && cr.pts1 !== undefined;
+              const scoreStr = hasScore ? `<div class="clive-det">${cr.pts1}pts ${cr.van1||0}van ${cr.pun1||0}pun × ${cr.pts2||0}pts ${cr.van2||0}van ${cr.pun2||0}pun</div>` : '';
+              return `<div class="cat-mini-row">
+                <span class="cat-mini-nome">${cr.categoria}</span>
+                <div class="cat-mini-res" style="${hasScore?'flex-direction:column;gap:2px':''}">
+                  <div style="display:flex;align-items:center;gap:8px;justify-content:center">
+                    <span class="cat-mini-at" style="${s1}">${n1}</span>${bdg}<span class="cat-mini-at" style="${s2}">${n2}</span>
+                  </div>${scoreStr}
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>`;
+    });
   }
 
   document.getElementById('main').innerHTML = html;

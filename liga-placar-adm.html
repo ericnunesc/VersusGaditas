@@ -781,7 +781,9 @@ window.reabrirLuta = function(idx) {
   if (timerIdx !== null) { clearInterval(timerInterval); timerInterval = null; timerIdx = null; }
   lutaData[idx] = { pts1:0, pts2:0, van1:0, van2:0, pun1:0, pun2:0, status:'ativa' };
   timerSecs[idx] = tempoLuta;
-  confrontoAtivo.resultado.categorias[idx].vencedor = null;
+  const cat = confrontoAtivo.resultado.categorias[idx];
+  cat.vencedor = null;
+  cat.pts1 = 0; cat.pts2 = 0; cat.van1 = 0; cat.van2 = 0; cat.pun1 = 0; cat.pun2 = 0;
   recalcularScore();
   syncLutaViva();
   renderCatsLive();
@@ -792,7 +794,11 @@ window.declararVencedor = async function(idx, v) {
   const ld = lutaData[idx] || {};
   ld.status = 'definida'; ld.vencedor = v;
   lutaData[idx] = ld;
-  confrontoAtivo.resultado.categorias[idx].vencedor = v;
+  const cat = confrontoAtivo.resultado.categorias[idx];
+  cat.vencedor = v;
+  cat.pts1 = ld.pts1 || 0; cat.pts2 = ld.pts2 || 0;
+  cat.van1 = ld.van1 || 0; cat.van2 = ld.van2 || 0;
+  cat.pun1 = ld.pun1 || 0; cat.pun2 = ld.pun2 || 0;
   recalcularScore();
   await salvarAoVivo();
   renderCatsLive();
