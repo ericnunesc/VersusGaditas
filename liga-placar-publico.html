@@ -177,7 +177,7 @@ function render() {
   function nEq(id){ return equipes.find(e=>e.id===id)?.nome||'?'; }
 
   // Ao vivo desta faixa
-  const aoVivo = confrontos.find(c=>c.faixa===faixaTab&&c.status==='ao_vivo');
+  const aoVivoList = confrontos.filter(c=>c.faixa===faixaTab&&c.status==='ao_vivo');
 
   let html = '';
 
@@ -186,7 +186,8 @@ function render() {
     html += `<div class="ftabs">${faixas.map(f=>`<button class="ftab ${f===faixaTab?'active':''}" onclick="setFaixa('${f}')">${FL[f]||f}</button>`).join('')}</div>`;
   }
 
-  if (aoVivo) {
+  if (aoVivoList.length) {
+  for (const aoVivo of aoVivoList) {
     const eq1=nEq(aoVivo.equipe1Id), eq2=nEq(aoVivo.equipe2Id);
     const jaComecoou = isHorarioChegou(aoVivo);
     if (!jaComecoou) {
@@ -290,6 +291,7 @@ function render() {
       </div>
     </div>`;
     } // jaComecoou
+  } // for aoVivo
   } else {
     // Próximo confronto
     const proximo = confrontos.filter(c=>c.faixa===faixaTab&&c.status==='pendente').sort((a,b)=>a.rodada-b.rodada)[0];

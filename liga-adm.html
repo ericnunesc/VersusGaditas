@@ -998,7 +998,8 @@ function renderCalendario() {
       <span>Rodada ${r}</span>
       <span style="font-size:0.65rem;font-weight:400">${prim.leg === 'volta' ? '🔄 Volta' : '➡️ Ida'}</span>
       <span style="margin-left:auto;font-weight:400">${done}/${ms.length} concluídos</span>
-      <button class="btn btn-secondary btn-xs" onclick="toggleEditRodada('${r}')" style="margin-left:6px" title="Alterar data/hora desta rodada">✏️ Data</button>
+      ${ms.some(m=>m.status==='pendente') ? `<button class="btn btn-success btn-xs" onclick="ativarRodada('${r}')" style="margin-left:4px" title="Ativar todos os jogos desta rodada para o público">▶ Ativar</button>` : ''}
+      <button class="btn btn-secondary btn-xs" onclick="toggleEditRodada('${r}')" style="margin-left:4px" title="Alterar data/hora desta rodada">✏️ Data</button>
     </div>
     <div id="edit-rod-${r}" class="edit-rodada-form" style="display:none">
       <div style="width:100%;font-size:0.7rem;font-weight:700;color:#1A2C3E;margin-bottom:2px">📅 Alterar data/hora de todos os jogos da Rodada ${r}</div>
@@ -1035,13 +1036,14 @@ function renderConfrontoCard(m) {
     scoreHtml = `<div class="confronto-vs">×</div>`;
   }
   const statusBadge = { pendente:`<span class="sbadge sbadge-pendente">⏳ Pendente</span>`, ao_vivo:`<span class="sbadge sbadge-ao-vivo">🔴 Ao Vivo</span>`, concluido:`<span class="sbadge sbadge-concluido">✅ Concluído</span>` }[m.status] || '';
+  const editDataBtn = `<button class="btn btn-secondary btn-xs" onclick="toggleEditConfronto('${m.id}')" title="Editar data/hora/local desta partida">📅</button>`;
   const acoesHtml = m.status === 'concluido'
-    ? `<button class="btn btn-secondary btn-sm" onclick="abrirModalResultado('${m.id}')">✏️ Editar</button>`
+    ? `<button class="btn btn-secondary btn-sm" onclick="abrirModalResultado('${m.id}')">✏️ Editar</button>${editDataBtn}`
     : m.status === 'ao_vivo'
     ? `<button class="btn btn-success btn-sm" onclick="abrirModalResultado('${m.id}')">✏️ Parcial</button>
-       <button class="btn btn-secondary btn-sm" onclick="encerrarAoVivo('${m.id}')">⏹️ Encerrar</button>`
+       <button class="btn btn-secondary btn-sm" onclick="encerrarAoVivo('${m.id}')">⏹️ Encerrar</button>${editDataBtn}`
     : `<button class="btn btn-primary btn-sm" onclick="marcarAoVivo('${m.id}')">▶️ Ao Vivo</button>
-       <button class="btn btn-secondary btn-sm" onclick="abrirModalResultado('${m.id}')">📝 Resultado</button>`;
+       <button class="btn btn-secondary btn-sm" onclick="abrirModalResultado('${m.id}')">📝 Resultado</button>${editDataBtn}`;
 
   return `<div class="confronto-card">
     <div class="confronto-main">
@@ -1053,6 +1055,16 @@ function renderConfrontoCard(m) {
     <div class="confronto-footer" style="margin-top:8px;">
       <div class="confronto-meta">📅 ${m.data||'—'} ${m.hora||''} · 📍 ${m.local||'—'} · ${statusBadge}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">${acoesHtml}</div>
+    </div>
+    <div id="edit-conf-${m.id}" class="edit-rodada-form" style="display:none;margin-top:8px">
+      <div style="width:100%;font-size:0.7rem;font-weight:700;margin-bottom:2px">📅 Editar data/hora desta partida</div>
+      <div class="erf-col" style="min-width:130px"><div class="erf-label">Data *</div><input type="date" id="edc-data-${m.id}" value="${m.data||''}"></div>
+      <div class="erf-col"><div class="erf-label">Horário</div><input type="time" id="edc-hora-${m.id}" value="${m.hora||'19:00'}" style="width:110px"></div>
+      <div class="erf-col" style="flex:1;min-width:140px"><div class="erf-label">Local</div><input type="text" id="edc-local-${m.id}" value="${(m.local||'').replace(/"/g,'&quot;')}" placeholder="Ex: Ginásio Municipal"></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary btn-sm" onclick="salvarDataConfronto('${m.id}')">💾 Salvar</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleEditConfronto('${m.id}')">Cancelar</button>
+      </div>
     </div>
   </div>`;
 }
@@ -1136,6 +1148,44 @@ window.salvarDataRodada = async function(r) {
   } catch(e) {
     alert('Erro ao salvar: ' + e.message);
     if (btn) { btn.textContent = '💾 Salvar'; btn.disabled = false; }
+  }
+};
+
+window.ativarRodada = async function(r) {
+  const pendentes = confrontos.filter(c => c.faixa === faixaSelecionada && String(c.rodada) === String(r) && c.status === 'pendente');
+  if (!pendentes.length) { alert('Todos os jogos desta rodada já estão ativos ou concluídos.'); return; }
+  if (!confirm(`Ativar ${pendentes.length} jogo(s) da Rodada ${r} para o público ver?`)) return;
+  const cats = getCategorias();
+  for (const c of pendentes) {
+    const resultado = {
+      categorias: cats.map(cat => ({ categoria: cat, vencedor: null, finalizacao: false })),
+      vitoriasEq1: 0, vitoriasEq2: 0
+    };
+    await atualizarLigaConfronto(campeonatoId, c.id, { status: 'ao_vivo', resultado });
+    c.status = 'ao_vivo'; c.resultado = resultado;
+  }
+  salvarEstado(); renderCalendario();
+};
+
+window.toggleEditConfronto = function(id) {
+  const el = document.getElementById('edit-conf-' + id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+};
+
+window.salvarDataConfronto = async function(id) {
+  const novaData  = document.getElementById('edc-data-'  + id)?.value;
+  const novaHora  = document.getElementById('edc-hora-'  + id)?.value;
+  const novoLocal = document.getElementById('edc-local-' + id)?.value?.trim();
+  if (!novaData) { alert('Informe a data.'); return; }
+  const c = confrontos.find(x => x.id === id);
+  if (!c) return;
+  try {
+    await atualizarLigaConfronto(campeonatoId, id, { data: novaData, hora: novaHora, local: novoLocal });
+    c.data = novaData; c.hora = novaHora; c.local = novoLocal;
+    salvarEstado(); renderCalendario();
+  } catch(e) {
+    alert('Erro ao salvar: ' + e.message);
   }
 };
 
