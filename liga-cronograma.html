@@ -69,6 +69,8 @@
     .b-pend{background:rgba(245,158,11,0.1);color:var(--laranja);border:1px solid rgba(245,158,11,0.2);}
     .b-live{background:rgba(0,230,138,0.12);color:var(--verde);border:1px solid rgba(0,230,138,0.3);animation:blink 0.9s infinite;}
     .b-done{background:rgba(255,255,255,0.04);color:var(--txt-fraco);border:1px solid rgba(255,255,255,0.07);}
+    .b-breve{background:rgba(245,158,11,0.12);color:var(--laranja);border:1px solid rgba(245,158,11,0.35);}
+    .conf-row.em-breve{background:rgba(245,158,11,0.04);border-left:3px solid var(--laranja);}
 
     /* Cat mini results */
     .cat-results{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
@@ -146,6 +148,11 @@ function pad(n){ return n.toString().padStart(2,'0'); }
 function tick(){ const d=new Date(); document.getElementById('relogio').textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); }
 setInterval(tick,1000); tick();
 
+function isHorarioChegou(c) {
+  if (!c.data || !c.hora) return true;
+  return new Date() >= new Date(c.data + 'T' + c.hora);
+}
+
 function render() {
   document.getElementById('upd-time').textContent='às '+pad(new Date().getHours())+':'+pad(new Date().getMinutes())+':'+pad(new Date().getSeconds());
   const raw = localStorage.getItem(KEY);
@@ -210,7 +217,8 @@ function render() {
       </div>
       ${ms.map(m=>{
         const eq1=nEq(m.equipe1Id), eq2=nEq(m.equipe2Id);
-        const rowCls=m.status==='ao_vivo'?'ao-vivo':m.status==='concluido'?'concluido':'';
+        const chegou=m.status==='ao_vivo'?isHorarioChegou(m):true;
+        const rowCls=m.status==='ao_vivo'?(chegou?'ao-vivo':'em-breve'):m.status==='concluido'?'concluido':'';
         let scoreTxt='', badge='', catHtml='';
 
         if(m.status==='concluido'&&m.resultado){
@@ -229,8 +237,12 @@ function render() {
           }</div>`;
         } else if(m.status==='ao_vivo'&&m.resultado){
           const v1=m.resultado.vitoriasEq1||0, v2=m.resultado.vitoriasEq2||0;
-          scoreTxt=`<div class="conf-score" style="color:var(--verde)">${v1} × ${v2}</div>`;
-          badge=`<span class="badge b-live">🔴 Ao Vivo</span>`;
+          if(chegou){
+            scoreTxt=`<div class="conf-score" style="color:var(--verde)">${v1} × ${v2}</div>`;
+            badge=`<span class="badge b-live">🔴 Ao Vivo</span>`;
+          } else {
+            badge=`<span class="badge b-breve">🕐 Em Breve</span>`;
+          }
         } else {
           scoreTxt=`<div class="conf-score conf-score-pend">× </div>`;
           badge=`<span class="badge b-pend">⏳ Pendente</span>`;
