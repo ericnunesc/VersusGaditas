@@ -37,8 +37,11 @@
 
     /* Confronto ao vivo — grande */
     .placar-card{background:var(--bg2);border:1px solid rgba(0,230,138,0.25);border-radius:14px;overflow:hidden;margin-bottom:18px;}
-    .placar-top{background:var(--bg3);padding:10px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--borda);}
-    .placar-meta{font-size:0.72rem;color:var(--txt-fraco);}
+    .placar-top{background:var(--bg3);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--borda);}
+    .placar-meta{font-size:0.8rem;color:var(--txt);display:flex;flex-wrap:wrap;align-items:center;gap:5px;line-height:1.4;}
+    .pm-rod{color:var(--laranja);font-weight:700;font-size:0.85rem;}
+    .pm-sep{color:rgba(255,255,255,0.2);font-size:0.75rem;}
+    .pm-loc{color:var(--txt-fraco);font-size:0.75rem;}
     .live-pill{background:rgba(0,230,138,0.12);border:1px solid rgba(0,230,138,0.35);color:var(--verde);padding:3px 11px;border-radius:20px;font-size:0.63rem;font-weight:700;animation:blink 0.9s infinite;}
     .placar-body{padding:22px 18px;}
     .placar-teams{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:16px;}
@@ -208,7 +211,7 @@ function render() {
       const eq2c=equipes.find(e=>e.id===aoVivo.equipe2Id)?.cidade||'Visitante';
       html += `<div class="placar-card" style="border-color:rgba(245,158,11,0.3)">
         <div class="placar-top">
-          <span class="placar-meta">Rodada ${aoVivo.rodada} · ${FL[faixaTab]||faixaTab} · ${formatarData(aoVivo.data)} às ${aoVivo.hora||'—'} · ${aoVivo.local||'—'}</span>
+          <span class="placar-meta"><span class="pm-rod">Rodada ${aoVivo.rodada}</span><span class="pm-sep">·</span><span>${FL[faixaTab]||faixaTab}</span><span class="pm-sep">·</span><span>🗓 ${formatarData(aoVivo.data)} às ${aoVivo.hora||'—'}</span><span class="pm-sep">·</span><span class="pm-loc">📍 ${aoVivo.local||'—'}</span></span>
           <span class="breve-pill">🕐 EM BREVE</span>
         </div>
         <div class="placar-body">
