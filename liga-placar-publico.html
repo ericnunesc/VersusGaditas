@@ -92,6 +92,9 @@
     .clive-det{font-size:0.58rem;color:var(--txt-fraco);margin-top:3px;text-align:center;letter-spacing:0.3px;}
     .clive-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--verde);margin-right:4px;animation:blink 0.9s infinite;vertical-align:middle;}
 
+    .breve-pill{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);color:var(--laranja);padding:3px 11px;border-radius:20px;font-size:0.63rem;font-weight:700;}
+    .breve-countdown{font-family:'Oswald',sans-serif;font-size:1.5rem;font-weight:700;color:var(--laranja);letter-spacing:2px;margin-top:6px;}
+
     .footer{text-align:center;margin-top:24px;font-size:0.6rem;color:var(--txt-fraco);letter-spacing:1px;text-transform:uppercase;}
   </style>
 </head>
@@ -132,6 +135,21 @@ function pad(n){ return n.toString().padStart(2,'0'); }
 function tick(){ const d=new Date(); document.getElementById('relogio').textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); }
 setInterval(tick,1000); tick();
 
+function isHorarioChegou(c) {
+  if (!c.data || !c.hora) return true;
+  return new Date() >= new Date(c.data + 'T' + c.hora);
+}
+function countdownStr(c) {
+  const alvo = new Date(c.data + 'T' + c.hora);
+  const diff = Math.max(0, Math.floor((alvo - new Date()) / 1000));
+  const h = Math.floor(diff / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  const s = diff % 60;
+  if (h > 0) return h + 'h ' + pad(m) + 'm ' + pad(s) + 's';
+  if (m > 0) return pad(m) + 'm ' + pad(s) + 's';
+  return s + 's';
+}
+
 function render() {
   document.getElementById('upd-time').textContent='às '+pad(new Date().getHours())+':'+pad(new Date().getMinutes())+':'+pad(new Date().getSeconds());
   const raw = localStorage.getItem(KEY);
@@ -170,6 +188,31 @@ function render() {
 
   if (aoVivo) {
     const eq1=nEq(aoVivo.equipe1Id), eq2=nEq(aoVivo.equipe2Id);
+    const jaComecoou = isHorarioChegou(aoVivo);
+    if (!jaComecoou) {
+      const eq1c=equipes.find(e=>e.id===aoVivo.equipe1Id)?.cidade||'Casa';
+      const eq2c=equipes.find(e=>e.id===aoVivo.equipe2Id)?.cidade||'Visitante';
+      html += `<div class="placar-card" style="border-color:rgba(245,158,11,0.3)">
+        <div class="placar-top">
+          <span class="placar-meta">Rodada ${aoVivo.rodada} · ${FL[faixaTab]||faixaTab} · ${aoVivo.data||'—'} ${aoVivo.hora||''} · ${aoVivo.local||'—'}</span>
+          <span class="breve-pill">🕐 EM BREVE</span>
+        </div>
+        <div class="placar-body">
+          <div class="placar-teams">
+            <div><div class="pt-nome">${eq1}</div><div class="pt-cidade">${eq1c}</div></div>
+            <div style="text-align:center">
+              <div class="pt-score" style="color:var(--laranja);font-size:2.2rem">×</div>
+              <div class="breve-countdown">${countdownStr(aoVivo)}</div>
+              <div style="font-size:0.6rem;color:var(--txt-fraco);margin-top:3px;letter-spacing:0.5px">COMEÇA EM</div>
+            </div>
+            <div class="pt-right"><div class="pt-nome">${eq2}</div><div class="pt-cidade">${eq2c}</div></div>
+          </div>
+          <div style="text-align:center;padding:6px 0;font-size:0.73rem;color:var(--txt-fraco)">
+            🗓️ ${aoVivo.data||'—'} às ${aoVivo.hora||'—'} · 📍 ${aoVivo.local||'—'}
+          </div>
+        </div>
+      </div>`;
+    } else {
     const r = aoVivo.resultado || {};
     const cats = r.categorias || CATS.map(c=>({categoria:c,vencedor:null,finalizacao:false}));
     const v1=r.vitoriasEq1||0, v2=r.vitoriasEq2||0;
@@ -246,6 +289,7 @@ function render() {
         }).join('')}</div>
       </div>
     </div>`;
+    } // jaComecoou
   } else {
     // Próximo confronto
     const proximo = confrontos.filter(c=>c.faixa===faixaTab&&c.status==='pendente').sort((a,b)=>a.rodada-b.rodada)[0];
