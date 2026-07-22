@@ -211,6 +211,19 @@ function render() {
           <div style="text-align:center;padding:6px 0;font-size:0.73rem;color:var(--txt-fraco)">
             🗓️ ${aoVivo.data||'—'} às ${aoVivo.hora||'—'} · 📍 ${aoVivo.local||'—'}
           </div>
+          <div class="cats-mini">${CATS.map(cat => {
+            const a1 = atletas.find(a => a.equipeId === aoVivo.equipe1Id && a.faixa === faixaTab && a.categoria === cat);
+            const a2 = atletas.find(a => a.equipeId === aoVivo.equipe2Id && a.faixa === faixaTab && a.categoria === cat);
+            if (!a1 && !a2) return '';
+            return `<div class="cat-mini-row">
+              <span class="cat-mini-nome">${cat}</span>
+              <div class="cat-mini-res">
+                <span class="cat-mini-at">${a1?.nome||'—'}</span>
+                <span class="cat-mini-badge" style="background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:var(--laranja)">⚔️</span>
+                <span class="cat-mini-at">${a2?.nome||'—'}</span>
+              </div>
+            </div>`;
+          }).filter(Boolean).join('')}</div>
         </div>
       </div>`;
     } else {
