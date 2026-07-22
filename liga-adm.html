@@ -466,7 +466,7 @@ import {
   salvarLigaAtleta, listarLigaAtletas, atualizarLigaAtleta, deletarLigaAtleta,
   salvarLigaConfronto, listarLigaConfrontos, atualizarLigaConfronto, deletarLigaConfronto,
   salvarLigaHistorico, listarLigaHistorico, deletarLigaHistorico,
-  salvarLigaConfig, buscarLigaConfig
+  salvarLigaConfig, buscarLigaConfig, salvarEstadoPublico
 } from './js/firebase.js';
 
 // ── Constantes ────────────────────────────────────────────────
@@ -1558,13 +1558,15 @@ window.removerLogoEquipe = async function(equipeId) {
 // ── localStorage (páginas públicas) ──────────────────────────
 function salvarEstado() {
   const eqSimples = equipes.map(e => ({ id:e.id, nome:e.nome, cidade:e.cidade||'', capitaes:e.capitaes||{}, logoBase64:e.logoBase64||null }));
-  localStorage.setItem(`gaditas_liga_${campeonatoId}`, JSON.stringify({
+  const estado = {
     nomeCompeticao: campeonato?.nome||'Liga BJJ',
     local: campeonato?.local||'',
     equipes: eqSimples, atletas, confrontos,
     faixaAtiva: faixaSelecionada,
     ligaConfig
-  }));
+  };
+  localStorage.setItem(`gaditas_liga_${campeonatoId}`, JSON.stringify(estado));
+  salvarEstadoPublico(campeonatoId, estado).catch(e => console.warn('Sync público:', e));
 }
 
 // ── Globals ───────────────────────────────────────────────────

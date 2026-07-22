@@ -192,6 +192,9 @@ export async function deletarLigaConfronto(campeonatoId, confrontoId) {
 export async function salvarLigaConfig(campeonatoId, config) {
   await setDoc(doc(db, "campeonatos", campeonatoId, "liga-config", "principal"), config);
 }
+export async function salvarEstadoPublico(campeonatoId, estado) {
+  await setDoc(doc(db, "campeonatos", campeonatoId, "liga-config", "estado-publico"), estado);
+}
 export async function buscarLigaConfig(campeonatoId) {
   const snap = await getDoc(doc(db, "campeonatos", campeonatoId, "liga-config", "principal"));
   return snap.exists() ? snap.data() : null;

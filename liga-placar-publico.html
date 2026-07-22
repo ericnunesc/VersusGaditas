@@ -426,5 +426,20 @@ setInterval(render, 3000);
 window.addEventListener('storage', e => { if(e.key===KEY) render(); });
 </script>
 <script src="js/install-prompt.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const _cfg = { apiKey:"AIzaSyA0HOHKPd9gCpJx0pnFWaKdLU-1WJks-gA", authDomain:"campeonatobjj.firebaseapp.com", projectId:"campeonatobjj", storageBucket:"campeonatobjj.firebasestorage.app", messagingSenderId:"399016509024", appId:"1:399016509024:web:2963122de02b7ff3bc0d05" };
+const _db = getFirestore(initializeApp(_cfg, 'placar-pub'));
+const _cid = new URLSearchParams(location.search).get('id');
+if (_cid) {
+  onSnapshot(doc(_db, "campeonatos", _cid, "liga-config", "estado-publico"), snap => {
+    if (snap.exists()) {
+      localStorage.setItem(`gaditas_liga_${_cid}`, JSON.stringify(snap.data()));
+      if (typeof render === 'function') render();
+    }
+  });
+}
+</script>
 </body>
 </html>
