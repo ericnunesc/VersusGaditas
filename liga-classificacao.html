@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="images/logo_favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classificação — Liga BJJ</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',-apple-system,sans-serif;background:#F5F7FA;color:#1A2C3E;min-height:100vh;}
+
+    header{background:#1A2C3E;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+    .hdr-logo{font-size:1.5rem;}
+    .hdr-info h1{font-size:0.92rem;font-weight:700;}
+    .hdr-info p{font-size:0.62rem;color:#8A9CB0;margin-top:1px;}
+
+    .app{max-width:960px;margin:0 auto;padding:20px 14px 60px;}
+
+    /* Faixa tabs */
+    .faixa-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+    .faixa-btn{padding:7px 16px;border-radius:20px;border:2px solid #E2E8F0;background:#fff;cursor:pointer;font-size:0.78rem;font-weight:600;transition:all 0.2s;color:#1A2C3E;}
+    .faixa-btn[data-f="branca"].active{border-color:#6B7280;background:#6B7280;color:#fff;}
+    .faixa-btn[data-f="azul"].active{border-color:#3B8BFF;background:#3B8BFF;color:#fff;}
+    .faixa-btn[data-f="roxa"].active{border-color:#9B59B6;background:#9B59B6;color:#fff;}
+    .faixa-btn[data-f="marrom"].active{border-color:#92400E;background:#92400E;color:#fff;}
+    .faixa-btn[data-f="preta"].active{border-color:#374151;background:#374151;color:#fff;}
+
+    .card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:18px;margin-bottom:16px;}
+    .card-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+    .card-header h3{font-size:0.9rem;font-weight:700;}
+
+    .tbl-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:0.78rem;}
+    thead tr{border-bottom:2px solid #E2E8F0;}
+    th{padding:7px 10px;text-align:left;font-size:0.65rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
+    td{padding:9px 10px;border-bottom:1px solid #F8FAFC;vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:#FAFBFC;}
+
+    .eq-logo{height:26px;width:26px;object-fit:contain;border-radius:4px;vertical-align:middle;margin-right:7px;}
+    .eq-logo-ph{display:inline-flex;width:26px;height:26px;background:#F1F5F9;border-radius:4px;align-items:center;justify-content:center;font-size:0.75rem;vertical-align:middle;margin-right:7px;}
+    .atleta-foto{width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid #E2E8F0;vertical-align:middle;margin-right:7px;}
+    .atleta-avatar{display:inline-flex;width:28px;height:28px;border-radius:50%;background:#F1F5F9;border:2px solid #E2E8F0;align-items:center;justify-content:center;font-size:0.75rem;vertical-align:middle;margin-right:7px;}
+
+    .medal{font-size:1rem;}
+    .pts{color:#C9A03D;font-weight:800;font-size:1rem;}
+    .v{color:#10B981;font-weight:700;}
+    .e{color:#F59E0B;font-weight:700;}
+    .d{color:#EF4444;font-weight:700;}
+
+    .cat-section{margin-bottom:16px;}
+    .cat-title{font-size:0.68rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #F1F5F9;}
+
+    .progress-bar{background:#F1F5F9;border-radius:20px;height:5px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:5px;}
+    .progress-fill{background:#C9A03D;height:100%;border-radius:20px;}
+
+    .vazio{text-align:center;padding:40px 20px;color:#8A9CB0;}
+    .vazio span{font-size:2.5rem;display:block;margin-bottom:10px;opacity:0.3;}
+
+    .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#10B981;margin-right:5px;animation:pulse 1.5s infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+    .badge-liga{background:rgba(201,160,61,0.15);border:1px solid #C9A03D;color:#C9A03D;padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:700;}
+
+    .top-banner{background:linear-gradient(135deg,#1A2C3E,#2A4060);color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .top-banner h2{font-size:1rem;font-weight:800;}
+    .top-banner p{font-size:0.7rem;color:#8A9CB0;margin-top:2px;}
+
+    @media(max-width:500px){
+      th:nth-child(n+7),td:nth-child(n+7){display:none;}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-logo">🥋</div>
+  <div class="hdr-info">
+    <h1 id="hdr-titulo">Classificação — Liga BJJ</h1>
+    <p><span class="live-dot"></span>Atualização automática em tempo real</p>
+  </div>
+</header>
+
+<div class="app">
+  <div class="top-banner">
+    <div>
+      <h2 id="banner-nome">Liga BJJ</h2>
+      <p id="banner-sub">Classificação geral · Atualizado em tempo real</p>
+    </div>
+    <span class="badge-liga">⚽ Liga</span>
+  </div>
+
+  <div class="faixa-tabs" id="faixa-tabs"></div>
+  <div id="classificacao-content">
+    <div class="vazio"><span>⏳</span><p>Carregando classificação...</p></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const _cfg = {
+  apiKey:"AIzaSyA0HOHKPd9gCpJx0pnFWaKdLU-1WJks-gA",
+  authDomain:"campeonatobjj.firebaseapp.com",
+  projectId:"campeonatobjj",
+  storageBucket:"campeonatobjj.firebasestorage.app",
+  messagingSenderId:"399016509024",
+  appId:"1:399016509024:web:2963122de02b7ff3bc0d05"
+};
+const _db = getFirestore(initializeApp(_cfg, 'class-pub'));
+const campeonatoId = new URLSearchParams(location.search).get('id');
+
+const FAIXAS_LABEL = { branca:'⬜ Branca', azul:'🔵 Azul', roxa:'🟣 Roxa', marrom:'🟤 Marrom', preta:'⬛ Preta' };
+const MEDALS = ['🥇','🥈','🥉'];
+
+let estado = null;
+let faixaAtiva = null;
+
+function getCategorias() {
+  return [...(estado.ligaConfig?.categorias || []),
+          ...(estado.ligaConfig?.temAbsoluto ? ['Absoluto'] : [])];
+}
+
+function nomeEquipe(id) {
+  return estado.equipes.find(e => e.id === id)?.nome || '?';
+}
+
+function getCapitaoAbsoluto(equipeId) {
+  const eq = estado.equipes.find(e => e.id === equipeId);
+  const capId = eq?.capitaes?.[faixaAtiva];
+  return capId ? estado.atletas.find(a => a.id === capId) : null;
+}
+
+function calcularClassificacao(faixa) {
+  const eqs = estado.equipes;
+  const stats = {};
+  eqs.forEach(e => { stats[e.id] = { equipe:e, j:0, v:0, emp:0, d:0, pts:0, cv:0 }; });
+  for (const c of estado.confrontos.filter(x => x.faixa === faixa && x.status === 'concluido' && x.resultado)) {
+    const s1 = stats[c.equipe1Id], s2 = stats[c.equipe2Id];
+    if (!s1 || !s2) continue;
+    const v1 = c.resultado.vitoriasEq1||0, v2 = c.resultado.vitoriasEq2||0;
+    s1.j++; s2.j++;
+    s1.cv += v1; s2.cv += v2;
+    if (v1 > v2) { s1.v++; s1.pts += 3; s2.d++; }
+    else if (v2 > v1) { s2.v++; s2.pts += 3; s1.d++; }
+    else { s1.emp++; s2.emp++; s1.pts++; s2.pts++; }
+  }
+  return Object.values(stats).sort((a,b) => b.pts-a.pts||b.v-a.v||b.cv-a.cv);
+}
+
+function renderFaixaTabs() {
+  const faixas = estado.ligaConfig?.faixasAtivas || ['branca'];
+  const tabsEl = document.getElementById('faixa-tabs');
+  tabsEl.innerHTML = faixas.map(f =>
+    `<button class="faixa-btn${f===faixaAtiva?' active':''}" data-f="${f}" onclick="window._setFaixa('${f}')">${FAIXAS_LABEL[f]||f}</button>`
+  ).join('');
+}
+
+window._setFaixa = function(f) {
+  faixaAtiva = f;
+  renderFaixaTabs();
+  renderClassificacao();
+};
+
+function renderClassificacao() {
+  const el = document.getElementById('classificacao-content');
+  const fl = FAIXAS_LABEL[faixaAtiva] || faixaAtiva;
+  const ranking = calcularClassificacao(faixaAtiva);
+
+  let html = '';
+
+  // ── Classificação por Equipes ──────────────────────────────
+  html += `<div class="card">
+    <div class="card-header"><h3>🏆 Classificação por Equipes — ${fl}</h3></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr>
+        <th>Pos</th><th>Equipe</th>
+        <th>J</th><th>V</th><th>E</th><th>D</th>
+        <th>Pts</th><th>Cat.V</th><th>Aprov.</th>
+      </tr></thead>
+      <tbody>${ranking.map((s,i) => {
+        const aprov = s.j > 0 ? ((s.pts/(s.j*3))*100).toFixed(0) : 0;
+        const logo = s.equipe.logoBase64
+          ? `<img src="${s.equipe.logoBase64}" class="eq-logo">`
+          : `<span class="eq-logo-ph">🏅</span>`;
+        return `<tr>
+          <td><strong>${MEDALS[i]||(i+1)+'º'}</strong></td>
+          <td><div style="display:flex;align-items:center">${logo}<div><strong>${s.equipe.nome}</strong><br><span style="font-size:0.65rem;color:#8A9CB0">${s.equipe.cidade||''}</span></div></div></td>
+          <td>${s.j}</td>
+          <td class="v">${s.v}</td>
+          <td class="e">${s.emp}</td>
+          <td class="d">${s.d}</td>
+          <td><span class="pts">${s.pts}</span></td>
+          <td>${s.cv}</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:${aprov}%"></div></div>${aprov}%</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>
+  </div>`;
+
+  // ── Ranking Individual por Categoria ──────────────────────
+  html += `<div class="card"><div class="card-header"><h3>🥋 Ranking Individual — ${fl}</h3></div>`;
+
+  const cats = getCategorias();
+  const zeroSt = { pontos:0, vitorias:0, empates:0, derrotas:0, finalizacoes:0 };
+  const getSt = (a, cat) => (a.catStats && a.catStats[cat]) ? a.catStats[cat] : zeroSt;
+
+  cats.forEach(cat => {
+    const isAbs = cat === 'Absoluto';
+    const ats = (isAbs
+      ? estado.equipes.map(eq => getCapitaoAbsoluto(eq.id)).filter(Boolean)
+      : estado.atletas.filter(a => a.faixa === faixaAtiva && a.categoria === cat && !a.suplente)
+    ).sort((a,b) => {
+      const sa = getSt(a,cat), sb = getSt(b,cat);
+      return (sb.pontos||0)-(sa.pontos||0)||(sb.vitorias||0)-(sa.vitorias||0);
+    });
+
+    if (!ats.length) return;
+
+    html += `<div class="cat-section">
+      <div class="cat-title">${isAbs ? '🏆 Absoluto (Capitães)' : cat}</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr>
+          <th>Pos</th><th>Atleta</th><th>Equipe</th>
+          ${!isAbs ? '<th>Cat.</th>' : ''}
+          <th>Pts</th><th>V</th><th>E</th><th>D</th><th>Fin.</th>
+        </tr></thead>
+        <tbody>${ats.map((a,i) => {
+          const st = getSt(a, cat);
+          const foto = a.fotoBase64
+            ? `<img src="${a.fotoBase64}" class="atleta-foto">`
+            : `<span class="atleta-avatar">👤</span>`;
+          const eq = estado.equipes.find(e => e.id === a.equipeId);
+          const logoMini = eq?.logoBase64
+            ? `<img src="${eq.logoBase64}" style="height:15px;width:15px;object-fit:contain;border-radius:2px;vertical-align:middle;margin-right:4px;">`
+            : '';
+          return `<tr>
+            <td>${MEDALS[i]||(i+1)+'º'}</td>
+            <td><div style="display:flex;align-items:center">${foto}<strong>${a.nome}</strong></div></td>
+            <td>${logoMini}${nomeEquipe(a.equipeId)}</td>
+            ${!isAbs ? `<td style="color:#64748B;font-size:0.72rem">${a.categoria}</td>` : ''}
+            <td><span class="pts">${st.pontos||0}</span></td>
+            <td class="v">${st.vitorias||0}</td>
+            <td class="e">${st.empates||0}</td>
+            <td class="d">${st.derrotas||0}</td>
+            <td>🔒 ${st.finalizacoes||0}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    </div>`;
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function aplicarEstado(data) {
+  estado = data;
+  document.getElementById('hdr-titulo').textContent = `Classificação — ${estado.nomeCompeticao || 'Liga BJJ'}`;
+  document.getElementById('banner-nome').textContent = estado.nomeCompeticao || 'Liga BJJ';
+  const faixas = estado.ligaConfig?.faixasAtivas || ['branca'];
+  if (!faixaAtiva || !faixas.includes(faixaAtiva)) faixaAtiva = faixas[0];
+  renderFaixaTabs();
+  renderClassificacao();
+}
+
+if (!campeonatoId) {
+  document.getElementById('classificacao-content').innerHTML =
+    `<div class="vazio"><span>⚠️</span><p>ID da competição não informado na URL.</p></div>`;
+} else {
+  // Tenta localStorage primeiro (mesmo browser que o admin)
+  const local = localStorage.getItem(`gaditas_liga_${campeonatoId}`);
+  if (local) {
+    try { aplicarEstado(JSON.parse(local)); } catch(e) {}
+  }
+
+  // Firestore onSnapshot para sync em tempo real (todos os browsers)
+  onSnapshot(doc(_db, "campeonatos", campeonatoId, "liga-config", "estado-publico"), snap => {
+    if (snap.exists()) {
+      const data = snap.data();
+      localStorage.setItem(`gaditas_liga_${campeonatoId}`, JSON.stringify(data));
+      aplicarEstado(data);
+    } else {
+      document.getElementById('classificacao-content').innerHTML =
+        `<div class="vazio"><span>📋</span><p>Classificação ainda não disponível.</p></div>`;
+    }
+  });
+}
+</script>
+<script src="js/install-prompt.js"></script>
+</body>
+</html>

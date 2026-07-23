@@ -791,6 +791,8 @@
       // Mostra ativos, breve, e encerrados com checagem ainda aberta
       const now = new Date();
       const visiveis = todos.filter(c => {
+        // Liga: sempre visível enquanto não for inativo
+        if (c.tipo === 'liga') return c.status !== 'inativo';
         if (c.status === 'ativo' || c.status === 'breve') return true;
         if (c.status === 'encerrado') {
           // Mostra durante checagem
@@ -837,8 +839,9 @@
 
         const links = isLiga
           ? `${!isEnc && !isBreve ? `<a href="liga-inscricao.html?id=${c.id}" class="ev-link prim">📝 Inscrever Equipe</a>` : ''}
+             <a href="liga-classificacao.html?id=${c.id}" class="ev-link prim">🏆 Classificação</a>
              <a href="liga-cronograma.html?id=${c.id}" class="ev-link">📅 Calendário</a>
-             <a href="liga-placar-publico.html?id=${c.id}" class="ev-link">🏆 Placar</a>`
+             <a href="liga-placar-publico.html?id=${c.id}" class="ev-link">📺 Placar Ao Vivo</a>`
           : isResultados
             ? `<a href="placar-publico.html?id=${c.id}" class="ev-link prim">🏆 Resultado por Equipe</a>
                <a href="tv-chaveamento.html?id=${c.id}" class="ev-link prim">📊 Resultado por Categoria</a>
