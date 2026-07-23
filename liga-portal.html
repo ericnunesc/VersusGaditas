@@ -118,6 +118,15 @@
     .sbadge-done{background:#F1F5F9;color:#64748B;}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
 
+    /* Escalação */
+    .escalacao-wrap{margin-top:10px;padding-top:9px;border-top:1px solid #F1F5F9;}
+    .escalacao-title{font-size:0.63rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px;}
+    .escalacao-row{display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:wrap;}
+    .esc-cat{font-size:0.7rem;font-weight:600;color:#4A5568;min-width:75px;}
+    .esc-btn{padding:4px 10px;border-radius:20px;border:1.5px solid #CBD5E1;background:#fff;font-size:0.68rem;font-weight:600;cursor:pointer;color:#64748B;transition:all 0.15s;}
+    .esc-btn.ativo{background:#C9A03D;border-color:#C9A03D;color:#fff;}
+    .esc-sep{font-size:0.62rem;color:#CBD5E1;}
+
     .vazio{text-align:center;padding:30px 20px;color:#8A9CB0;}
     .vazio span{font-size:2rem;display:block;margin-bottom:8px;opacity:0.3;}
 
@@ -608,6 +617,40 @@ window.mudarCapitao = async function() {
 };
 
 // ====== CONFRONTOS ======
+function renderEscalacao(c) {
+  const cats = (ligaConfig.categorias || []).filter(cat => cat !== 'Absoluto');
+  const escalacao = equipe.escalacao?.[c.id] || {};
+
+  const linhas = cats.map(cat => {
+    const titular = atletas.find(a => a.categoria === cat && !a.suplente);
+    const suplente = atletas.find(a => a.categoria === cat && a.suplente);
+    if (!titular || !suplente) return '';
+    const escolhidoId = escalacao[cat] || titular.id;
+    return `<div class="escalacao-row">
+      <span class="esc-cat">${cat}</span>
+      <button class="esc-btn ${escolhidoId===titular.id?'ativo':''}" onclick="escolherAtleta('${c.id}','${cat}','${titular.id}')">${titular.nome.split(' ')[0]}</button>
+      <span class="esc-sep">ou</span>
+      <button class="esc-btn ${escolhidoId===suplente.id?'ativo':''}" onclick="escolherAtleta('${c.id}','${cat}','${suplente.id}')">${suplente.nome.split(' ')[0]} <span style="font-size:0.55rem;opacity:0.8">SUP</span></button>
+    </div>`;
+  }).filter(Boolean);
+
+  if (!linhas.length) return '';
+  return `<div class="escalacao-wrap">
+    <div class="escalacao-title">👊 Quem vai para a luta</div>
+    ${linhas.join('')}
+  </div>`;
+}
+
+window.escolherAtleta = async function(confrontoId, categoria, atletaId) {
+  const escalacao = JSON.parse(JSON.stringify(equipe.escalacao || {}));
+  escalacao[confrontoId] = { ...(escalacao[confrontoId] || {}), [categoria]: atletaId };
+  try {
+    await atualizarLigaEquipe(campeonatoId, equipe.id, { escalacao });
+    equipe.escalacao = escalacao;
+    renderConfrontos();
+  } catch(e) { alert('Erro ao salvar escalação: ' + e.message); }
+};
+
 function renderConfrontos() {
   const el = document.getElementById('confrontos-portal');
   if (!confrontos.length) {
@@ -615,7 +658,6 @@ function renderConfrontos() {
     return;
   }
 
-  const fl = FAIXAS_LABEL;
   el.innerHTML = confrontos.sort((a,b) => a.rodada - b.rodada).map(c => {
     const outra = c.equipe1Id === equipe.id ? c.equipe2Id : c.equipe1Id;
     const outraNome = todasEquipes.find(e => e.id === outra)?.nome || '?';
@@ -629,6 +671,7 @@ function renderConfrontos() {
       const cor = minhav > delav ? '#059669' : minhav < delav ? '#DC2626' : '#92400E';
       scoreHtml = ` <strong style="color:${cor}">${minhav}×${delav}</strong>`;
     }
+    const escHtml = c.status !== 'concluido' ? renderEscalacao(c) : '';
 
     return `<div class="confront-card">
       <div class="confront-main">
@@ -642,6 +685,7 @@ function renderConfrontos() {
         <span>📍 ${c.local||'—'}</span>
         <span>Rodada ${c.rodada} · ${c.leg === 'volta' ? '🔄 Volta' : '➡️ Ida'}</span>
       </div>
+      ${escHtml}
     </div>`;
   }).join('');
 }

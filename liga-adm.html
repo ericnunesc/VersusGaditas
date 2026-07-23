@@ -652,6 +652,16 @@ function getEquipesDaFaixa(faixa) {
 }
 function nomeEquipe(id) { return equipes.find(e => e.id === id)?.nome || '?'; }
 function getCategorias() { return [...ligaConfig.categorias, ...(ligaConfig.temAbsoluto ? ['Absoluto'] : [])]; }
+function getAtletaParaConfronto(confronto, equipeId, categoria, faixa) {
+  const eq = equipes.find(e => e.id === equipeId);
+  const escId = eq?.escalacao?.[confronto.id]?.[categoria];
+  if (escId) {
+    const at = atletas.find(a => a.id === escId && a.faixa === faixa);
+    if (at) return at;
+  }
+  return atletas.find(a => a.equipeId === equipeId && a.faixa === faixa && a.categoria === categoria);
+}
+
 function getCapitaoAbsoluto(equipeId) {
   const eq = equipes.find(e => e.id === equipeId);
   const cap = eq?.capitaes?.[faixaSelecionada];
@@ -1281,13 +1291,12 @@ window.abrirModalResultado = function(id) {
 
   document.getElementById('result-cats').innerHTML = catsResult.map((cr, idx) => {
     const isAbs = cr.categoria === 'Absoluto';
-    // Para absoluto, mostrar o capitão; para outras categorias, mostrar o atleta registrado
     const at1 = isAbs
       ? getCapitaoAbsoluto(confrontoEditando.equipe1Id)
-      : atletas.find(a => a.equipeId === confrontoEditando.equipe1Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
+      : getAtletaParaConfronto(confrontoEditando, confrontoEditando.equipe1Id, cr.categoria, faixaSelecionada);
     const at2 = isAbs
       ? getCapitaoAbsoluto(confrontoEditando.equipe2Id)
-      : atletas.find(a => a.equipeId === confrontoEditando.equipe2Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
+      : getAtletaParaConfronto(confrontoEditando, confrontoEditando.equipe2Id, cr.categoria, faixaSelecionada);
     const label1 = at1 ? at1.nome.split(' ')[0] + (isAbs && at1.categoria ? ` (${at1.categoria})` : '') : eq1.split(' ')[0];
     const label2 = at2 ? at2.nome.split(' ')[0] + (isAbs && at2.categoria ? ` (${at2.categoria})` : '') : eq2.split(' ')[0];
     const sel = v => cr.vencedor === v ? `sel-${v==='1'?'eq1':v==='2'?'eq2':'emp'}` : '';
@@ -1358,9 +1367,9 @@ async function recalcularTodosAtletas(faixa) {
       if (!cr.vencedor) continue;
       const isAbs = cr.categoria === 'Absoluto';
       const at1 = isAbs ? getCapitaoAbsoluto(c.equipe1Id)
-        : atletas.find(a => a.equipeId === c.equipe1Id && a.faixa === f && a.categoria === cr.categoria);
+        : getAtletaParaConfronto(c, c.equipe1Id, cr.categoria, f);
       const at2 = isAbs ? getCapitaoAbsoluto(c.equipe2Id)
-        : atletas.find(a => a.equipeId === c.equipe2Id && a.faixa === f && a.categoria === cr.categoria);
+        : getAtletaParaConfronto(c, c.equipe2Id, cr.categoria, f);
       const aplica = (at, res) => {
         if (!at || !acc[at.id]) return;
         const s = acc[at.id];
