@@ -403,6 +403,10 @@
 
   <!-- ═══ TAB: CLASSIFICAÇÃO ═══ -->
   <div class="tab-pane" id="tab-classificacao">
+    <div style="margin-bottom:14px;padding:10px 14px;background:#FFF8E8;border:1px solid #F59E0B;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:0.75rem;color:#92400E;">⚠️ Se a pontuação estiver duplicada por edições anteriores, clique para corrigir.</span>
+      <button id="btn-recalcular" class="btn btn-secondary btn-sm" onclick="recalcularTodasFaixas()" style="border-color:#F59E0B;color:#92400E;background:#fff">🔧 Recalcular Pontuações</button>
+    </div>
     <div id="classificacao-content"></div>
   </div>
 
@@ -1340,22 +1344,23 @@ function atualizarScorePreview() {
   document.getElementById('sprev-sub').textContent = `${pend} categoria(s) pendente(s)`;
 }
 
-// Recalcula stats de TODOS os atletas da faixa a partir dos confrontos concluídos.
+// Recalcula stats de TODOS os atletas de uma faixa a partir dos confrontos concluídos.
 // Garante que correções de resultado nunca acumulem pontos incorretamente.
-async function recalcularTodosAtletas() {
-  const atsF = atletas.filter(a => a.faixa === faixaSelecionada);
+async function recalcularTodosAtletas(faixa) {
+  const f = faixa || faixaSelecionada;
+  const atsF = atletas.filter(a => a.faixa === f);
   const zero = () => ({ vitorias:0, derrotas:0, empates:0, pontos:0, finalizacoes:0 });
   const acc = {};
   atsF.forEach(a => { acc[a.id] = zero(); });
 
-  for (const c of confrontos.filter(x => x.faixa === faixaSelecionada && x.status === 'concluido' && x.resultado)) {
+  for (const c of confrontos.filter(x => x.faixa === f && x.status === 'concluido' && x.resultado)) {
     for (const cr of (c.resultado.categorias || [])) {
       if (!cr.vencedor) continue;
       const isAbs = cr.categoria === 'Absoluto';
       const at1 = isAbs ? getCapitaoAbsoluto(c.equipe1Id)
-        : atletas.find(a => a.equipeId === c.equipe1Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
+        : atletas.find(a => a.equipeId === c.equipe1Id && a.faixa === f && a.categoria === cr.categoria);
       const at2 = isAbs ? getCapitaoAbsoluto(c.equipe2Id)
-        : atletas.find(a => a.equipeId === c.equipe2Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
+        : atletas.find(a => a.equipeId === c.equipe2Id && a.faixa === f && a.categoria === cr.categoria);
       const aplica = (at, res) => {
         if (!at || !acc[at.id]) return;
         const s = acc[at.id];
@@ -1375,6 +1380,23 @@ async function recalcularTodosAtletas() {
     Object.assign(at, acc[at.id]);
   }
 }
+
+window.recalcularTodasFaixas = async function() {
+  if (!confirm('Recalcular a pontuação de TODOS os atletas de todas as faixas?\n\nIsso corrige dados duplicados gerados por edições anteriores.')) return;
+  const faixas = ligaConfig.faixasAtivas || ['branca'];
+  const btn = document.getElementById('btn-recalcular');
+  if (btn) { btn.textContent = 'Recalculando...'; btn.disabled = true; }
+  try {
+    for (const f of faixas) await recalcularTodosAtletas(f);
+    salvarEstado();
+    alert('✅ Pontuações corrigidas com sucesso!');
+    renderTabAtiva();
+  } catch(e) {
+    alert('Erro: ' + e.message);
+  } finally {
+    if (btn) { btn.textContent = '🔧 Recalcular Pontuações'; btn.disabled = false; }
+  }
+};
 
 window.salvarResultado = async function() {
   if (!confrontoEditando) return;
