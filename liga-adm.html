@@ -1059,7 +1059,8 @@ function renderConfrontoCard(m) {
   const statusBadge = { pendente:`<span class="sbadge sbadge-pendente">⏳ Pendente</span>`, ao_vivo:`<span class="sbadge sbadge-ao-vivo">🔴 Ao Vivo</span>`, concluido:`<span class="sbadge sbadge-concluido">✅ Concluído</span>` }[m.status] || '';
   const editDataBtn = `<button class="btn btn-secondary btn-xs" onclick="toggleEditConfronto('${m.id}')" title="Editar data/hora/local desta partida">📅</button>`;
   const acoesHtml = m.status === 'concluido'
-    ? `<button class="btn btn-secondary btn-sm" onclick="abrirModalResultado('${m.id}')">✏️ Editar</button>${editDataBtn}`
+    ? `<button class="btn btn-secondary btn-sm" onclick="abrirModalResultado('${m.id}')">✏️ Editar</button>
+       <button class="btn btn-primary btn-sm" onclick="reativarConfronto('${m.id}')" style="background:#F59E0B;border-color:#D97706" title="Reabrir para acompanhamento ao vivo">🔄 Reativar</button>${editDataBtn}`
     : m.status === 'ao_vivo'
     ? `<button class="btn btn-success btn-sm" onclick="abrirModalResultado('${m.id}')">✏️ Parcial</button>
        <button class="btn btn-secondary btn-sm" onclick="encerrarAoVivo('${m.id}')">⏹️ Encerrar</button>${editDataBtn}`
@@ -1339,6 +1340,42 @@ function atualizarScorePreview() {
   document.getElementById('sprev-sub').textContent = `${pend} categoria(s) pendente(s)`;
 }
 
+// Recalcula stats de TODOS os atletas da faixa a partir dos confrontos concluídos.
+// Garante que correções de resultado nunca acumulem pontos incorretamente.
+async function recalcularTodosAtletas() {
+  const atsF = atletas.filter(a => a.faixa === faixaSelecionada);
+  const zero = () => ({ vitorias:0, derrotas:0, empates:0, pontos:0, finalizacoes:0 });
+  const acc = {};
+  atsF.forEach(a => { acc[a.id] = zero(); });
+
+  for (const c of confrontos.filter(x => x.faixa === faixaSelecionada && x.status === 'concluido' && x.resultado)) {
+    for (const cr of (c.resultado.categorias || [])) {
+      if (!cr.vencedor) continue;
+      const isAbs = cr.categoria === 'Absoluto';
+      const at1 = isAbs ? getCapitaoAbsoluto(c.equipe1Id)
+        : atletas.find(a => a.equipeId === c.equipe1Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
+      const at2 = isAbs ? getCapitaoAbsoluto(c.equipe2Id)
+        : atletas.find(a => a.equipeId === c.equipe2Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
+      const aplica = (at, res) => {
+        if (!at || !acc[at.id]) return;
+        const s = acc[at.id];
+        if (res==='v'){ s.vitorias++; s.pontos += 3+(cr.finalizacao?1:0); s.finalizacoes+=(cr.finalizacao?1:0); }
+        else if (res==='d'){ s.derrotas++; }
+        else { s.empates++; s.pontos++; }
+      };
+      if(cr.vencedor==='1'){ aplica(at1,'v'); aplica(at2,'d'); }
+      else if(cr.vencedor==='2'){ aplica(at2,'v'); aplica(at1,'d'); }
+      else { aplica(at1,'emp'); aplica(at2,'emp'); }
+    }
+  }
+
+  for (const at of atsF) {
+    if (!acc[at.id]) continue;
+    await atualizarLigaAtleta(campeonatoId, at.id, acc[at.id]);
+    Object.assign(at, acc[at.id]);
+  }
+}
+
 window.salvarResultado = async function() {
   if (!confrontoEditando) return;
   const btn = document.getElementById('btn-salvar-res');
@@ -1352,33 +1389,20 @@ window.salvarResultado = async function() {
   try {
     await atualizarLigaConfronto(campeonatoId, confrontoEditando.id, { status, resultado });
     confrontoEditando.status = status; confrontoEditando.resultado = resultado;
-
-    if (status === 'concluido') {
-      for (const cr of cats) {
-        if (!cr.vencedor) continue;
-        const isAbs = cr.categoria === 'Absoluto';
-        const at1 = isAbs ? getCapitaoAbsoluto(confrontoEditando.equipe1Id)
-          : atletas.find(a => a.equipeId === confrontoEditando.equipe1Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
-        const at2 = isAbs ? getCapitaoAbsoluto(confrontoEditando.equipe2Id)
-          : atletas.find(a => a.equipeId === confrontoEditando.equipe2Id && a.faixa === faixaSelecionada && a.categoria === cr.categoria);
-        const updAt = async (at, res) => {
-          if (!at) return;
-          const upd = {};
-          if (res==='v'){ upd.vitorias=(at.vitorias||0)+1; upd.pontos=(at.pontos||0)+3+(cr.finalizacao?1:0); upd.finalizacoes=(at.finalizacoes||0)+(cr.finalizacao?1:0); }
-          else if(res==='d'){ upd.derrotas=(at.derrotas||0)+1; }
-          else { upd.empates=(at.empates||0)+1; upd.pontos=(at.pontos||0)+1; }
-          await atualizarLigaAtleta(campeonatoId, at.id, upd);
-          Object.assign(at, upd);
-        };
-        if(cr.vencedor==='1'){ await updAt(at1,'v'); await updAt(at2,'d'); }
-        else if(cr.vencedor==='2'){ await updAt(at2,'v'); await updAt(at1,'d'); }
-        else { await updAt(at1,'emp'); await updAt(at2,'emp'); }
-      }
-    }
+    if (status === 'concluido') await recalcularTodosAtletas();
     salvarEstado(); fecharModalResultado(); renderCalendario();
     if (tabAtiva==='classificacao') renderClassificacao();
   } catch(e) { alert('Erro: ' + e.message); }
   finally { btn.textContent = '💾 Salvar Resultado'; btn.disabled = false; }
+};
+
+window.reativarConfronto = async function(id) {
+  const c = confrontos.find(x => x.id === id);
+  if (!c || !confirm('Reativar este confronto como Ao Vivo para os alunos acompanharem?')) return;
+  await atualizarLigaConfronto(campeonatoId, id, { status: 'ao_vivo' });
+  c.status = 'ao_vivo';
+  await recalcularTodosAtletas();
+  salvarEstado(); renderCalendario();
 };
 
 // ── Classificação ─────────────────────────────────────────────
