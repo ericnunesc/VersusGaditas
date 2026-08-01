@@ -280,17 +280,17 @@
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:0.7rem;color:#0369A1;font-weight:600;min-width:110px">📅 Calendário</span>
         <input id="lnk-share-cal" readonly style="flex:1;font-size:0.72rem;padding:5px 8px;border:1px solid #BAE6FD;border-radius:6px;background:#fff;color:#1e293b">
-        <button onclick="copiarLink('lnk-share-cal',this)" style="padding:5px 10px;font-size:0.7rem;border:1px solid #BAE6FD;border-radius:6px;background:#fff;cursor:pointer;color:#0369A1;font-weight:600">📋 Copiar</button>
+        <button onclick="copiarLinkInput('lnk-share-cal',this)" style="padding:5px 10px;font-size:0.7rem;border:1px solid #BAE6FD;border-radius:6px;background:#fff;cursor:pointer;color:#0369A1;font-weight:600">📋 Copiar</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:0.7rem;color:#0369A1;font-weight:600;min-width:110px">🏆 Placar Público</span>
         <input id="lnk-share-placar" readonly style="flex:1;font-size:0.72rem;padding:5px 8px;border:1px solid #BAE6FD;border-radius:6px;background:#fff;color:#1e293b">
-        <button onclick="copiarLink('lnk-share-placar',this)" style="padding:5px 10px;font-size:0.7rem;border:1px solid #BAE6FD;border-radius:6px;background:#fff;cursor:pointer;color:#0369A1;font-weight:600">📋 Copiar</button>
+        <button onclick="copiarLinkInput('lnk-share-placar',this)" style="padding:5px 10px;font-size:0.7rem;border:1px solid #BAE6FD;border-radius:6px;background:#fff;cursor:pointer;color:#0369A1;font-weight:600">📋 Copiar</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:0.7rem;color:#0369A1;font-weight:600;min-width:110px">📝 Inscrição</span>
         <input id="lnk-share-insc" readonly style="flex:1;font-size:0.72rem;padding:5px 8px;border:1px solid #BAE6FD;border-radius:6px;background:#fff;color:#1e293b">
-        <button onclick="copiarLink('lnk-share-insc',this)" style="padding:5px 10px;font-size:0.7rem;border:1px solid #BAE6FD;border-radius:6px;background:#fff;cursor:pointer;color:#0369A1;font-weight:600">📋 Copiar</button>
+        <button onclick="copiarLinkInput('lnk-share-insc',this)" style="padding:5px 10px;font-size:0.7rem;border:1px solid #BAE6FD;border-radius:6px;background:#fff;cursor:pointer;color:#0369A1;font-weight:600">📋 Copiar</button>
       </div>
     </div>
   </div>
@@ -1235,7 +1235,7 @@ window.toggleCompartilhar = function() {
   p.style.display = p.style.display === 'none' ? 'block' : 'none';
 };
 
-window.copiarLink = function(inputId, btn) {
+window.copiarLinkInput = function(inputId, btn) {
   const el = document.getElementById(inputId);
   if (!el) return;
   navigator.clipboard.writeText(el.value).then(() => {
@@ -1243,6 +1243,13 @@ window.copiarLink = function(inputId, btn) {
     btn.textContent = '✅ Copiado!';
     btn.style.background = '#DCFCE7';
     setTimeout(() => { btn.textContent = orig; btn.style.background = '#fff'; }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = el.value; ta.style.cssText = 'position:fixed;top:-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); btn.textContent='✅ Copiado!'; setTimeout(()=>btn.textContent='📋 Copiar',2000); }
+    catch { alert('Copie manualmente:\n' + el.value); }
+    document.body.removeChild(ta);
   });
 };
 
