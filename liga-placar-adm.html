@@ -233,7 +233,8 @@ import {
   onLogin, logout, buscarCampeonato,
   listarLigaEquipes, listarLigaAtletas,
   listarLigaConfrontos, atualizarLigaConfronto,
-  atualizarLigaAtleta, buscarLigaConfig
+  atualizarLigaAtleta, buscarLigaConfig,
+  salvarEstadoPublico
 } from './js/firebase.js';
 
 const params   = new URLSearchParams(location.search);
@@ -833,34 +834,83 @@ async function salvarAoVivo() {
 
 // ── Finalizar / Encerrar ──────────────────────────────────────
 window.finalizarConfronto = async function() {
-  const cats = confrontoAtivo.resultado.categorias;
+  const cats = confrontoAtivo.resultado?.categorias;
+  if (!cats) { alert('Erro: resultado não inicializado. Tente recarregar a página.'); return; }
   const pend = cats.filter(c => !c.vencedor).length;
   if (pend > 0 && !confirm(`Ainda há ${pend} categoria(s) sem resultado.\nFinalizar mesmo assim?`)) return;
   try {
+    // 1. Salva confronto como concluido no Firestore
     await atualizarLigaConfronto(campId, confrontoAtivo.id, { status:'concluido', resultado: confrontoAtivo.resultado });
-    for (const cr of cats) {
-      if (!cr.vencedor) continue;
-      const at1 = atletas.find(a => a.equipeId === confrontoAtivo.equipe1Id && a.faixa === confrontoAtivo.faixa && a.categoria === cr.categoria);
-      const at2 = atletas.find(a => a.equipeId === confrontoAtivo.equipe2Id && a.faixa === confrontoAtivo.faixa && a.categoria === cr.categoria);
-      const updAt = async (at, res) => {
-        if (!at) return;
-        const upd = {};
-        if (res === 'v') { upd.vitorias=(at.vitorias||0)+1; upd.pontos=(at.pontos||0)+3+(cr.finalizacao?1:0); upd.finalizacoes=(at.finalizacoes||0)+(cr.finalizacao?1:0); }
-        else if (res === 'd') { upd.derrotas = (at.derrotas||0)+1; }
-        else { upd.empates=(at.empates||0)+1; upd.pontos=(at.pontos||0)+1; }
-        await atualizarLigaAtleta(campId, at.id, upd);
-        Object.assign(at, upd);
-      };
-      if (cr.vencedor==='1') { await updAt(at1,'v'); await updAt(at2,'d'); }
-      else if (cr.vencedor==='2') { await updAt(at2,'v'); await updAt(at1,'d'); }
-      else { await updAt(at1,'emp'); await updAt(at2,'emp'); }
-    }
     confrontoAtivo.status = 'concluido';
+
+    // 2. Recalcula stats de todos os atletas da faixa do zero (evita acúmulo)
+    await recalcularStatsFaixa(confrontoAtivo.faixa);
+
+    // 3. Sincroniza estado público para outras páginas (cronograma, placar, classificação)
+    const confsUp = confrontos.map(c => c.id === confrontoAtivo.id ? { ...c, ...confrontoAtivo } : c);
+    await salvarEstadoPublico(campId, {
+      nomeCompeticao: campeonato?.nome || 'Liga BJJ',
+      equipes: equipes.map(e => ({ id:e.id, nome:e.nome, cidade:e.cidade||'', logoBase64:e.logoBase64||null, capitaes:e.capitaes||null, escalacao:e.escalacao||null })),
+      atletas, confrontos: confsUp,
+      faixaAtiva: confrontoAtivo.faixa || 'branca',
+      ligaConfig
+    }).catch(e => console.warn('Sync público:', e));
+
     salvarEstado();
-    alert('✅ Confronto finalizado!');
+    alert('✅ Confronto finalizado com sucesso!');
     location.reload();
-  } catch(e) { alert('Erro: ' + e.message); }
+  } catch(e) {
+    console.error('Erro ao finalizar confronto:', e);
+    alert('Erro ao finalizar: ' + e.message);
+  }
 };
+
+async function recalcularStatsFaixa(faixa) {
+  const atsF = atletas.filter(a => a.faixa === faixa);
+  const zero = () => ({ vitorias:0, derrotas:0, empates:0, pontos:0, finalizacoes:0 });
+  const acc = {};
+  atsF.forEach(a => { acc[a.id] = { ...zero(), catStats: {} }; });
+
+  const confsAll = confrontos.map(c => c.id === confrontoAtivo.id ? { ...c, ...confrontoAtivo } : c);
+  for (const c of confsAll.filter(x => x.faixa === faixa && x.status === 'concluido' && x.resultado)) {
+    for (const cr of (c.resultado.categorias || [])) {
+      if (!cr.vencedor) continue;
+      const isAbs = cr.categoria === 'Absoluto';
+      const getCapitao = (eqId) => {
+        const eq = equipes.find(e => e.id === eqId);
+        const capId = eq?.capitaes?.[faixa];
+        return capId ? atletas.find(a => a.id === capId) : null;
+      };
+      const getEscalado = (eqId) => {
+        const eq = equipes.find(e => e.id === eqId);
+        const escId = eq?.escalacao?.[c.id]?.[cr.categoria];
+        if (escId) { const at = atletas.find(a => a.id === escId && a.faixa === faixa); if (at) return at; }
+        return atletas.find(a => a.equipeId === eqId && a.faixa === faixa && a.categoria === cr.categoria);
+      };
+      const at1 = isAbs ? getCapitao(c.equipe1Id) : getEscalado(c.equipe1Id);
+      const at2 = isAbs ? getCapitao(c.equipe2Id) : getEscalado(c.equipe2Id);
+      const aplica = (at, res) => {
+        if (!at || !acc[at.id]) return;
+        const s = acc[at.id];
+        if (!s.catStats[cr.categoria]) s.catStats[cr.categoria] = zero();
+        const sc = s.catStats[cr.categoria];
+        if (res==='v'){
+          s.vitorias++; s.pontos += 3+(cr.finalizacao?1:0); s.finalizacoes+=(cr.finalizacao?1:0);
+          sc.vitorias++; sc.pontos += 3+(cr.finalizacao?1:0); sc.finalizacoes+=(cr.finalizacao?1:0);
+        } else if (res==='d'){ s.derrotas++; sc.derrotas++;
+        } else { s.empates++; sc.empates++; s.pontos++; sc.pontos++; }
+      };
+      if (cr.vencedor==='1'){ aplica(at1,'v'); aplica(at2,'d'); }
+      else if (cr.vencedor==='2'){ aplica(at2,'v'); aplica(at1,'d'); }
+      else { aplica(at1,'emp'); aplica(at2,'emp'); }
+    }
+  }
+  for (const at of atsF) {
+    if (!acc[at.id]) continue;
+    await atualizarLigaAtleta(campId, at.id, acc[at.id]);
+    Object.assign(at, acc[at.id]);
+  }
+}
 
 window.encerrarSemResultado = async function() {
   if (!confirm('Encerrar sem finalizar? O confronto voltará ao status Pendente.')) return;
