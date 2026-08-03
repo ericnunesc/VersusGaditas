@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Competição — BJJ</title>
+  <link rel="icon" type="image/png" href="images/logo_favicon.png">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',-apple-system,sans-serif;background:#0B1520;color:#fff;min-height:100vh;}
+
+    /* Header */
+    header{
+      background:rgba(11,21,32,0.95);backdrop-filter:blur(12px);
+      padding:12px 20px;
+      display:flex;align-items:center;justify-content:space-between;
+      position:sticky;top:0;z-index:200;
+      border-bottom:1px solid rgba(255,255,255,0.07);
+    }
+    .logo-link{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;}
+    .logo-link img{height:34px;border-radius:50%;}
+    .logo-link span{font-size:0.85rem;font-weight:800;letter-spacing:0.5px;}
+    .back-btn{
+      display:flex;align-items:center;gap:5px;
+      color:#94A3B8;font-size:0.78rem;text-decoration:none;
+      padding:6px 14px;border:1px solid rgba(255,255,255,0.1);
+      border-radius:20px;transition:all 0.2s;white-space:nowrap;
+    }
+    .back-btn:hover{color:#C9A03D;border-color:rgba(201,160,61,0.5);}
+
+    /* Banner */
+    #banner-area{width:100%;height:280px;overflow:hidden;background:#131F2E;position:relative;}
+    #banner-area img{width:100%;height:100%;object-fit:cover;display:block;}
+    .banner-placeholder{
+      width:100%;height:100%;
+      background:linear-gradient(135deg,#1A2C3E 0%,#243650 100%);
+      display:flex;align-items:center;justify-content:center;
+      font-size:6rem;
+    }
+    .banner-overlay{
+      position:absolute;inset:0;
+      background:linear-gradient(to bottom, transparent 40%, rgba(11,21,32,0.85) 100%);
+    }
+
+    /* Content */
+    .main{max-width:640px;margin:0 auto;padding:0 16px 90px;}
+
+    /* Competition header */
+    .comp-head{padding:24px 0 22px;border-bottom:1px solid rgba(255,255,255,0.07);}
+    .comp-pill{
+      display:inline-flex;align-items:center;gap:5px;
+      padding:4px 13px;border-radius:20px;
+      font-size:0.68rem;font-weight:700;margin-bottom:14px;
+    }
+    .pill-ativo{background:rgba(34,197,94,0.15);color:#4ADE80;border:1px solid rgba(34,197,94,0.3);}
+    .pill-breve{background:rgba(245,158,11,0.12);color:#F59E0B;border:1px solid rgba(245,158,11,0.3);}
+    .pill-enc{background:rgba(255,255,255,0.07);color:#94A3B8;border:1px solid rgba(255,255,255,0.1);}
+    .pill-live{background:rgba(239,68,68,0.15);color:#F87171;border:1px solid rgba(239,68,68,0.3);}
+    .pill-res{background:rgba(201,160,61,0.12);color:#C9A03D;border:1px solid rgba(201,160,61,0.3);}
+    .pill-liga{background:rgba(139,92,246,0.15);color:#A78BFA;border:1px solid rgba(139,92,246,0.3);}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.55}}
+    .pill-live{animation:blink 1.4s infinite;}
+
+    .comp-nome{font-size:clamp(1.4rem,6vw,2rem);font-weight:800;line-height:1.2;margin-bottom:16px;}
+    .comp-meta{display:flex;flex-wrap:wrap;gap:8px 22px;}
+    .comp-meta-item{display:flex;align-items:center;gap:6px;font-size:0.83rem;color:#8A9CB0;}
+    .comp-meta-item strong{color:#CBD5E1;}
+
+    /* Description */
+    .comp-desc{
+      margin-top:18px;padding:14px 16px;
+      background:rgba(255,255,255,0.04);
+      border-left:3px solid rgba(201,160,61,0.5);
+      border-radius:0 8px 8px 0;
+      font-size:0.85rem;color:#94A3B8;line-height:1.72;
+    }
+
+    /* Actions */
+    .section-label{
+      font-size:0.65rem;font-weight:700;color:#475569;
+      text-transform:uppercase;letter-spacing:1.5px;
+      margin:28px 0 12px;
+    }
+    .actions-prim{display:grid;gap:10px;margin-bottom:10px;}
+    .actions-sec{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+    .btn-act{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      padding:15px 18px;border-radius:12px;
+      font-size:0.88rem;font-weight:700;text-decoration:none;
+      transition:all 0.18s;text-align:center;
+    }
+    .btn-act:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,0.4);}
+    .btn-act.gold{background:#C9A03D;color:#fff;}
+    .btn-act.gold:hover{background:#B08830;}
+    .btn-act.green{background:#22C55E;color:#fff;}
+    .btn-act.green:hover{background:#16A34A;}
+    .btn-act.red{background:rgba(239,68,68,0.85);color:#fff;}
+    .btn-act.red:hover{background:#DC2626;}
+    .btn-act.dark{background:rgba(255,255,255,0.07);color:#CBD5E1;border:1px solid rgba(255,255,255,0.1);}
+    .btn-act.dark:hover{background:rgba(255,255,255,0.11);color:#fff;}
+    .btn-act.sm{padding:12px 14px;font-size:0.8rem;}
+
+    /* Share box */
+    .share-box{
+      margin-top:26px;padding:16px;
+      background:rgba(201,160,61,0.07);
+      border:1px solid rgba(201,160,61,0.18);
+      border-radius:12px;
+    }
+    .share-lbl{font-size:0.7rem;color:#A0822E;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+    .share-row{display:flex;gap:8px;}
+    .share-input{
+      flex:1;background:rgba(0,0,0,0.25);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:8px;padding:9px 12px;
+      color:#94A3B8;font-size:0.76rem;font-family:monospace;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .share-copy{
+      padding:9px 16px;background:#C9A03D;color:#fff;
+      border:none;border-radius:8px;font-size:0.78rem;font-weight:700;
+      cursor:pointer;white-space:nowrap;transition:background 0.2s;
+    }
+    .share-copy:hover{background:#B08830;}
+
+    /* Loading / error */
+    .state-screen{
+      display:flex;align-items:center;justify-content:center;
+      min-height:50vh;flex-direction:column;gap:16px;color:#475569;
+      padding:40px;
+    }
+    .spinner{
+      width:32px;height:32px;
+      border:3px solid rgba(255,255,255,0.08);
+      border-top-color:#C9A03D;
+      border-radius:50%;animation:spin 0.7s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* WhatsApp FAB */
+    .wa-fab{
+      position:fixed;bottom:22px;right:22px;
+      background:#25D366;color:#fff;
+      border-radius:50%;width:52px;height:52px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.5rem;text-decoration:none;
+      box-shadow:0 4px 20px rgba(37,211,102,0.4);z-index:300;
+      transition:transform 0.2s;
+    }
+    .wa-fab:hover{transform:scale(1.1);}
+
+    @media(max-width:480px){
+      #banner-area{height:210px;}
+      .actions-sec{grid-template-columns:1fr;}
+      .comp-nome{font-size:1.3rem;}
+    }
+  </style>
+</head>
+<body>
+
+<a href="https://wa.me/5579981392088" target="_blank" class="wa-fab">💬</a>
+
+<header>
+  <a href="index.html" class="logo-link">
+    <img src="images/logo_favicon.png" alt="Logo">
+    <span>COMPETIÇÃO BJJ</span>
+  </a>
+  <a href="index.html" class="back-btn">← Todas as competições</a>
+</header>
+
+<div id="banner-area">
+  <div class="banner-placeholder">🥋</div>
+</div>
+
+<div class="main">
+  <div id="content">
+    <div class="state-screen">
+      <div class="spinner"></div>
+      <span>Carregando competição...</span>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { buscarCampeonato } from './js/firebase.js';
+
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+
+  if (!id) {
+    showError('Competição não encontrada.');
+  } else {
+    load(id);
+  }
+
+  async function load(id) {
+    try {
+      const c = await buscarCampeonato(id);
+      if (!c) { showError('Competição não encontrada.'); return; }
+      render(c);
+    } catch(e) {
+      showError('Erro ao carregar. Verifique sua conexão.');
+    }
+  }
+
+  function showError(msg) {
+    document.getElementById('content').innerHTML =
+      `<div class="state-screen"><span>${msg}</span><a href="index.html" style="color:#C9A03D;margin-top:8px;font-size:0.85rem">← Voltar ao início</a></div>`;
+  }
+
+  function render(c) {
+    const isLiga = c.tipo === 'liga';
+
+    // Banner
+    if (c.cartaz) {
+      document.getElementById('banner-area').innerHTML =
+        `<img src="${c.cartaz}" alt="${c.nome}"><div class="banner-overlay"></div>`;
+    } else {
+      document.getElementById('banner-area').innerHTML =
+        `<div class="banner-placeholder">${c.emoji || (isLiga ? '⚔️' : '🥋')}</div>`;
+    }
+
+    // Page title
+    document.title = `${c.nome} — Competição BJJ`;
+
+    // Status efetivo
+    const now = new Date();
+    const fimDt       = c.dataFimInscricoes    ? new Date(c.dataFimInscricoes)    : null;
+    const iniDt       = c.dataInicioInscricoes ? new Date(c.dataInicioInscricoes) : null;
+    const chkFimDt    = c.checagemFim          ? new Date(c.checagemFim)          : null;
+    const competFimDt = c.data                 ? new Date(c.data + 'T23:59')      : null;
+
+    const isEnc        = c.status === 'encerrado' || (fimDt && now > fimDt);
+    const isBreve      = !isEnc && iniDt && now < iniDt;
+    const isCompetindo = isEnc && (!chkFimDt || now > chkFimDt) && (!competFimDt || now <= competFimDt);
+    const isResultados = isEnc && competFimDt && now > competFimDt;
+    const inscAberta   = !isEnc && !isBreve;
+
+    const data = c.data ? new Date(c.data + 'T12:00').toLocaleDateString('pt-BR') : null;
+
+    // Pill
+    let pillCls, pillTxt;
+    if (isLiga) {
+      pillCls = 'pill-liga'; pillTxt = '⚔️ Liga';
+    } else if (isResultados) {
+      pillCls = 'pill-res'; pillTxt = '🏅 Resultados';
+    } else if (isCompetindo) {
+      pillCls = 'pill-live'; pillTxt = '🔴 Ao Vivo';
+    } else if (isEnc) {
+      pillCls = 'pill-enc'; pillTxt = '🔒 Inscrições encerradas';
+    } else if (isBreve) {
+      pillCls = 'pill-breve'; pillTxt = '🕐 Em breve';
+    } else {
+      pillCls = 'pill-ativo'; pillTxt = '✅ Inscrições abertas';
+    }
+
+    // Build buttons
+    let primHtml = '', secHtml = '';
+
+    if (isLiga) {
+      if (inscAberta || !isEnc) {
+        primHtml += btn('📝 Inscrever Equipe', `liga-inscricao.html?id=${c.id}`, 'gold');
+      }
+      primHtml += btn('🏆 Classificação', `liga-classificacao.html?id=${c.id}`, 'gold');
+      secHtml  += btn('🔐 Portal da Equipe',    `liga-portal.html?id=${c.id}`,       'dark sm');
+      secHtml  += btn('📅 Calendário de Jogos', `liga-cronograma.html?id=${c.id}`,   'dark sm');
+      secHtml  += btn('📺 Placar Ao Vivo',      `liga-placar-publico.html?id=${c.id}`,'dark sm');
+    } else if (isResultados) {
+      primHtml += btn('🏆 Resultado por Equipe',     `placar-publico.html?id=${c.id}`,   'gold');
+      primHtml += btn('📊 Resultado por Categoria',  `tv-chaveamento.html?id=${c.id}`,   'gold');
+      secHtml  += btn('👥 Lista de Atletas',         `atletas-publico.html?id=${c.id}`,  'dark sm');
+      secHtml  += btn('📅 Cronograma de Lutas',      `cronograma-lutas.html?id=${c.id}`, 'dark sm');
+    } else if (isCompetindo) {
+      primHtml += btn('🏆 Placar Ao Vivo', `placar-publico.html?id=${c.id}`, 'red');
+      secHtml  += btn('📊 Chaveamento',         `tv-chaveamento.html?id=${c.id}`,   'dark sm');
+      secHtml  += btn('📅 Cronograma de Lutas', `cronograma-lutas.html?id=${c.id}`, 'dark sm');
+      secHtml  += btn('👥 Lista de Atletas',    `atletas-publico.html?id=${c.id}`,  'dark sm');
+    } else if (isEnc) {
+      if (chkFimDt && now <= chkFimDt) {
+        primHtml += btn('🔍 Checagem de Peso', `checagem.html?id=${c.id}`, 'gold');
+      }
+      secHtml  += btn('👥 Lista de Atletas',    `atletas-publico.html?id=${c.id}`,  'dark sm');
+      secHtml  += btn('📅 Cronograma de Lutas', `cronograma-lutas.html?id=${c.id}`, 'dark sm');
+      secHtml  += btn('📊 Chaveamento',         `tv-chaveamento.html?id=${c.id}`,   'dark sm');
+    } else {
+      // Abertas ou breve
+      if (inscAberta) {
+        primHtml += btn('📝 Inscrever-se', `inscricao.html?id=${c.id}`, 'green');
+      }
+      if (c.edital) {
+        secHtml += btn('📋 Edital', c.edital, 'dark sm', true);
+      }
+      secHtml += btn('👥 Lista de Atletas',    `atletas-publico.html?id=${c.id}`,  'dark sm');
+      secHtml += btn('📅 Cronograma de Lutas', `cronograma-lutas.html?id=${c.id}`, 'dark sm');
+      secHtml += btn('📊 Chaveamento',         `tv-chaveamento.html?id=${c.id}`,   'dark sm');
+    }
+
+    const metaItems = [
+      data     ? `<div class="comp-meta-item">📅 <strong>${data}</strong></div>` : '',
+      c.local  ? `<div class="comp-meta-item">📍 <strong>${c.local}</strong></div>` : '',
+    ].filter(Boolean).join('');
+
+    const shareUrl = `${location.origin}${location.pathname.replace('competicao.html','')}competicao.html?id=${c.id}`;
+
+    document.getElementById('content').innerHTML = `
+      <div class="comp-head">
+        <span class="comp-pill ${pillCls}">${pillTxt}</span>
+        <div class="comp-nome">${c.nome}</div>
+        <div class="comp-meta">${metaItems}</div>
+        ${c.descricao ? `<div class="comp-desc">${c.descricao}</div>` : ''}
+      </div>
+
+      <div class="section-label">Acesse</div>
+      <div class="actions-prim">${primHtml}</div>
+      <div class="actions-sec">${secHtml}</div>
+
+      <div class="share-box">
+        <div class="share-lbl">🔗 Compartilhar esta página</div>
+        <div class="share-row">
+          <input class="share-input" id="share-url" value="${shareUrl}" readonly>
+          <button class="share-copy" onclick="copiar()">Copiar</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function btn(label, href, cls, external) {
+    return `<a href="${href}" class="btn-act ${cls}"${external ? ' target="_blank" rel="noopener"' : ''}>${label}</a>`;
+  }
+
+  window.copiar = function() {
+    const el = document.getElementById('share-url');
+    navigator.clipboard.writeText(el.value).then(() => {
+      const b = document.querySelector('.share-copy');
+      b.textContent = 'Copiado ✓';
+      setTimeout(() => b.textContent = 'Copiar', 2000);
+    });
+  };
+</script>
+</body>
+</html>

@@ -865,12 +865,15 @@
 
         return `
           <div class="ev-card">
-            <div class="ev-banner">${banner}</div>
+            <a href="competicao.html?id=${c.id}" class="ev-banner" style="display:block;text-decoration:none;">${banner}</a>
             <div class="ev-body">
               <span class="ev-pill ${pillCls}">${pillLbl}</span>
               <div class="ev-nome">${c.nome}</div>
               <div class="ev-info">📅 ${data}${c.local ? ` · 📍 ${c.local}` : ''}</div>
-              <div class="ev-links">${links}</div>
+              <div class="ev-links">
+                <a href="competicao.html?id=${c.id}" class="ev-link prim">🔗 Ver Página da Competição</a>
+                ${links}
+              </div>
             </div>
           </div>`;
       }).join('');
