@@ -57,7 +57,6 @@
     .conf-score,.conf-score-pend{grid-column:2;grid-row:1;}
     .conf-eq-r{grid-column:3;grid-row:1;}
     .cat-results{grid-column:1/-1;grid-row:2;}
-    .conf-row:last-child{border-radius:0 0 10px 10px;}
     .conf-row:hover{background:#0A0A0E;}
     .conf-row.ao-vivo{background:rgba(0,230,138,0.05);border-left:3px solid var(--verde);}
     .conf-row.concluido{opacity:0.55;}
@@ -84,6 +83,51 @@
     .cr-2{background:rgba(239,68,68,0.12);color:var(--vermelho);}
     .cr-emp{background:rgba(245,158,11,0.1);color:var(--laranja);}
     .cr-pend{background:rgba(255,255,255,0.04);color:var(--txt-fraco);}
+
+    /* Accordion (sanfona) */
+    .conf-pair:last-child .conf-row{border-radius:0 0 10px 10px;}
+    .conf-pair:last-child.open .conf-row{border-radius:0;}
+    .conf-pair:last-child.open .conf-sanfona{border-radius:0 0 10px 10px;}
+    .conf-row{cursor:pointer;}
+    .conf-row:hover .sf-hint{color:var(--ouro);}
+    .sf-hint{font-size:0.6rem;color:var(--txt-fraco);margin-top:3px;transition:color 0.2s;}
+    .sf-hint .arr{display:inline-block;transition:transform 0.25s;}
+    .conf-row.open .sf-hint .arr{transform:rotate(180deg);}
+    .conf-sanfona{
+      background:rgba(255,255,255,0.02);
+      border:1px solid var(--borda);border-top:none;
+      overflow:hidden;max-height:0;
+      transition:max-height 0.3s ease,padding 0.3s ease;
+      padding:0 18px;
+    }
+    .conf-sanfona.open{max-height:600px;padding:10px 18px 14px;}
+    .sf-header{
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:0.62rem;font-weight:700;letter-spacing:2px;
+      color:var(--txt-fraco);text-transform:uppercase;
+      margin-bottom:8px;padding-bottom:6px;
+      border-bottom:1px solid var(--borda);
+    }
+    .sf-row{
+      display:grid;grid-template-columns:1fr auto 1fr;
+      gap:4px 10px;align-items:center;
+      padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03);
+    }
+    .sf-row:last-child{border-bottom:none;}
+    .sf-at{font-size:0.82rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .sf-at.at-r{text-align:right;}
+    .sf-at.win{color:var(--verde);}
+    .sf-at.emp{color:var(--laranja);}
+    .sf-cat{
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:0.6rem;font-weight:700;letter-spacing:1px;
+      color:var(--txt-fraco);text-transform:uppercase;
+      text-align:center;white-space:nowrap;
+      background:rgba(255,255,255,0.04);
+      border-radius:4px;padding:2px 6px;
+    }
+    .sup-tag{font-size:0.48rem;background:rgba(245,158,11,0.15);color:var(--laranja);border-radius:3px;padding:1px 4px;margin-left:3px;vertical-align:middle;}
+    .sf-empty{font-size:0.75rem;color:var(--txt-fraco);padding:4px 0;}
 
     /* Standings quick */
     .table-card{background:var(--bg2);border:1px solid var(--borda);border-radius:10px;overflow:hidden;margin-bottom:14px;}
@@ -167,6 +211,59 @@ function isHorarioChegou(c) {
   if (!c.data || !c.hora) return true;
   return new Date() >= new Date(c.data + 'T' + c.hora);
 }
+
+function getAtleta(equipe, confrontoId, cat, faixa, atletas) {
+  if (!equipe) return null;
+  const escId = equipe.escalacao?.[confrontoId]?.[cat];
+  if (escId) return atletas.find(a => a.id === escId && a.faixa === faixa) || null;
+  return atletas.find(a => a.equipeId === equipe.id && a.categoria === cat && a.faixa === faixa && !a.suplente) || null;
+}
+
+function buildSanfona(m, CATS, atletas, equipes) {
+  const eq1 = equipes.find(e => e.id === m.equipe1Id);
+  const eq2 = equipes.find(e => e.id === m.equipe2Id);
+
+  const rows = CATS.map(cat => {
+    const at1 = getAtleta(eq1, m.id, cat, m.faixa, atletas);
+    const at2 = getAtleta(eq2, m.id, cat, m.faixa, atletas);
+    if (!at1 && !at2) return '';
+
+    const catRes = m.resultado?.categorias?.find(cr => cr.categoria === cat);
+    const w1 = catRes?.vencedor === '1';
+    const w2 = catRes?.vencedor === '2';
+    const emp = catRes?.vencedor === 'empate';
+    const fin = catRes?.finalizacao ? ' 🔒' : '';
+
+    const isSup1 = eq1?.escalacao?.[m.id]?.[cat] && atletas.find(a => a.id === eq1.escalacao[m.id][cat])?.suplente;
+    const isSup2 = eq2?.escalacao?.[m.id]?.[cat] && atletas.find(a => a.id === eq2.escalacao[m.id][cat])?.suplente;
+
+    const n1 = at1
+      ? `${at1.nome}${isSup1 ? ' <span class="sup-tag">SUP</span>' : ''}${w1 ? fin : ''}`
+      : '<span style="color:var(--txt-fraco);font-weight:400">—</span>';
+    const n2 = at2
+      ? `${w2 ? fin : ''}${at2.nome}${isSup2 ? ' <span class="sup-tag">SUP</span>' : ''}`
+      : '<span style="color:var(--txt-fraco);font-weight:400">—</span>';
+
+    return `<div class="sf-row">
+      <div class="sf-at ${w1?'win':emp?'emp':''}">${n1}</div>
+      <div class="sf-cat">${cat}</div>
+      <div class="sf-at at-r ${w2?'win':emp?'emp':''}">${n2}</div>
+    </div>`;
+  }).filter(Boolean);
+
+  if (!rows.length) return '<div class="sf-empty">Nenhum atleta cadastrado para este confronto.</div>';
+  return `<div class="sf-header">👊 Disputas por Categoria</div>${rows.join('')}`;
+}
+
+window.toggleSanfona = function(id) {
+  const sf   = document.getElementById('sanfona-' + id);
+  const row  = document.getElementById('row-' + id);
+  const pair = document.getElementById('pair-' + id);
+  if (!sf) return;
+  const isOpen = sf.classList.toggle('open');
+  if (row)  row.classList.toggle('open', isOpen);
+  if (pair) pair.classList.toggle('open', isOpen);
+};
 
 function render() {
   document.getElementById('upd-time').textContent='às '+pad(new Date().getHours())+':'+pad(new Date().getMinutes())+':'+pad(new Date().getSeconds());
@@ -263,22 +360,27 @@ function render() {
           badge=`<span class="badge b-pend">⏳ Pendente</span>`;
         }
 
-        return `<div class="conf-row ${rowCls}">
-          <div class="conf-meta">
-            ${badge}
-            <span>📅 ${m.data||'—'} ${m.hora||''}</span>
-            <span>📍 ${m.local||'—'}</span>
+        const sanfonaContent = buildSanfona(m, CATS, atletas, equipes);
+        return `<div class="conf-pair" id="pair-${m.id}">
+          <div class="conf-row ${rowCls}" id="row-${m.id}" onclick="toggleSanfona('${m.id}')">
+            <div class="conf-meta">
+              ${badge}
+              <span>📅 ${m.data||'—'} ${m.hora||''}</span>
+              <span>📍 ${m.local||'—'}</span>
+              <span class="sf-hint"><span class="arr">▾</span> atletas</span>
+            </div>
+            <div class="conf-eq-l">
+              <div class="conf-eq">${eq1}</div>
+              <div class="conf-sub">Casa</div>
+            </div>
+            ${scoreTxt}
+            <div class="conf-eq-r">
+              <div class="conf-eq">${eq2}</div>
+              <div class="conf-sub">Visitante</div>
+            </div>
+            ${catHtml}
           </div>
-          <div class="conf-eq-l">
-            <div class="conf-eq">${eq1}</div>
-            <div class="conf-sub">Casa</div>
-          </div>
-          ${scoreTxt}
-          <div class="conf-eq-r">
-            <div class="conf-eq">${eq2}</div>
-            <div class="conf-sub">Visitante</div>
-          </div>
-          ${catHtml}
+          <div class="conf-sanfona" id="sanfona-${m.id}">${sanfonaContent}</div>
         </div>`;
       }).join('')}
     </div>`;
