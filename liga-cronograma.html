@@ -51,7 +51,12 @@
     .rodada-prog{font-size:0.68rem;color:var(--txt-fraco);}
 
     /* Confronto row */
-    .conf-row{background:var(--bg2);border:1px solid var(--borda);border-top:none;padding:14px 18px;display:grid;grid-template-columns:1fr 80px 1fr auto;align-items:center;gap:12px;transition:background 0.2s;}
+    .conf-row{background:var(--bg2);border:1px solid var(--borda);border-top:none;padding:14px 18px;display:grid;grid-template-columns:1fr 80px 1fr auto;grid-template-rows:auto auto;align-items:center;gap:8px 12px;transition:background 0.2s;}
+    .conf-meta{grid-column:4;grid-row:1;}
+    .conf-eq-l{grid-column:1;grid-row:1;}
+    .conf-score,.conf-score-pend{grid-column:2;grid-row:1;}
+    .conf-eq-r{grid-column:3;grid-row:1;}
+    .cat-results{grid-column:1/-1;grid-row:2;}
     .conf-row:last-child{border-radius:0 0 10px 10px;}
     .conf-row:hover{background:#0A0A0E;}
     .conf-row.ao-vivo{background:rgba(0,230,138,0.05);border-left:3px solid var(--verde);}
@@ -104,13 +109,17 @@
     @media(max-width:600px){
       .conf-row{grid-template-columns:1fr 50px 1fr;gap:6px 8px;}
       .conf-meta{
-        grid-column:1/-1;
+        grid-column:1/-1;grid-row:1;
         display:flex;flex-direction:row;flex-wrap:wrap;
-        gap:6px 10px;align-items:center;text-align:left;
-        border-top:1px solid rgba(255,255,255,0.06);
-        margin-top:4px;padding-top:6px;
+        gap:5px 10px;align-items:center;text-align:left;
+        border-bottom:1px solid rgba(255,255,255,0.06);
+        padding-bottom:7px;margin-bottom:2px;
         font-size:0.65rem;
       }
+      .conf-eq-l{grid-column:1;grid-row:2;}
+      .conf-score,.conf-score-pend{grid-column:2;grid-row:2;}
+      .conf-eq-r{grid-column:3;grid-row:2;}
+      .cat-results{grid-column:1/-1;grid-row:3;}
     }
   </style>
 </head>
@@ -254,8 +263,13 @@ function render() {
           badge=`<span class="badge b-pend">⏳ Pendente</span>`;
         }
 
-        return `<div class="conf-row ${rowCls}" style="${m.status==='ao_vivo'?'display:grid':''}">
-          <div>
+        return `<div class="conf-row ${rowCls}">
+          <div class="conf-meta">
+            ${badge}
+            <span>📅 ${m.data||'—'} ${m.hora||''}</span>
+            <span>📍 ${m.local||'—'}</span>
+          </div>
+          <div class="conf-eq-l">
             <div class="conf-eq">${eq1}</div>
             <div class="conf-sub">Casa</div>
           </div>
@@ -263,11 +277,6 @@ function render() {
           <div class="conf-eq-r">
             <div class="conf-eq">${eq2}</div>
             <div class="conf-sub">Visitante</div>
-          </div>
-          <div class="conf-meta">
-            ${badge}
-            <span>📅 ${m.data||'—'} ${m.hora||''}</span>
-            <span>📍 ${m.local||'—'}</span>
           </div>
           ${catHtml}
         </div>`;
