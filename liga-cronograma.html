@@ -420,7 +420,13 @@ function render() {
     </div>`;
   }
 
+  const abertas = [...document.querySelectorAll('.conf-sanfona.open')].map(el => el.id.replace('sanfona-',''));
   document.getElementById('main').innerHTML=html;
+  abertas.forEach(id => {
+    document.getElementById('sanfona-'+id)?.classList.add('open');
+    document.getElementById('row-'+id)?.classList.add('open');
+    document.getElementById('pair-'+id)?.classList.add('open');
+  });
 }
 
 window.setFaixa=function(f){ faixaAtiva=f; render(); };
