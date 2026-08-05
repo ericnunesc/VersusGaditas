@@ -1648,7 +1648,19 @@
     function importarAtletasCSV() { mostrarToast('Importar atletas não implementado aqui', 'info'); }
     function resetarDadosExemplo() { mostrarToast('Dados de exemplo não implementados aqui', 'info'); }
     function carregarAtletasTeste() { mostrarToast('Atletas teste não implementados aqui', 'info'); }
-    function limparHistorico() { mostrarToast('Limpar histórico não implementado aqui', 'info'); }
+    function limparHistorico() {
+        if (!appState.competicoesFinalizadas?.length) { mostrarToast('Histórico já está vazio.', 'info'); return; }
+        if (!confirm('Excluir TODO o histórico de temporadas?\n\nEsta ação não pode ser desfeita.')) return;
+        appState.competicoesFinalizadas = [];
+        appState.rankingAnual = new Map();
+        appState.rankingAnualAtletas = new Map();
+        localStorage.setItem('gaditas_competicoes', '[]');
+        localStorage.setItem('gaditas_ranking_anual', '[]');
+        localStorage.setItem('gaditas_ranking_anual_atletas', '[]');
+        if (typeof atualizarHistoricoCompeticoes === 'function') atualizarHistoricoCompeticoes();
+        if (typeof atualizarDashboard === 'function') atualizarDashboard();
+        mostrarToast('Histórico limpo com sucesso!', 'sucesso');
+    }
 
     window.appState = appState;
     window.calcularIdade = calcularIdade;

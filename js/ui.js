@@ -10,11 +10,19 @@ function atualizarHistoricoCompeticoes() {
         return;
     }
     
-    container.innerHTML = appState.competicoesFinalizadas.map(comp => `
-        <div class="historico-card">
+    container.innerHTML = appState.competicoesFinalizadas.map((comp, idx) => `
+        <div class="historico-card" id="hcard-${idx}" style="position:relative;">
             <div class="historico-header">
                 <span class="historico-data">📅 ${comp.data}</span>
                 <span class="historico-categoria-badge">${comp.nome}</span>
+                <button onclick="excluirEntradaHistorico(${idx})" title="Excluir esta temporada"
+                  style="margin-left:auto;background:transparent;border:1px solid #EF4444;color:#EF4444;
+                         border-radius:6px;padding:2px 8px;font-size:0.65rem;cursor:pointer;
+                         transition:all 0.2s;white-space:nowrap;"
+                  onmouseover="this.style.background='#EF4444';this.style.color='#fff'"
+                  onmouseout="this.style.background='transparent';this.style.color='#EF4444'">
+                  🗑️ Excluir
+                </button>
             </div>
             <div class="ranking-mini-item gold">🥇 ${comp.ranking?.[0]?.nome || '-'} - ${comp.ranking?.[0]?.pontos || 0} pts</div>
             ${comp.ranking?.[1] ? `<div class="ranking-mini-item silver">🥈 ${comp.ranking[1].nome} - ${comp.ranking[1].pontos} pts</div>` : ''}
@@ -45,7 +53,18 @@ function exportarRankingCSV() {
     if (typeof mostrarToast === 'function') mostrarToast('Ranking exportado!', 'sucesso');
 }
 
+function excluirEntradaHistorico(idx) {
+    const comp = appState.competicoesFinalizadas[idx];
+    if (!comp) return;
+    if (!confirm(`Excluir a temporada "${comp.nome}" (${comp.data})?\n\nEsta ação não pode ser desfeita.`)) return;
+    appState.competicoesFinalizadas.splice(idx, 1);
+    localStorage.setItem('gaditas_competicoes', JSON.stringify(appState.competicoesFinalizadas));
+    atualizarHistoricoCompeticoes();
+    if (typeof mostrarToast === 'function') mostrarToast(`Temporada "${comp.nome}" excluída.`, 'sucesso');
+}
+
 window.atualizarHistoricoCompeticoes = atualizarHistoricoCompeticoes;
+window.excluirEntradaHistorico = excluirEntradaHistorico;
 window.exportarRankingCSV = exportarRankingCSV;
 
 console.log('✅ ui.js carregado (sem conflito de dashboard)');
