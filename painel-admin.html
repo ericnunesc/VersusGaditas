@@ -593,8 +593,17 @@
   };
 
   // ── Auth ──────────────────────────────────────────────────
+  // Emails com acesso total ao painel. Qualquer outro usuário autenticado
+  // é tratado como cliente e redirecionado para o portal do cliente.
+  const SUPER_ADMINS = ['ericnunesc@gmail.com', 'ca.se.eric.nunes@gmail.com'];
+
   onLogin(user => {
     if (!user) { window.location.replace('login-admin.html'); return; }
+    // Usuário não é super admin → redireciona para portal do cliente
+    if (!SUPER_ADMINS.includes(user.email)) {
+      window.location.replace('portal-cliente.html');
+      return;
+    }
     document.getElementById('user-email').textContent = user.email;
     carregarCampeonatos();
   });
