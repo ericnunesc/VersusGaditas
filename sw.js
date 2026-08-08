@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gaditas-torneios-v3.0.0';
+const CACHE_NAME = 'gaditas-torneios-v3.3.3';
 const urlsToCache = [
   '/',
   '/index.html',

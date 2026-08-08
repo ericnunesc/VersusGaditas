@@ -52,10 +52,13 @@ const CATEGORIAS_PESO_FEM = [
 ];
 
 // ── Tabelas de peso por grupo de idade (Gi com kimono) ────────
-// Pesadíssimo A–E (M) / A–H (F) evitam disparidade de peso extrema
+// Valores EXATOS da tabela oficial CBJJ masculino (imagem de referência)
+// Feminino: aproximado proporcional (CBJJ não publica tabela fem infantil unificada)
 const CATEGORIAS_PESO_KIDS = {
 
-  // ── Pré-Mirim (4-5 anos) ────────────────────────────────────
+  // ── Pré-Mirim (até 5 anos) ───────────────────────────────────
+  // M: Pluma 14 | Leve 18 | Meio-Pesado 22 | Super-Pesado 26
+  //    Pes 30 | A 32 | B 34 | C 36 | D 38 | E 40 | F 42 | G 44 | H >44
   'Pré-Mirim': {
     M: [
       { nome: "Pluma",           pesoMax: 14   },
@@ -67,7 +70,10 @@ const CATEGORIAS_PESO_KIDS = {
       { nome: "Pesadíssimo B",   pesoMax: 34   },
       { nome: "Pesadíssimo C",   pesoMax: 36   },
       { nome: "Pesadíssimo D",   pesoMax: 38   },
-      { nome: "Pesadíssimo E",   pesoMax: 999  }
+      { nome: "Pesadíssimo E",   pesoMax: 40   },
+      { nome: "Pesadíssimo F",   pesoMax: 42   },
+      { nome: "Pesadíssimo G",   pesoMax: 44   },
+      { nome: "Pesadíssimo H",   pesoMax: 999  }
     ],
     F: [
       { nome: "Pluma",           pesoMax: 14   },
@@ -87,6 +93,9 @@ const CATEGORIAS_PESO_KIDS = {
   },
 
   // ── Mirim (6-7 anos) ─────────────────────────────────────────
+  // M: Pluma 22 | Pena 24 | Leve 26 | Médio 28.5 | Meio-Pesado 30
+  //    Pesado 32.5 | Super-Pesado 34 | Pes 38 | A 42 | B 46 | C 50
+  //    D 54 | E 58 | F 62 | G 66 | H >66
   'Mirim': {
     M: [
       { nome: "Pluma",           pesoMax: 22   },
@@ -101,7 +110,10 @@ const CATEGORIAS_PESO_KIDS = {
       { nome: "Pesadíssimo B",   pesoMax: 46   },
       { nome: "Pesadíssimo C",   pesoMax: 50   },
       { nome: "Pesadíssimo D",   pesoMax: 54   },
-      { nome: "Pesadíssimo E",   pesoMax: 999  }
+      { nome: "Pesadíssimo E",   pesoMax: 58   },
+      { nome: "Pesadíssimo F",   pesoMax: 62   },
+      { nome: "Pesadíssimo G",   pesoMax: 66   },
+      { nome: "Pesadíssimo H",   pesoMax: 999  }
     ],
     F: [
       { nome: "Pluma",           pesoMax: 20   },
@@ -120,7 +132,10 @@ const CATEGORIAS_PESO_KIDS = {
     ]
   },
 
-  // ── Infantil 1 (8-9 anos) ────────────────────────────────────
+  // ── Infantil 1 (8-9 anos) — "Infantil A" na tabela CBJJ ─────
+  // M: Pluma 28 | Pena 30.5 | Leve 33 | Médio 35.5 | Meio-Pesado 38
+  //    Pesado 41.5 | Super-Pesado 43 | Pes 48 | A 53 | B 58 | C 63
+  //    D 68 | E 73 | F 78 | G 83 | H >83
   'Infantil 1': {
     M: [
       { nome: "Pluma",           pesoMax: 28   },
@@ -135,7 +150,10 @@ const CATEGORIAS_PESO_KIDS = {
       { nome: "Pesadíssimo B",   pesoMax: 58   },
       { nome: "Pesadíssimo C",   pesoMax: 63   },
       { nome: "Pesadíssimo D",   pesoMax: 68   },
-      { nome: "Pesadíssimo E",   pesoMax: 999  }
+      { nome: "Pesadíssimo E",   pesoMax: 73   },
+      { nome: "Pesadíssimo F",   pesoMax: 78   },
+      { nome: "Pesadíssimo G",   pesoMax: 83   },
+      { nome: "Pesadíssimo H",   pesoMax: 999  }
     ],
     F: [
       { nome: "Pluma",           pesoMax: 24   },
@@ -154,7 +172,10 @@ const CATEGORIAS_PESO_KIDS = {
     ]
   },
 
-  // ── Infantil 2 (10-11 anos) ──────────────────────────────────
+  // ── Infantil 2 (10-11 anos) — "Infantil B" na tabela CBJJ ───
+  // M: Pluma 34 | Pena 37 | Leve 39 | Médio 41.5 | Meio-Pesado 44
+  //    Pesado 46.5 | Super-Pesado 49 | Pes 54 | A 59 | B 64 | C 69
+  //    D 74 | E 79 | F 84 | G 89 | H >89
   'Infantil 2': {
     M: [
       { nome: "Pluma",           pesoMax: 34   },
@@ -169,7 +190,10 @@ const CATEGORIAS_PESO_KIDS = {
       { nome: "Pesadíssimo B",   pesoMax: 64   },
       { nome: "Pesadíssimo C",   pesoMax: 69   },
       { nome: "Pesadíssimo D",   pesoMax: 74   },
-      { nome: "Pesadíssimo E",   pesoMax: 999  }
+      { nome: "Pesadíssimo E",   pesoMax: 79   },
+      { nome: "Pesadíssimo F",   pesoMax: 84   },
+      { nome: "Pesadíssimo G",   pesoMax: 89   },
+      { nome: "Pesadíssimo H",   pesoMax: 999  }
     ],
     F: [
       { nome: "Pluma",           pesoMax: 28   },
@@ -188,7 +212,10 @@ const CATEGORIAS_PESO_KIDS = {
     ]
   },
 
-  // ── Infanto Juvenil 1 (12-13 anos) ──────────────────────────
+  // ── Infanto Juvenil 1 (12-13 anos) — "Infanto Juvenil A" ────
+  // M: Pluma 40 | Pena 42.5 | Leve 45 | Médio 47.5 | Meio-Pesado 50
+  //    Pesado 52.5 | Super-Pesado 55 | Pes 60 | A 65 | B 70 | C 75
+  //    D 80 | E 85 | F 90 | G 95 | H >95
   'Infanto Juvenil 1': {
     M: [
       { nome: "Pluma",           pesoMax: 40   },
@@ -203,7 +230,10 @@ const CATEGORIAS_PESO_KIDS = {
       { nome: "Pesadíssimo B",   pesoMax: 70   },
       { nome: "Pesadíssimo C",   pesoMax: 75   },
       { nome: "Pesadíssimo D",   pesoMax: 80   },
-      { nome: "Pesadíssimo E",   pesoMax: 999  }
+      { nome: "Pesadíssimo E",   pesoMax: 85   },
+      { nome: "Pesadíssimo F",   pesoMax: 90   },
+      { nome: "Pesadíssimo G",   pesoMax: 95   },
+      { nome: "Pesadíssimo H",   pesoMax: 999  }
     ],
     F: [
       { nome: "Pluma",           pesoMax: 33   },
