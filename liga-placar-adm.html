@@ -256,6 +256,49 @@ let timerSecs = {};              // { [idx]: remainingSeconds }
 let timerInterval = null;
 let timerIdx  = null;            // which category's timer is running
 
+// ── TV Window ─────────────────────────────────────────────────
+let tvWindow  = null;
+const tvChannel = new BroadcastChannel(`liga_luta_${campId}`);
+
+tvChannel.addEventListener('message', e => {
+  const d = e.data;
+  if (!d || d.idx === undefined) return;
+
+  if (d.type === 'tv_score') {
+    // Sync score from TV page to local state (DOM update only, no re-render)
+    if (!lutaData[d.idx]) return;
+    const s = d.state;
+    lutaData[d.idx].pts1 = s.pts1; lutaData[d.idx].pts2 = s.pts2;
+    lutaData[d.idx].van1 = s.van1; lutaData[d.idx].van2 = s.van2;
+    lutaData[d.idx].pun1 = s.pun1; lutaData[d.idx].pun2 = s.pun2;
+    updateFightDOM(d.idx);
+    atualizarSugestao(d.idx);
+    syncLutaViva();
+
+  } else if (d.type === 'tv_finalizar') {
+    // TV declared result — apply scores then declare winner
+    const s = d.state;
+    if (!lutaData[d.idx])
+      lutaData[d.idx] = { pts1:0, pts2:0, van1:0, van2:0, pun1:0, pun2:0, status:'ativa' };
+    lutaData[d.idx].pts1 = s.pts1; lutaData[d.idx].pts2 = s.pts2;
+    lutaData[d.idx].van1 = s.van1; lutaData[d.idx].van2 = s.van2;
+    lutaData[d.idx].pun1 = s.pun1; lutaData[d.idx].pun2 = s.pun2;
+    if (confrontoAtivo?.resultado?.categorias?.[d.idx]) {
+      confrontoAtivo.resultado.categorias[d.idx].finalizacao = s.finalizacao || false;
+    }
+    window.declararVencedor(d.idx, s.vencedor);
+
+  } else if (d.type === 'tv_encerrar') {
+    // TV user clicked Encerrar — process without extra confirm
+    window.encerrarSemResultado(true);
+  }
+});
+
+function closeTVWindow() {
+  tvChannel.postMessage({ type:'fechar' });
+  if (tvWindow && !tvWindow.closed) { tvWindow.close(); tvWindow = null; }
+}
+
 window.setTempoLuta = v => { tempoLuta = parseInt(v) || 300; };
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -773,6 +816,33 @@ window.iniciarLuta = function(idx) {
   }
   lutaData[idx] = { pts1:0, pts2:0, van1:0, van2:0, pun1:0, pun2:0, status:'ativa' };
   timerSecs[idx] = tempoLuta;
+
+  // ── Abrir página de placar para TV ────────────────────────────
+  const c  = confrontoAtivo;
+  const cr = c.resultado?.categorias?.[idx];
+  const at1 = atletas.find(a => a.equipeId===c.equipe1Id && a.faixa===c.faixa && a.categoria===cr?.categoria);
+  const at2 = atletas.find(a => a.equipeId===c.equipe2Id && a.faixa===c.faixa && a.categoria===cr?.categoria);
+  const initData = {
+    idx, campId,
+    categoria:   cr?.categoria || '—',
+    faixa:       c.faixa,
+    faixaLabel:  FAIXAS_LABEL[c.faixa] || c.faixa,
+    rodada:      c.rodada,
+    confrontoId: c.id,
+    equipe1:     nomeEquipe(c.equipe1Id),
+    equipe2:     nomeEquipe(c.equipe2Id),
+    atleta1:     at1?.nome || nomeEquipe(c.equipe1Id),
+    atleta2:     at2?.nome || nomeEquipe(c.equipe2Id),
+    tempoLuta
+  };
+  localStorage.setItem(`liga_luta_init_${campId}_${idx}`, JSON.stringify(initData));
+  if (tvWindow && !tvWindow.closed) tvWindow.close();
+  tvWindow = window.open(
+    `liga-luta-tv.html?id=${campId}&idx=${idx}`,
+    'liga-tv-window',
+    'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no'
+  );
+
   syncLutaViva();
   renderCatsLive();
   setTimeout(() => document.getElementById(`cat-${idx}`)?.scrollIntoView({ behavior:'smooth', block:'nearest' }), 60);
@@ -856,6 +926,7 @@ window.finalizarConfronto = async function() {
       ligaConfig
     }).catch(e => console.warn('Sync público:', e));
 
+    closeTVWindow();
     salvarEstado();
     alert('✅ Confronto finalizado com sucesso!');
     location.reload();
@@ -912,8 +983,9 @@ async function recalcularStatsFaixa(faixa) {
   }
 }
 
-window.encerrarSemResultado = async function() {
-  if (!confirm('Encerrar sem finalizar? O confronto voltará ao status Pendente.')) return;
+window.encerrarSemResultado = async function(skipConfirm = false) {
+  if (!skipConfirm && !confirm('Encerrar sem finalizar? O confronto voltará ao status Pendente.')) return;
+  closeTVWindow();
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; timerIdx = null; }
   await atualizarLigaConfronto(campId, confrontoAtivo.id, { status:'pendente', resultado: null });
   confrontoAtivo = null;

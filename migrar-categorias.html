@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migração de Categorias — Admin</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:#0D1117; color:#E2E8F0; min-height:100vh; padding:32px 20px; }
+    h1 { color:#C9A03D; margin-bottom:6px; font-size:1.4rem; }
+    .sub { color:#64748B; font-size:0.82rem; margin-bottom:28px; }
+    .card { background:#161B25; border:1px solid #1E293B; border-radius:14px; padding:22px; margin-bottom:16px; }
+    .card h3 { font-size:0.78rem; margin-bottom:14px; color:#94A3B8; text-transform:uppercase; letter-spacing:1px; }
+    .mapa-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid #1E293B; font-size:0.85rem; }
+    .mapa-row:last-of-type { border:none; }
+    .old { color:#F87171; font-weight:700; min-width:160px; }
+    .arr { color:#475569; }
+    .new { color:#86EFAC; font-weight:700; }
+    .auth-bar { padding:12px 18px; border-radius:8px; font-size:0.85rem; margin-bottom:16px;
+                background:#1A2C3E; color:#94A3B8; }
+    .auth-bar.ok  { background:#0A2010; color:#86EFAC; border:1px solid #166534; }
+    .auth-bar.err { background:#1A0810; color:#F87171; border:1px solid #7F1D1D; }
+    .btn-run {
+      background:#C9A03D; color:#000; border:none; padding:14px 32px;
+      border-radius:10px; font-size:1rem; font-weight:800; cursor:pointer;
+      transition:all 0.2s; margin-top:8px;
+    }
+    .btn-run:hover:not(:disabled) { background:#F0C060; }
+    .btn-run:disabled { background:#334155; color:#64748B; cursor:not-allowed; }
+    #log {
+      background:#080D14; border:1px solid #1E293B; border-radius:10px;
+      padding:16px; font-family:monospace; font-size:0.8rem; line-height:1.8;
+      max-height:440px; overflow-y:auto; display:none; margin-top:16px;
+    }
+    .l-ok   { color:#86EFAC; display:block; }
+    .l-err  { color:#F87171; display:block; }
+    .l-inf  { color:#64748B; display:block; }
+    .l-head { color:#C9A03D; font-weight:700; display:block; margin-top:6px; }
+    .l-warn { color:#FDE68A; display:block; }
+    #resumo { display:none; margin-top:16px; background:#0A2010; border:1px solid #166534; border-radius:10px; padding:20px; }
+    #resumo h2 { color:#86EFAC; margin-bottom:10px; }
+    .stat { font-size:0.85rem; color:#D1FAE5; margin-bottom:5px; }
+    code { background:#1E293B; padding:1px 5px; border-radius:4px; font-size:0.78rem; }
+  </style>
+</head>
+<body>
+
+<h1>🔄 Migração de Categorias de Idade</h1>
+<p class="sub">Atualiza o campo <code>categoria</code> em inscricoes e atletas de todos os campeonatos no Firestore.</p>
+
+<div id="auth-bar" class="auth-bar">⏳ Verificando autenticação…</div>
+
+<div class="card">
+  <h3>Mapa de renomeação</h3>
+  <div class="mapa-row"><span class="old">Mirim 1</span><span class="arr">→</span><span class="new">Mirim</span></div>
+  <div class="mapa-row"><span class="old">Mirim 2</span><span class="arr">→</span><span class="new">Infantil 1</span></div>
+  <div class="mapa-row"><span class="old">Infantil 1</span><span class="arr">→</span><span class="new">Infantil 2</span></div>
+  <div class="mapa-row"><span class="old">Infantil 2</span><span class="arr">→</span><span class="new">Infanto Juvenil 1</span></div>
+  <div class="mapa-row"><span class="old">Infanto-Juvenil</span><span class="arr">→</span><span class="new">Infanto Juvenil 2</span></div>
+  <p style="margin-top:14px;font-size:0.75rem;color:#475569;line-height:1.6">
+    ⚠️ Serão atualizados os campos <code>categoria</code> em <strong>inscricoes</strong> e <strong>atletas</strong>
+    de todos os campeonatos. A operação é segura: apenas renomeia, não apaga dados.
+  </p>
+</div>
+
+<button class="btn-run" id="btn-run" disabled onclick="executar()">🚀 Executar Migração</button>
+
+<div id="log"></div>
+<div id="resumo"></div>
+
+<script type="module">
+import { onLogin, db } from './js/firebase.js';
+import {
+  collection, getDocs, writeBatch, doc, query, where
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const SUPER_ADMINS = ['ericnunesc@gmail.com', 'ca.se.eric.nunes@gmail.com'];
+
+// Mapa antigo → novo (ordem: da ponta mais profunda para cima, evita colisão em cascata)
+const MAPA = [
+  ['Infanto-Juvenil', 'Infanto Juvenil 2'],
+  ['Infantil 2',      'Infanto Juvenil 1'],
+  ['Infantil 1',      'Infantil 2'       ],
+  ['Mirim 2',         'Infantil 1'       ],
+  ['Mirim 1',         'Mirim'            ],
+];
+
+// ── Auth ──────────────────────────────────────────────────────
+onLogin(user => {
+  const bar = document.getElementById('auth-bar');
+  const btn = document.getElementById('btn-run');
+
+  if (!user) {
+    bar.textContent = '🔒 Faça login como super admin em login-admin.html antes de acessar esta página.';
+    bar.className = 'auth-bar err';
+    return;
+  }
+  if (!SUPER_ADMINS.includes(user.email)) {
+    bar.textContent = `❌ Acesso negado. A conta ${user.email} não tem permissão de super admin.`;
+    bar.className = 'auth-bar err';
+    return;
+  }
+  bar.textContent = `✅ Autenticado como ${user.email}`;
+  bar.className = 'auth-bar ok';
+  btn.disabled = false;
+});
+
+// ── Migração ──────────────────────────────────────────────────
+window.executar = async function() {
+  const btn   = document.getElementById('btn-run');
+  const logEl = document.getElementById('log');
+  btn.disabled = true;
+  btn.textContent = '⏳ Executando…';
+  logEl.style.display = 'block';
+  logEl.textContent = '';
+
+  let totInscr = 0, totAtl = 0, totCamps = 0;
+
+  function log(msg, cls = 'l-inf') {
+    const s = document.createElement('span');
+    s.className = cls;
+    s.textContent = msg;
+    logEl.appendChild(s);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  async function migrarSubcolecao(campId, subCol) {
+    let total = 0;
+    for (const [antigo, novo] of MAPA) {
+      const q    = query(collection(db, 'campeonatos', campId, subCol), where('categoria', '==', antigo));
+      const snap = await getDocs(q);
+      if (snap.empty) continue;
+
+      // writeBatch suporta até 500 ops — divide se necessário
+      const chunks = [];
+      for (let i = 0; i < snap.docs.length; i += 490) chunks.push(snap.docs.slice(i, i + 490));
+      for (const chunk of chunks) {
+        const batch = writeBatch(db);
+        chunk.forEach(d => batch.update(doc(db, 'campeonatos', campId, subCol, d.id), { categoria: novo }));
+        await batch.commit();
+      }
+      log(`  ${subCol}: ${snap.size}x "${antigo}" → "${novo}"`, 'l-ok');
+      total += snap.size;
+    }
+    if (!total) log(`  ${subCol}: sem registros para atualizar`, 'l-inf');
+    return total;
+  }
+
+  try {
+    log('Buscando campeonatos…\n', 'l-inf');
+    const campsSnap = await getDocs(collection(db, 'campeonatos'));
+    log(`${campsSnap.size} campeonato(s) encontrado(s).\n`, 'l-ok');
+
+    for (const campDoc of campsSnap.docs) {
+      const id   = campDoc.id;
+      const nome = campDoc.data().nome || id;
+      log(`\n── ${nome}`, 'l-head');
+      totCamps++;
+
+      const ni = await migrarSubcolecao(id, 'inscricoes');
+      const na = await migrarSubcolecao(id, 'atletas');
+      totInscr += ni;
+      totAtl   += na;
+    }
+
+    log('\n✅ Migração concluída com sucesso!', 'l-ok');
+
+    const res = document.getElementById('resumo');
+    res.style.display = 'block';
+    res.innerHTML = `
+      <h2>✅ Concluído!</h2>
+      <div class="stat">📦 Campeonatos processados: <strong>${totCamps}</strong></div>
+      <div class="stat">📝 Inscrições atualizadas: <strong>${totInscr}</strong></div>
+      <div class="stat">🥋 Atletas atualizados: <strong>${totAtl}</strong></div>
+      <div style="margin-top:12px;font-size:0.78rem;color:#6EE7B7;line-height:1.6">
+        Todos os registros foram atualizados para os nomes oficiais CBJJ.<br>
+        Você pode fechar esta página com segurança.
+      </div>`;
+    btn.textContent = '✅ Concluído';
+
+  } catch(e) {
+    log(`\n❌ ERRO: ${e.message}`, 'l-err');
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = '🔁 Tentar novamente';
+  }
+};
+</script>
+</body>
+</html>

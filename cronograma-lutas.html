@@ -446,7 +446,7 @@ function corrigirHorarioInicio(horario) {
 
 horarioInicio = corrigirHorarioInicio(horarioInicio);
 var duracaoPorFaixa = { Branca:5, Azul:6, Roxa:7, Marrom:8, Preta:10, Cinza:3, Amarela:3, Laranja:3, Verde:4 };
-var duracaoPorIdade = { 'Pre-Mirim':2,'Mirim 1':2,'Mirim 2':2,'Infantil 1':3,'Infantil 2':3,'Infanto-Juvenil':4,'Juvenil':4 };
+var duracaoPorIdade = { 'Pre-Mirim':2,'Mirim':2,'Infantil 1':3,'Infantil 2':3,'Infanto Juvenil 1':4,'Infanto Juvenil 2':4,'Juvenil':4 };
 // atraso calculado automaticamente pelas durações reais
 var areaAtiva = null;
 
@@ -474,11 +474,10 @@ function getDuracao(luta) {
     if (luta.categoriaNome) {
         var nome = luta.categoriaNome.toUpperCase();
         if (nome.indexOf('PRÉ-MIRIM')>=0||nome.indexOf('PRE-MIRIM')>=0) return duracaoPorIdade['Pre-Mirim']||2;
-        if (nome.indexOf('MIRIM 1')>=0) return duracaoPorIdade['Mirim 1']||2;
-        if (nome.indexOf('MIRIM 2')>=0) return duracaoPorIdade['Mirim 2']||2;
         if (nome.indexOf('INFANTIL 1')>=0) return duracaoPorIdade['Infantil 1']||3;
         if (nome.indexOf('INFANTIL 2')>=0) return duracaoPorIdade['Infantil 2']||3;
-        if (nome.indexOf('INFANTO')>=0) return duracaoPorIdade['Infanto-Juvenil']||4;
+        if (nome.indexOf('INFANTO')>=0) return duracaoPorIdade['Infanto Juvenil 1']||4;
+        if (nome.indexOf('MIRIM')>=0) return duracaoPorIdade['Mirim']||2;
         if (nome.indexOf('JUVENIL')>=0) return duracaoPorIdade['Juvenil']||4;
     }
     // Faixa infantil
@@ -1095,9 +1094,9 @@ function carregarTodasDuracoes() {
     });
     // Duração por categoria de idade (infantil)
     var mapaIdade = {
-        'Pre-Mirim':'pre-mirim','Mirim 1':'mirim1','Mirim 2':'mirim2',
+        'Pre-Mirim':'pre-mirim','Mirim':'mirim',
         'Infantil 1':'infantil1','Infantil 2':'infantil2',
-        'Infanto-Juvenil':'infanto-juvenil','Juvenil':'juvenil'
+        'Infanto Juvenil 1':'infanto-juvenil1','Infanto Juvenil 2':'infanto-juvenil2','Juvenil':'juvenil'
     };
     Object.keys(mapaIdade).forEach(function(cat) {
         var s = localStorage.getItem('gaditas_duracao_' + mapaIdade[cat]);

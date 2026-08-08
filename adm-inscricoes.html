@@ -181,8 +181,9 @@
       <div>
         <label>Categoria de Idade</label>
         <select id="edit-categoria">
-          <option>Pré-Mirim</option><option>Mirim 1</option><option>Mirim 2</option>
-          <option>Infantil 1</option><option>Infantil 2</option><option>Infanto-Juvenil</option>
+          <option>Pré-Mirim</option><option>Mirim</option>
+          <option>Infantil 1</option><option>Infantil 2</option>
+          <option>Infanto Juvenil 1</option><option>Infanto Juvenil 2</option>
           <option>Juvenil</option><option>Adulto</option><option>Master 1</option>
           <option>Master 2</option><option>Master 3</option><option>Master 4</option>
           <option>Master 5</option><option>Master 6</option>
@@ -256,22 +257,22 @@
 <script type="module">
   import { listarInscricoes, atualizarInscricao, salvarAtleta, deletarAtleta, buscarCampeonato, onLogin, atualizarAtleta } from './js/firebase.js';
 
-  // Tabela de categorias de idade CBJJ
+  // Tabela de categorias de idade CBJJ — nomes oficiais
   const CATEGORIAS_IDADE = [
-    { nome:"Pré-Mirim",       idadeMin:4,  idadeMax:5  },
-    { nome:"Mirim 1",         idadeMin:6,  idadeMax:7  },
-    { nome:"Mirim 2",         idadeMin:8,  idadeMax:9  },
-    { nome:"Infantil 1",      idadeMin:10, idadeMax:11 },
-    { nome:"Infantil 2",      idadeMin:12, idadeMax:13 },
-    { nome:"Infanto-Juvenil", idadeMin:14, idadeMax:15 },
-    { nome:"Juvenil",         idadeMin:16, idadeMax:17 },
-    { nome:"Adulto",          idadeMin:18, idadeMax:29 },
-    { nome:"Master 1",        idadeMin:30, idadeMax:35 },
-    { nome:"Master 2",        idadeMin:36, idadeMax:40 },
-    { nome:"Master 3",        idadeMin:41, idadeMax:45 },
-    { nome:"Master 4",        idadeMin:46, idadeMax:50 },
-    { nome:"Master 5",        idadeMin:51, idadeMax:55 },
-    { nome:"Master 6",        idadeMin:56, idadeMax:99 },
+    { nome:"Pré-Mirim",         idadeMin:4,  idadeMax:5  },
+    { nome:"Mirim",             idadeMin:6,  idadeMax:7  },
+    { nome:"Infantil 1",        idadeMin:8,  idadeMax:9  },
+    { nome:"Infantil 2",        idadeMin:10, idadeMax:11 },
+    { nome:"Infanto Juvenil 1", idadeMin:12, idadeMax:13 },
+    { nome:"Infanto Juvenil 2", idadeMin:14, idadeMax:15 },
+    { nome:"Juvenil",           idadeMin:16, idadeMax:17 },
+    { nome:"Adulto",            idadeMin:18, idadeMax:29 },
+    { nome:"Master 1",          idadeMin:30, idadeMax:35 },
+    { nome:"Master 2",          idadeMin:36, idadeMax:40 },
+    { nome:"Master 3",          idadeMin:41, idadeMax:45 },
+    { nome:"Master 4",          idadeMin:46, idadeMax:50 },
+    { nome:"Master 5",          idadeMin:51, idadeMax:55 },
+    { nome:"Master 6",          idadeMin:56, idadeMax:99 },
   ];
 
   // Categorias permitidas para realocação

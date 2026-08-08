@@ -180,22 +180,22 @@
     const K = { equipes:"equipes", inscricoes:"inscricoes", atletas:"gaditas_atletas" };
     const REF = new Date();
 
-    // Tabela oficial CBJJ/IBJJF — espelhada do config.js
+    // Tabela oficial CBJJ/IBJJF — espelhada do config.js (nomes corretos)
     const CATEGORIAS_IDADE = [
-      { nome: "Pré-Mirim",       idadeMin: 4,  idadeMax: 5,  faixas: ["Branca"] },
-      { nome: "Mirim 1",         idadeMin: 6,  idadeMax: 7,  faixas: ["Branca", "Cinza", "Amarela"] },
-      { nome: "Mirim 2",         idadeMin: 8,  idadeMax: 9,  faixas: ["Branca", "Cinza", "Amarela"] },
-      { nome: "Infantil 1",      idadeMin: 10, idadeMax: 11, faixas: ["Branca", "Cinza", "Amarela", "Laranja"] },
-      { nome: "Infantil 2",      idadeMin: 12, idadeMax: 13, faixas: ["Branca", "Cinza", "Amarela", "Laranja"] },
-      { nome: "Infanto-Juvenil", idadeMin: 14, idadeMax: 15, faixas: ["Branca", "Cinza", "Amarela", "Laranja", "Verde"] },
-      { nome: "Juvenil",         idadeMin: 16, idadeMax: 17, faixas: ["Branca", "Azul", "Roxa"] },
-      { nome: "Adulto",          idadeMin: 18, idadeMax: 29, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
-      { nome: "Master 1",        idadeMin: 30, idadeMax: 35, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
-      { nome: "Master 2",        idadeMin: 36, idadeMax: 40, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
-      { nome: "Master 3",        idadeMin: 41, idadeMax: 45, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
-      { nome: "Master 4",        idadeMin: 46, idadeMax: 50, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
-      { nome: "Master 5",        idadeMin: 51, idadeMax: 55, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
-      { nome: "Master 6",        idadeMin: 56, idadeMax: 99, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] }
+      { nome: "Pré-Mirim",         idadeMin: 4,  idadeMax: 5,  faixas: ["Branca", "Cinza"] },
+      { nome: "Mirim",             idadeMin: 6,  idadeMax: 7,  faixas: ["Branca", "Cinza"] },
+      { nome: "Infantil 1",        idadeMin: 8,  idadeMax: 9,  faixas: ["Branca", "Cinza", "Amarela", "Laranja", "Verde"] },
+      { nome: "Infantil 2",        idadeMin: 10, idadeMax: 11, faixas: ["Branca", "Cinza", "Amarela", "Laranja", "Verde"] },
+      { nome: "Infanto Juvenil 1", idadeMin: 12, idadeMax: 13, faixas: ["Branca", "Cinza", "Amarela", "Laranja", "Verde"] },
+      { nome: "Infanto Juvenil 2", idadeMin: 14, idadeMax: 15, faixas: ["Branca", "Cinza", "Amarela", "Laranja", "Verde"] },
+      { nome: "Juvenil",           idadeMin: 16, idadeMax: 17, faixas: ["Branca", "Azul", "Roxa"] },
+      { nome: "Adulto",            idadeMin: 18, idadeMax: 29, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 1",          idadeMin: 30, idadeMax: 35, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 2",          idadeMin: 36, idadeMax: 40, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 3",          idadeMin: 41, idadeMax: 45, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 4",          idadeMin: 46, idadeMax: 50, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 5",          idadeMin: 51, idadeMax: 55, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] },
+      { nome: "Master 6",          idadeMin: 56, idadeMax: 99, faixas: ["Branca", "Azul", "Roxa", "Marrom", "Preta"] }
     ];
 
     const $ = id => document.getElementById(id);

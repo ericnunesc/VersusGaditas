@@ -129,7 +129,7 @@
     'Verde':'#16A34A','Azul':'#2563EB','Roxa':'#7C3AED','Marrom':'#78350F','Preta':'#111827'
   };
 
-  const ORDEM_CATEGORIA = ["Pré-Mirim","Mirim 1","Mirim 2","Infantil 1","Infantil 2","Infanto-Juvenil","Juvenil","Adulto","Master 1","Master 2","Master 3","Master 4","Master 5","Master 6"];
+  const ORDEM_CATEGORIA = ["Pré-Mirim","Mirim","Infantil 1","Infantil 2","Infanto Juvenil 1","Infanto Juvenil 2","Juvenil","Adulto","Master 1","Master 2","Master 3","Master 4","Master 5","Master 6"];
   const ORDEM_FAIXA = ["Branca","Cinza","Amarela","Laranja","Verde","Azul","Roxa","Marrom","Preta"];
   const ORDEM_PESO = ["Galo","Pluma","Pena","Leve","Médio","Meio-Pesado","Pesado","Super-Pesado","Pesadíssimo"];
 
@@ -150,8 +150,8 @@
     const nasc = new Date(a.dataNascimento);
     let idade = hoje.getFullYear() - nasc.getFullYear();
     if (hoje.getMonth() < nasc.getMonth() || (hoje.getMonth() === nasc.getMonth() && hoje.getDate() < nasc.getDate())) idade--;
-    const cats = [{nome:"Pré-Mirim",min:4,max:5},{nome:"Mirim 1",min:6,max:7},{nome:"Mirim 2",min:8,max:9},
-      {nome:"Infantil 1",min:10,max:11},{nome:"Infantil 2",min:12,max:13},{nome:"Infanto-Juvenil",min:14,max:15},
+    const cats = [{nome:"Pré-Mirim",min:4,max:5},{nome:"Mirim",min:6,max:7},
+      {nome:"Infantil 1",min:8,max:9},{nome:"Infantil 2",min:10,max:11},{nome:"Infanto Juvenil 1",min:12,max:13},{nome:"Infanto Juvenil 2",min:14,max:15},
       {nome:"Juvenil",min:16,max:17},{nome:"Adulto",min:18,max:29},{nome:"Master 1",min:30,max:35},
       {nome:"Master 2",min:36,max:40},{nome:"Master 3",min:41,max:45},{nome:"Master 4",min:46,max:50},
       {nome:"Master 5",min:51,max:55},{nome:"Master 6",min:56,max:99}];

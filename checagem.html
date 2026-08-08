@@ -208,6 +208,8 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="js/config.js"></script>
+<script src="js/categorias.js"></script>
 <script type="module">
 import { buscarCampeonato, listarInscricoes, atualizarInscricao } from './js/firebase.js';
 
@@ -340,13 +342,14 @@ function fecharModal() {
 }
 
 // ── Verificar identidade ────────────────────────────────────────────────
-const CATS_IDADE_C = ['Pré-Mirim','Mirim 1','Mirim 2','Infantil 1','Infantil 2','Infanto-Juvenil','Juvenil','Adulto','Master 1','Master 2','Master 3','Master 4','Master 5','Master 6'];
+const CATS_IDADE_C = ['Pré-Mirim','Mirim','Infantil 1','Infantil 2','Infanto Juvenil 1','Infanto Juvenil 2','Juvenil','Adulto','Master 1','Master 2','Master 3','Master 4','Master 5','Master 6'];
 
-// Limites de cada categoria de idade (min e max de idade inclusivos)
+// Limites de cada categoria de idade (min e max de idade inclusivos) — nomes oficiais CBJJ
 const CATS_LIMITES_C = {
-  'Pré-Mirim':[4,5],'Mirim 1':[6,7],'Mirim 2':[8,9],
-  'Infantil 1':[10,11],'Infantil 2':[12,13],
-  'Infanto-Juvenil':[14,15],'Juvenil':[16,17],
+  'Pré-Mirim':[4,5],'Mirim':[6,7],
+  'Infantil 1':[8,9],'Infantil 2':[10,11],
+  'Infanto Juvenil 1':[12,13],'Infanto Juvenil 2':[14,15],
+  'Juvenil':[16,17],
   'Adulto':[18,29],'Master 1':[30,35],'Master 2':[36,40],
   'Master 3':[41,45],'Master 4':[46,50],'Master 5':[51,55],'Master 6':[56,99]
 };
@@ -367,8 +370,12 @@ function getMaxCatNome(dataNasc, fallback) {
   });
   return enc || (idade > 55 ? 'Master 6' : fallback);
 }
+// Listas completas de pesos adulto (para dropdowns) — config.js define CATEGORIAS_PESO_MASC/FEM
 const PESOS_MASC_C = ['Galo','Pluma','Pena','Leve','Médio','Meio-Pesado','Pesado','Super-Pesado','Pesadíssimo'];
-const PESOS_FEM_C  = ['Galo','Pluma','Pena','Leve','Médio','Meio-Pesado','Pesado','Super-Pesado'];
+const PESOS_FEM_C  = ['Galo','Pluma','Pena','Leve','Médio','Meio-Pesado','Pesado','Super-Pesado','Pesadíssimo'];
+
+// Categorias de idade que têm tabela de pesos infantil (não usam tabela adulto)
+const CATS_KIDS_C = new Set(['Pré-Mirim','Mirim','Infantil 1','Infantil 2','Infanto Juvenil 1','Infanto Juvenil 2','Juvenil']);
 
 // Helpers de compatibilidade — inscrições antigas salvam "categoria" e "peso" (número)
 // Novas realocações de checagem salvam "categoria_idade" e "categoria_peso"
@@ -379,18 +386,40 @@ function isMasc(insc) {
 function getCatIdade(insc) {
   return insc.categoria_idade || insc.categoria || '?';
 }
-const _PESOS_MASC_LIM = [57.5, 64, 70, 76, 82.3, 88.3, 94.3, 100.5, 999]; // Galo..Pesadíssimo
-const _PESOS_FEM_LIM  = [48.5, 53.5, 58.5, 64, 69, 74, 79.3, 999];        // Galo..Super-Pesado
-function calcCatPeso(peso, sexo) {
-  const p = parseFloat(peso) || 0;
-  const m = (sexo || '').toUpperCase() === 'M' || (sexo || '').toUpperCase() === 'MASCULINO';
-  const nomes  = m ? PESOS_MASC_C : PESOS_FEM_C;
-  const limits = m ? _PESOS_MASC_LIM : _PESOS_FEM_LIM;
-  for (let i = 0; i < limits.length; i++) { if (p <= limits[i]) return nomes[i]; }
-  return nomes[nomes.length - 1];
+
+// Retorna lista de nomes de peso para uma dada categoria de idade + sexo
+// usa getTabKids() de config.js (carregado como script src)
+function getPesosParaCat(catIdadeNome, sexo) {
+  const s = (sexo || '').toUpperCase().startsWith('F') ? 'F' : 'M';
+  if (CATS_KIDS_C.has(catIdadeNome)) {
+    const tab = getTabKids(catIdadeNome, s); // global de config.js
+    return tab.map(c => c.nome);
+  }
+  return s === 'F' ? PESOS_FEM_C : PESOS_MASC_C;
+}
+
+// Calcula categoria de peso a partir do peso numérico + categoria de idade + sexo
+// usa determinarCategoriaPeso() de categorias.js (carregado como script src)
+function calcCatPeso(peso, sexo, catIdadeNome) {
+  const p   = parseFloat(peso) || 0;
+  const s   = (sexo || '').toUpperCase().startsWith('F') ? 'F' : 'M';
+  // Para kids, usa tabela correta; para adulto/master usa tabela adulto
+  if (catIdadeNome && CATS_KIDS_C.has(catIdadeNome)) {
+    const tab = getTabKids(catIdadeNome, s);
+    const found = tab.find(c => p <= c.pesoMax);
+    return found ? found.nome : tab[tab.length - 1].nome;
+  }
+  // Adulto / Master — tabela oficial adulto
+  const tab = s === 'F'
+    ? [{nome:'Galo',m:48.5},{nome:'Pluma',m:53.5},{nome:'Pena',m:58.5},{nome:'Leve',m:64},{nome:'Médio',m:69},{nome:'Meio-Pesado',m:74},{nome:'Pesado',m:79.3},{nome:'Super-Pesado',m:84.3},{nome:'Pesadíssimo',m:999}]
+    : [{nome:'Galo',m:57.5},{nome:'Pluma',m:64},{nome:'Pena',m:70},{nome:'Leve',m:76},{nome:'Médio',m:82.3},{nome:'Meio-Pesado',m:88.3},{nome:'Pesado',m:94.3},{nome:'Super-Pesado',m:100.5},{nome:'Pesadíssimo',m:999}];
+  const found = tab.find(c => p <= c.m);
+  return found ? found.nome : tab[tab.length - 1].nome;
 }
 function getCatPeso(insc) {
-  return insc.categoria_peso || calcCatPeso(insc.peso, insc.sexo);
+  if (insc.categoria_peso) return insc.categoria_peso;
+  const catIdade = getCatIdade(insc);
+  return calcCatPeso(insc.peso, insc.sexo, catIdade);
 }
 
 async function verificarIdentidade() {
@@ -471,8 +500,8 @@ function abrirModalReal(insc) {
   // ── Categoria de peso ────────────────────────────────────────────────
   // Regra: mínimo = categoria do peso físico registrado (insc.peso).
   // Pode ir para mais pesado ou voltar ao original. Nunca abaixo do peso real.
-  const pesosDisp      = isMasc(insc) ? PESOS_MASC_C : PESOS_FEM_C;
-  const catPesoFisico  = calcCatPeso(insc.peso, insc.sexo); // base no peso real
+  const pesosDisp      = getPesosParaCat(catIdadeAtual, insc.sexo); // age-appropriate list
+  const catPesoFisico  = calcCatPeso(insc.peso, insc.sexo, catIdadeAtual); // base no peso real
   const idxPesoFisico  = pesosDisp.indexOf(catPesoFisico);
   const pesosPermitidos = idxPesoFisico >= 0 ? pesosDisp.slice(idxPesoFisico) : pesosDisp;
 
