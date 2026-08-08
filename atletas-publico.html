@@ -113,6 +113,8 @@
   <div id="conteudo"></div>
 </div>
 
+<script src="js/config.js"></script>
+<script src="js/categorias.js"></script>
 <script type="module">
   import { listarAtletas, listarInscricoes, buscarCampeonato } from './js/firebase.js';
 
@@ -131,17 +133,28 @@
 
   const ORDEM_CATEGORIA = ["Pré-Mirim","Mirim","Infantil 1","Infantil 2","Infanto Juvenil 1","Infanto Juvenil 2","Juvenil","Adulto","Master 1","Master 2","Master 3","Master 4","Master 5","Master 6"];
   const ORDEM_FAIXA = ["Branca","Cinza","Amarela","Laranja","Verde","Azul","Roxa","Marrom","Preta"];
-  const ORDEM_PESO = ["Galo","Pluma","Pena","Leve","Médio","Meio-Pesado","Pesado","Super-Pesado","Pesadíssimo"];
+  const ORDEM_PESO = ["Galo","Pluma","Pena","Leve","Médio","Meio-Pesado","Pesado","Super-Pesado","Pesadíssimo","Pesadíssimo A","Pesadíssimo B","Pesadíssimo C","Pesadíssimo D","Pesadíssimo E","Pesadíssimo F","Pesadíssimo G","Pesadíssimo H"];
 
-  const PESO_MASC = [{n:"Galo",max:57.5},{n:"Pluma",max:64},{n:"Pena",max:70},{n:"Leve",max:76},{n:"Médio",max:82.3},{n:"Meio-Pesado",max:88.3},{n:"Pesado",max:94.3},{n:"Super-Pesado",max:100.5},{n:"Pesadíssimo",max:999}];
-  const PESO_FEM  = [{n:"Galo",max:48.5},{n:"Pluma",max:53.5},{n:"Pena",max:58.5},{n:"Leve",max:64},{n:"Médio",max:69},{n:"Meio-Pesado",max:74},{n:"Pesado",max:79.3},{n:"Super-Pesado",max:999}];
+  // Categorias de idade infantil (usam tabelas de peso específicas, não adulto)
+  const CATS_KIDS_AP = new Set(['Pré-Mirim','Mirim','Infantil 1','Infantil 2','Infanto Juvenil 1','Infanto Juvenil 2','Juvenil']);
 
-  function categoriaPeso(peso, sexo) {
+  // Calcula categoria de peso respeitando a faixa etária (usa config.js global)
+  function categoriaPeso(peso, sexo, catIdade) {
     if (!peso) return '—';
     const p = parseFloat(peso);
     if (isNaN(p)) return '—';
-    const tabela = (sexo === 'Feminino' || sexo === 'F') ? PESO_FEM : PESO_MASC;
-    return (tabela.find(c => p <= c.max) || {n:'Absoluto'}).n;
+    const s = (sexo === 'Feminino' || sexo === 'F') ? 'F' : 'M';
+    if (catIdade && CATS_KIDS_AP.has(catIdade)) {
+      // Kids: usa tabela de peso correta via getTabKids() de config.js
+      const tab = getTabKids(catIdade, s);
+      const found = tab.find(c => p <= c.pesoMax);
+      return found ? found.nome : tab[tab.length - 1].nome;
+    }
+    // Adulto / Master: tabela oficial adulto
+    const tabM = [{n:"Galo",max:57.5},{n:"Pluma",max:64},{n:"Pena",max:70},{n:"Leve",max:76},{n:"Médio",max:82.3},{n:"Meio-Pesado",max:88.3},{n:"Pesado",max:94.3},{n:"Super-Pesado",max:100.5},{n:"Pesadíssimo",max:999}];
+    const tabF = [{n:"Galo",max:48.5},{n:"Pluma",max:53.5},{n:"Pena",max:58.5},{n:"Leve",max:64},{n:"Médio",max:69},{n:"Meio-Pesado",max:74},{n:"Pesado",max:79.3},{n:"Super-Pesado",max:84.3},{n:"Pesadíssimo",max:999}];
+    const tabela = s === 'F' ? tabF : tabM;
+    return (tabela.find(c => p <= c.max) || {n:'Pesadíssimo'}).n;
   }
 
   function calcularCategoria(a) {
@@ -164,28 +177,34 @@
       listarAtletas(campeonatoId),
       listarInscricoes(campeonatoId)
     ]);
-    const confirmados = atletas.map(a => ({
-      nome: a.nome,
-      faixa: a.faixa || '—',
-      peso: a.peso,
-      catPeso: categoriaPeso(a.peso, a.sexo),
-      sexo: a.sexo || '—',
-      academia: a.academia || '—',
-      categoria: a.categoria || calcularCategoria(a),
-      status: 'confirmado'
-    }));
+    const confirmados = atletas.map(a => {
+      const cat = a.categoria || calcularCategoria(a);
+      return {
+        nome: a.nome,
+        faixa: a.faixa || '—',
+        peso: a.peso,
+        catPeso: categoriaPeso(a.peso, a.sexo, cat),
+        sexo: a.sexo || '—',
+        academia: a.academia || '—',
+        categoria: cat,
+        status: 'confirmado'
+      };
+    });
     const pendentes = inscricoes
       .filter(i => i.status === 'pendente')
-      .map(i => ({
-        nome: i.nome,
-        faixa: i.faixa || '—',
-        peso: i.peso,
-        catPeso: categoriaPeso(i.peso, i.sexo),
-        sexo: i.sexo || '—',
-        academia: i.equipeNome || i.equipe || '—',
-        categoria: i.categoria || '—',
-        status: 'pendente'
-      }));
+      .map(i => {
+        const cat = i.categoria || '—';
+        return {
+          nome: i.nome,
+          faixa: i.faixa || '—',
+          peso: i.peso,
+          catPeso: categoriaPeso(i.peso, i.sexo, cat),
+          sexo: i.sexo || '—',
+          academia: i.equipeNome || i.equipe || '—',
+          categoria: cat,
+          status: 'pendente'
+        };
+      });
     todosAtletas = [...confirmados, ...pendentes];
   }
 
