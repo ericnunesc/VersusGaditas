@@ -93,11 +93,12 @@ const CATEGORIAS_PESO_KIDS = {
   },
 
   // ── Mirim (6-7 anos) ─────────────────────────────────────────
-  // M: Pluma 22 | Pena 24 | Leve 26 | Médio 28.5 | Meio-Pesado 30
+  // M: Galo 18 | Pluma 22 | Pena 24 | Leve 26 | Médio 28.5 | Meio-Pesado 30
   //    Pesado 32.5 | Super-Pesado 34 | Pes 38 | A 42 | B 46 | C 50
   //    D 54 | E 58 | F 62 | G 66 | H >66
   'Mirim': {
     M: [
+      { nome: "Galo",            pesoMax: 18   },
       { nome: "Pluma",           pesoMax: 22   },
       { nome: "Pena",            pesoMax: 24   },
       { nome: "Leve",            pesoMax: 26   },
@@ -116,6 +117,7 @@ const CATEGORIAS_PESO_KIDS = {
       { nome: "Pesadíssimo H",   pesoMax: 999  }
     ],
     F: [
+      { nome: "Galo",            pesoMax: 16   },
       { nome: "Pluma",           pesoMax: 20   },
       { nome: "Leve",            pesoMax: 24   },
       { nome: "Meio-Pesado",     pesoMax: 28   },
@@ -133,11 +135,12 @@ const CATEGORIAS_PESO_KIDS = {
   },
 
   // ── Infantil 1 (8-9 anos) — "Infantil A" na tabela CBJJ ─────
-  // M: Pluma 28 | Pena 30.5 | Leve 33 | Médio 35.5 | Meio-Pesado 38
+  // M: Galo 22 | Pluma 28 | Pena 30.5 | Leve 33 | Médio 35.5 | Meio-Pesado 38
   //    Pesado 41.5 | Super-Pesado 43 | Pes 48 | A 53 | B 58 | C 63
   //    D 68 | E 73 | F 78 | G 83 | H >83
   'Infantil 1': {
     M: [
+      { nome: "Galo",            pesoMax: 22   },
       { nome: "Pluma",           pesoMax: 28   },
       { nome: "Pena",            pesoMax: 30.5 },
       { nome: "Leve",            pesoMax: 33   },
@@ -156,6 +159,7 @@ const CATEGORIAS_PESO_KIDS = {
       { nome: "Pesadíssimo H",   pesoMax: 999  }
     ],
     F: [
+      { nome: "Galo",            pesoMax: 20   },
       { nome: "Pluma",           pesoMax: 24   },
       { nome: "Leve",            pesoMax: 29   },
       { nome: "Meio-Pesado",     pesoMax: 33   },
@@ -173,11 +177,12 @@ const CATEGORIAS_PESO_KIDS = {
   },
 
   // ── Infantil 2 (10-11 anos) — "Infantil B" na tabela CBJJ ───
-  // M: Pluma 34 | Pena 37 | Leve 39 | Médio 41.5 | Meio-Pesado 44
+  // M: Galo 28 | Pluma 34 | Pena 37 | Leve 39 | Médio 41.5 | Meio-Pesado 44
   //    Pesado 46.5 | Super-Pesado 49 | Pes 54 | A 59 | B 64 | C 69
   //    D 74 | E 79 | F 84 | G 89 | H >89
   'Infantil 2': {
     M: [
+      { nome: "Galo",            pesoMax: 28   },
       { nome: "Pluma",           pesoMax: 34   },
       { nome: "Pena",            pesoMax: 37   },
       { nome: "Leve",            pesoMax: 39   },
@@ -196,6 +201,7 @@ const CATEGORIAS_PESO_KIDS = {
       { nome: "Pesadíssimo H",   pesoMax: 999  }
     ],
     F: [
+      { nome: "Galo",            pesoMax: 24   },
       { nome: "Pluma",           pesoMax: 28   },
       { nome: "Leve",            pesoMax: 33   },
       { nome: "Meio-Pesado",     pesoMax: 38   },
@@ -213,11 +219,12 @@ const CATEGORIAS_PESO_KIDS = {
   },
 
   // ── Infanto Juvenil 1 (12-13 anos) — "Infanto Juvenil A" ────
-  // M: Pluma 40 | Pena 42.5 | Leve 45 | Médio 47.5 | Meio-Pesado 50
+  // M: Galo 36 | Pluma 40 | Pena 42.5 | Leve 45 | Médio 47.5 | Meio-Pesado 50
   //    Pesado 52.5 | Super-Pesado 55 | Pes 60 | A 65 | B 70 | C 75
   //    D 80 | E 85 | F 90 | G 95 | H >95
   'Infanto Juvenil 1': {
     M: [
+      { nome: "Galo",            pesoMax: 36   },
       { nome: "Pluma",           pesoMax: 40   },
       { nome: "Pena",            pesoMax: 42.5 },
       { nome: "Leve",            pesoMax: 45   },
@@ -236,6 +243,7 @@ const CATEGORIAS_PESO_KIDS = {
       { nome: "Pesadíssimo H",   pesoMax: 999  }
     ],
     F: [
+      { nome: "Galo",            pesoMax: 29   },
       { nome: "Pluma",           pesoMax: 33   },
       { nome: "Leve",            pesoMax: 38   },
       { nome: "Meio-Pesado",     pesoMax: 43   },
