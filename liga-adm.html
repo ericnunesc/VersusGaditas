@@ -1288,7 +1288,17 @@ window.abrirModalResultado = function(id) {
   const cats = getCategorias();
   const existingCats = confrontoEditando.resultado?.categorias || cats.map(c => ({ categoria:c, vencedor:null, finalizacao:false }));
   // Garante que todas as categorias configuradas estejam presentes
-  const catsResult = cats.map(cat => existingCats.find(x => x.categoria === cat) || { categoria:cat, vencedor:null, finalizacao:false });
+  const catsResult = cats.map(cat => {
+    const found = existingCats.find(x => x.categoria === cat) || { categoria:cat, vencedor:null, finalizacao:false };
+    // Para Absoluto: pré-preenche at1Id/at2Id com capitão atual se ainda não definido
+    if (cat === 'Absoluto') {
+      if (!found.at1Id) found.at1Id = getCapitaoAbsoluto(confrontoEditando.equipe1Id)?.id ||
+        atletas.filter(a => a.equipeId === confrontoEditando.equipe1Id && a.faixa === faixaSelecionada)[0]?.id || null;
+      if (!found.at2Id) found.at2Id = getCapitaoAbsoluto(confrontoEditando.equipe2Id)?.id ||
+        atletas.filter(a => a.equipeId === confrontoEditando.equipe2Id && a.faixa === faixaSelecionada)[0]?.id || null;
+    }
+    return found;
+  });
 
   if (!confrontoEditando.resultado) {
     confrontoEditando.resultado = { categorias: catsResult, vitoriasEq1: 0, vitoriasEq2: 0 };
@@ -1298,28 +1308,53 @@ window.abrirModalResultado = function(id) {
 
   document.getElementById('result-cats').innerHTML = catsResult.map((cr, idx) => {
     const isAbs = cr.categoria === 'Absoluto';
-    const at1 = isAbs
-      ? getCapitaoAbsoluto(confrontoEditando.equipe1Id)
-      : getAtletaParaConfronto(confrontoEditando, confrontoEditando.equipe1Id, cr.categoria, faixaSelecionada);
-    const at2 = isAbs
-      ? getCapitaoAbsoluto(confrontoEditando.equipe2Id)
-      : getAtletaParaConfronto(confrontoEditando, confrontoEditando.equipe2Id, cr.categoria, faixaSelecionada);
-    const label1 = at1 ? at1.nome.split(' ')[0] + (isAbs && at1.categoria ? ` (${at1.categoria})` : '') : eq1.split(' ')[0];
-    const label2 = at2 ? at2.nome.split(' ')[0] + (isAbs && at2.categoria ? ` (${at2.categoria})` : '') : eq2.split(' ')[0];
     const sel = v => cr.vencedor === v ? `sel-${v==='1'?'eq1':v==='2'?'eq2':'emp'}` : '';
-    const atlLabel1 = at1 ? `${at1.nome}${isAbs?' 🏆 Capitão':''}` : '(sem atleta)';
-    const atlLabel2 = at2 ? `${at2.nome}${isAbs?' 🏆 Capitão':''}` : '(sem atleta)';
 
-    return `<div class="result-row ${isAbs?'abs-row':''}">
-      <div class="result-cat-name ${isAbs?'abs':''}">
-        ${isAbs ? '🏆 ' : ''}${cr.categoria}
-      </div>
+    if (isAbs) {
+      // Absoluto: seletor de atleta individual por equipe (qualquer atleta da faixa)
+      const atsEq1 = atletas.filter(a => a.equipeId === confrontoEditando.equipe1Id && a.faixa === faixaSelecionada);
+      const atsEq2 = atletas.filter(a => a.equipeId === confrontoEditando.equipe2Id && a.faixa === faixaSelecionada);
+      const selId1 = cr.at1Id || atsEq1[0]?.id || '';
+      const selId2 = cr.at2Id || atsEq2[0]?.id || '';
+      const nome1 = atletas.find(a=>a.id===selId1)?.nome?.split(' ')[0] || eq1.split(' ')[0];
+      const nome2 = atletas.find(a=>a.id===selId2)?.nome?.split(' ')[0] || eq2.split(' ')[0];
+      const opts1 = atsEq1.map(a=>`<option value="${a.id}" ${selId1===a.id?'selected':''}>${a.nome} (${a.categoria})</option>`).join('') || '<option value="">Sem atletas</option>';
+      const opts2 = atsEq2.map(a=>`<option value="${a.id}" ${selId2===a.id?'selected':''}>${a.nome} (${a.categoria})</option>`).join('') || '<option value="">Sem atletas</option>';
+      return `<div class="result-row abs-row">
+        <div class="result-cat-name abs">🏆 Absoluto</div>
+        <div class="result-controls">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+            <select id="abs-sel-1-${idx}" onchange="selecionarAtletaAbsoluto(${idx},1,this.value)" style="font-size:0.73rem;padding:3px 7px;border:1px solid #CBD5E1;border-radius:6px;max-width:185px">${opts1}</select>
+            <span style="color:#94A3B8;font-size:0.8rem">×</span>
+            <select id="abs-sel-2-${idx}" onchange="selecionarAtletaAbsoluto(${idx},2,this.value)" style="font-size:0.73rem;padding:3px 7px;border:1px solid #CBD5E1;border-radius:6px;max-width:185px">${opts2}</select>
+          </div>
+          <div class="result-btns">
+            <button class="rbtn ${sel('1')}"      id="rbtn-${idx}-1"   onclick="selecionarVencedor(${idx},'1')">${nome1} venceu</button>
+            <button class="rbtn ${sel('empate')}" id="rbtn-${idx}-emp" onclick="selecionarVencedor(${idx},'empate')">Empate</button>
+            <button class="rbtn ${sel('2')}"      id="rbtn-${idx}-2"   onclick="selecionarVencedor(${idx},'2')">${nome2} venceu</button>
+          </div>
+          <div class="fin-row">
+            <input type="checkbox" id="fin-${idx}" ${cr.finalizacao?'checked':''} onchange="atualizarFinalizacao(${idx},this.checked)">
+            <label for="fin-${idx}">Finalização 🔒</label>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    const at1 = getAtletaParaConfronto(confrontoEditando, confrontoEditando.equipe1Id, cr.categoria, faixaSelecionada);
+    const at2 = getAtletaParaConfronto(confrontoEditando, confrontoEditando.equipe2Id, cr.categoria, faixaSelecionada);
+    const label1 = at1 ? at1.nome.split(' ')[0] : eq1.split(' ')[0];
+    const label2 = at2 ? at2.nome.split(' ')[0] : eq2.split(' ')[0];
+    const atlLabel1 = at1 ? at1.nome : '(sem atleta)';
+    const atlLabel2 = at2 ? at2.nome : '(sem atleta)';
+    return `<div class="result-row">
+      <div class="result-cat-name">${cr.categoria}</div>
       <div class="result-controls">
         <div class="atleta-label">${atlLabel1} × ${atlLabel2}</div>
         <div class="result-btns">
-          <button class="rbtn ${sel('1')}"     id="rbtn-${idx}-1"   onclick="selecionarVencedor(${idx},'1')">${label1} venceu</button>
+          <button class="rbtn ${sel('1')}"      id="rbtn-${idx}-1"   onclick="selecionarVencedor(${idx},'1')">${label1} venceu</button>
           <button class="rbtn ${sel('empate')}" id="rbtn-${idx}-emp" onclick="selecionarVencedor(${idx},'empate')">Empate</button>
-          <button class="rbtn ${sel('2')}"     id="rbtn-${idx}-2"   onclick="selecionarVencedor(${idx},'2')">${label2} venceu</button>
+          <button class="rbtn ${sel('2')}"      id="rbtn-${idx}-2"   onclick="selecionarVencedor(${idx},'2')">${label2} venceu</button>
         </div>
         <div class="fin-row">
           <input type="checkbox" id="fin-${idx}" ${cr.finalizacao?'checked':''} onchange="atualizarFinalizacao(${idx},this.checked)">
@@ -1349,6 +1384,19 @@ window.atualizarFinalizacao = function(idx, checked) {
   if (confrontoEditando?.resultado?.categorias?.[idx]) confrontoEditando.resultado.categorias[idx].finalizacao = checked;
 };
 
+// Absoluto: registra qual atleta específico luta por cada equipe neste confronto
+window.selecionarAtletaAbsoluto = function(idx, team, atletaId) {
+  if (!confrontoEditando?.resultado?.categorias?.[idx]) return;
+  const cr = confrontoEditando.resultado.categorias[idx];
+  if (team === 1) cr.at1Id = atletaId;
+  else cr.at2Id = atletaId;
+  // Atualiza label do botão "venceu"
+  const at = atletas.find(a => a.id === atletaId);
+  const nome = at ? at.nome.split(' ')[0] : (team===1 ? nomeEquipe(confrontoEditando.equipe1Id) : nomeEquipe(confrontoEditando.equipe2Id)).split(' ')[0];
+  const btn = document.getElementById(`rbtn-${idx}-${team}`);
+  if (btn) btn.textContent = `${nome} venceu`;
+};
+
 function atualizarScorePreview() {
   const cats = confrontoEditando?.resultado?.categorias || [];
   let v1=0, v2=0, pend=0;
@@ -1373,9 +1421,12 @@ async function recalcularTodosAtletas(faixa) {
     for (const cr of (c.resultado.categorias || [])) {
       if (!cr.vencedor) continue;
       const isAbs = cr.categoria === 'Absoluto';
-      const at1 = isAbs ? getCapitaoAbsoluto(c.equipe1Id)
+      // Absoluto: usa o atleta gravado no confronto (cr.at1Id/at2Id), cai no capitão se não houver (retrocompatibilidade)
+      const at1 = isAbs
+        ? (cr.at1Id ? atletas.find(a => a.id === cr.at1Id) : getCapitaoAbsoluto(c.equipe1Id))
         : getAtletaParaConfronto(c, c.equipe1Id, cr.categoria, f);
-      const at2 = isAbs ? getCapitaoAbsoluto(c.equipe2Id)
+      const at2 = isAbs
+        ? (cr.at2Id ? atletas.find(a => a.id === cr.at2Id) : getCapitaoAbsoluto(c.equipe2Id))
         : getAtletaParaConfronto(c, c.equipe2Id, cr.categoria, f);
       const aplica = (at, res) => {
         if (!at || !acc[at.id]) return;
@@ -1484,7 +1535,9 @@ function renderClassificacao() {
     const zeroSt = { pontos:0, vitorias:0, empates:0, derrotas:0, finalizacoes:0 };
     const getSt = a => (a.catStats && a.catStats[cat]) ? a.catStats[cat] : zeroSt;
     const ats = (cat === 'Absoluto'
-      ? equipes.map(eq => getCapitaoAbsoluto(eq.id)).filter(Boolean)
+      // Absoluto: mostra TODOS os atletas que lutaram (com pelo menos 1 luta registrada)
+      ? atletas.filter(a => a.faixa === faixaSelecionada && a.catStats?.['Absoluto'] &&
+          (a.catStats['Absoluto'].vitorias + a.catStats['Absoluto'].derrotas + a.catStats['Absoluto'].empates) > 0)
       : atletas.filter(a => a.faixa === faixaSelecionada && a.categoria === cat)
     ).sort((a,b) => {
       const sa = getSt(a), sb = getSt(b);
@@ -1492,7 +1545,7 @@ function renderClassificacao() {
     });
     if (!ats.length) return;
     html += `<div style="margin-bottom:14px">
-      <div style="font-size:0.72rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">${cat}${cat==='Absoluto'?' 🏆 (Capitães)':''}</div>
+      <div style="font-size:0.72rem;font-weight:700;color:#8A9CB0;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">${cat}${cat==='Absoluto'?' 🏆 — Individual':''}</div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>Pos</th><th>Atleta</th><th>Equipe</th>${cat!=='Absoluto'?'<th>Cat.</th>':''}<th>Pts</th><th>V</th><th>E</th><th>D</th><th>Fin.</th></tr></thead>
         <tbody>${ats.map((a,i)=>{
