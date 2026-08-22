@@ -1253,12 +1253,21 @@ async function carregarInscricoesPub() {
 
 window.excluirInscPub = async function(id, nome, status) {
   const aviso = status === 'aprovado'
-    ? `Excluir inscrição APROVADA de ${nome}? O atleta poderá perder acesso.`
+    ? `Excluir inscrição APROVADA de ${nome}?\nIsso também removerá o atleta da lista pública.`
     : `Excluir permanentemente a inscrição de ${nome}?`;
   if (!confirm(aviso + '\n\nEsta ação não pode ser desfeita.')) return;
   try {
+    // Buscar a inscrição completa para pegar o atletaId, se houver
+    const inscSnap = await getDoc(doc(db, 'campeonatos', campId, 'inscricoes', id));
+    if (inscSnap.exists()) {
+      const insc = inscSnap.data();
+      // Se tinha atletaId, remove também da coleção atletas (lista pública)
+      if (insc.atletaId) {
+        try { await deleteDoc(doc(db, 'campeonatos', campId, 'atletas', insc.atletaId)); } catch(_) {}
+      }
+    }
     await deleteDoc(doc(db, 'campeonatos', campId, 'inscricoes', id));
-    toast(`Inscrição de ${nome} excluída.`, 'ok');
+    toast(`Inscrição de ${nome} excluída da lista pública e das inscrições.`, 'ok');
     carregarInscricoesPub();
   } catch(e) { toast('Erro ao excluir.', 'erro'); console.error(e); }
 };
