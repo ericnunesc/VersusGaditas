@@ -150,6 +150,7 @@
     .mm-match.pendente{border-left:3px solid var(--ouro);}
     .mm-match.finalizado{border-left:3px solid var(--verde,#2a7d2a);opacity:.85;}
     .mm-match.aguardando{border-left:3px solid var(--borda);opacity:.6;}
+    .mm-match.em_andamento{border-left:3px solid #1D4ED8;background:rgba(219,234,254,0.08);}
     .mm-atleta{display:flex;align-items:center;gap:8px;padding:6px 0;}
     .mm-atleta+.mm-atleta{border-top:1px dashed var(--borda);}
     .mm-semente{width:22px;height:22px;border-radius:50%;background:var(--ouro);color:#fff;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -1060,7 +1061,66 @@ window.corrigirLuta = async function(lutaId) {
 ch.addEventListener('message', async e => {
   const { type, idx, state } = e.data || {};
 
-  // Encontrar a luta pelo idx
+  // ── Verificar se é luta do MATA-MATA ──────────────────────────
+  const mmMatchId = Object.keys(janelasMM).find(id => janelasMM[id].idx === idx);
+  if (mmMatchId) {
+    const mm = mataMataMatches.find(x => x._id === mmMatchId);
+    if (!mm) return;
+
+    if (type === 'tv_score') {
+      // Mostrar placar ao vivo no card (opcional)
+      const card = document.getElementById(`mm-card-${mmMatchId}`);
+      if (card) {
+        const badge = card.querySelector('.mm-score-live');
+        if (badge) badge.textContent = `🔴 ${state.pts1||0} × ${state.pts2||0}`;
+      }
+      return;
+    }
+
+    if (type === 'tv_finalizar') {
+      const vencedorSide = state.vencedor; // '1' ou '2' ou 'empate'
+      let vencedorId = null;
+      let vencedorRef = null;
+      if (vencedorSide === '1') { vencedorId = mm.atletaA.id; vencedorRef = mm.atletaA; }
+      else if (vencedorSide === '2') { vencedorId = mm.atletaB.id; vencedorRef = mm.atletaB; }
+      else {
+        // Empate — no mata-mata não pode ter empate, perguntar
+        toast('Empate no mata-mata — declare o vencedor manualmente.', 'aviso');
+        await updateDoc(doc(mmCol(), mmMatchId), { status: 'pendente' });
+        mm.status = 'pendente';
+        delete janelasMM[mmMatchId];
+        renderMataMata();
+        return;
+      }
+      const metodo = state.finalizacao ? 'finalizacao' : 'pontos';
+      try {
+        await updateDoc(doc(mmCol(), mmMatchId), { vencedorId, status: 'finalizado', metodo,
+          resultado: {
+            pts1: state.pts1||0, pts2: state.pts2||0,
+            van1: state.van1||0, van2: state.van2||0,
+            pun1: state.pun1||0, pun2: state.pun2||0,
+          }
+        });
+        mm.vencedorId = vencedorId; mm.status = 'finalizado'; mm.metodo = metodo;
+        delete janelasMM[mmMatchId];
+        await avancarVencedorMM(mm.rodada, mm.posicao, vencedorId, vencedorRef);
+        await carregarMataMata();
+        toast(`${vencedorRef.nome.split(' ')[0]} avançou no Mata-Mata!`, 'ok');
+      } catch(err) { toast('Erro ao salvar resultado MM.', 'erro'); console.error(err); }
+      return;
+    }
+
+    if (type === 'tv_encerrar') {
+      await updateDoc(doc(mmCol(), mmMatchId), { status: 'pendente' });
+      mm.status = 'pendente';
+      delete janelasMM[mmMatchId];
+      renderMataMata();
+      return;
+    }
+    return; // era MM, não processar como Round-Robin
+  }
+
+  // ── Round-Robin normal ─────────────────────────────────────────
   const lutaId = Object.keys(janelasPlacar).find(id => janelasPlacar[id].idx === idx);
   if (!lutaId) return;
   const luta   = lutas.find(l => l.id === lutaId);
@@ -1247,6 +1307,8 @@ window.limparTudo = async function() {
 
 // ── MATA-MATA ──────────────────────────────────────────────────
 let mataMataMatches = [];
+let janelasMM = {}; // matchId → { win, idx }
+const mmIdx = (rodada, posicao) => 10000 + rodada * 100 + posicao; // índice único (não colide com Round-Robin)
 
 const mmCol = () => collection(db, 'campeonatos', campId, 'pc-mata-mata');
 const mmDocId = (r, p) => `r${r}p${p}`;
@@ -1362,24 +1424,36 @@ function renderMatch(m) {
 
   const mid = isBye ? '' : `<div class="mm-vs">VS</div>`;
 
+  const isEmAndamento = m.status === 'em_andamento';
+
   let actions = '';
   if (!isFinalizado && !isAguardando && atletaA && atletaB) {
-    const mid_json_a = JSON.stringify({id: atletaA.id, nome: atletaA.nome, academia: atletaA.academia});
-    const mid_json_b = JSON.stringify({id: atletaB.id, nome: atletaB.nome, academia: atletaB.academia});
-    actions = `<div class="mm-actions">
-      <select class="mm-metodo" id="metodo-${m._id}">
-        <option value="pontos">Por Pontos</option>
-        <option value="finalizacao">Finalização</option>
-        <option value="desclassificacao">Desclassificação</option>
-        <option value="wo">W.O.</option>
-      </select>
-      <button class="mm-btn-a" onclick="declararVencedorMM('${m._id}','${atletaA.id}')">
-        🏆 ${atletaA.nome.split(' ')[0]}
-      </button>
-      <button class="mm-btn-b" onclick="declararVencedorMM('${m._id}','${atletaB.id}')">
-        🏆 ${atletaB.nome.split(' ')[0]}
-      </button>
-    </div>`;
+    if (isEmAndamento) {
+      actions = `<div class="mm-actions">
+        <button class="btn btn-sm" style="background:#DBEAFE;color:#1D4ED8;flex:1;" onclick="abrirPlacarMM('${m._id}')">● Em andamento — Abrir Placar</button>
+      </div>`;
+    } else {
+      actions = `<div class="mm-actions">
+        <button class="btn btn-verde btn-sm" style="flex:1;font-size:0.82rem;" onclick="abrirPlacarMM('${m._id}')">▶ Pontuar</button>
+      </div>
+      <details style="margin-top:6px;">
+        <summary style="font-size:0.7rem;color:var(--fraco);cursor:pointer;user-select:none;">📝 Declarar manualmente (W.O., etc.)</summary>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+          <select class="mm-metodo" id="metodo-${m._id}">
+            <option value="wo">W.O.</option>
+            <option value="desclassificacao">Desclassificação</option>
+            <option value="pontos">Por Pontos</option>
+            <option value="finalizacao">Finalização</option>
+          </select>
+          <button class="mm-btn-a" onclick="declararVencedorMM('${m._id}','${atletaA.id}')">
+            🏆 ${atletaA.nome.split(' ')[0]}
+          </button>
+          <button class="mm-btn-b" onclick="declararVencedorMM('${m._id}','${atletaB.id}')">
+            🏆 ${atletaB.nome.split(' ')[0]}
+          </button>
+        </div>
+      </details>`;
+    }
   }
 
   return `<div class="mm-match ${m.status}">
@@ -1511,6 +1585,45 @@ async function avancarVencedorMM(rodadaAtual, posicaoAtual, vencedorId, vencedor
     await updateDoc(nextDocRef, { status: 'pendente' });
   }
 }
+
+window.abrirPlacarMM = async function(matchId) {
+  const m = mataMataMatches.find(x => x._id === matchId);
+  if (!m || !m.atletaA || !m.atletaB) return;
+
+  const idx = mmIdx(m.rodada, m.posicao);
+
+  // Salvar dados no localStorage para o placar ler
+  const rodadaNome = (() => {
+    const maxR = Math.max(...mataMataMatches.map(x => x.rodada));
+    if (m.rodada === maxR) return 'Final';
+    if (m.rodada === maxR - 1) return 'Semifinal';
+    if (m.rodada === maxR - 2) return 'Quartas de Final';
+    return `MM R${m.rodada}`;
+  })();
+
+  const initData = {
+    categoria:  'MATA-MATA',
+    faixaLabel: rodadaNome,
+    rodada:     `${rodadaNome} — ${m.atletaA.semente}º vs ${m.atletaB.semente}º`,
+    equipe1:    m.atletaA.academia || '',
+    equipe2:    m.atletaB.academia || '',
+    atleta1:    m.atletaA.nome,
+    atleta2:    m.atletaB.nome,
+    tempoLuta:  (config.tempo || 5) * 60,
+  };
+  localStorage.setItem(`liga_luta_init_${campId}_${idx}`, JSON.stringify(initData));
+
+  // Marcar como em andamento
+  await updateDoc(doc(mmCol(), matchId), { status: 'em_andamento' });
+  const mm = mataMataMatches.find(x => x._id === matchId);
+  if (mm) mm.status = 'em_andamento';
+  renderMataMata();
+
+  // Abrir janela do placar
+  const url = `liga-luta-tv.html?id=${campId}&idx=${idx}&canal=${canal}`;
+  const win = window.open(url, `mm_${matchId}`, 'width=1280,height=720');
+  janelasMM[matchId] = { win, idx };
+};
 
 window.declararVencedorMM = async function(matchId, vencedorId) {
   const m = mataMataMatches.find(x => x._id === matchId);
