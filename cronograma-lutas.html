@@ -943,6 +943,7 @@ function getNomeFase(numLutas, cat) {
     }
 
 function carregarAgenda() {
+    if (window._pcMode) return; // Modo Pontos Corridos ativo — não sobrescrever
     var raw = localStorage.getItem('gaditas_torneio_atual');
     var _torneioCheck; try { _torneioCheck = JSON.parse(raw||'{}'); } catch(e) { _torneioCheck = {}; }
     var nomeComp = _torneioCheck.nomeCompeticao || localStorage.getItem('gaditas_competicao_nome') || 'Competição';
@@ -1131,5 +1132,278 @@ window.addEventListener('storage', function(e) {
 
 
 <script src="js/install-prompt.js"></script>
+
+<!-- ═══ PONTOS CORRIDOS: detecção automática por ?id ═══ -->
+<script type="module">
+import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, getDoc, collection, getDocs, onSnapshot }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const campId = new URLSearchParams(location.search).get('id');
+if (!campId) { /* sem id: modo local normal */ }
+else {
+  const app = initializeApp({
+    apiKey:"AIzaSyA0HOHKPd9gCpJx0pnFWaKdLU-1WJks-gA",
+    authDomain:"campeonatobjj.firebaseapp.com",
+    projectId:"campeonatobjj",
+    storageBucket:"campeonatobjj.firebasestorage.app",
+    messagingSenderId:"399016509024",
+    appId:"1:399016509024:web:b4e46aa9b4b2e0e5c70c70"
+  }, 'pc-cronograma');
+  const db = getFirestore(app);
+
+  const campSnap = await getDoc(doc(db, 'campeonatos', campId));
+  if (campSnap.exists() && campSnap.data().tipo === 'pontos-corridos') {
+    window._pcMode = true; // Bloqueia carregarAgenda() imediatamente
+    // ── Modo PC: substituir todo o conteúdo ──────────────────────
+    window._pcStopInterval && clearInterval(window._pcStopInterval);
+
+    // Parar o setInterval do modo local
+    const oldSI = window.setInterval; // guardar
+    clearInterval(window._pcInterval);
+
+    const nomeComp = campSnap.data().nome || 'Pontos Corridos';
+    document.getElementById('comp-nome').textContent = '🔄 ' + nomeComp;
+
+    // Estilos extras para o modo PC
+    const style = document.createElement('style');
+    style.textContent = `
+      .pc-wrap { padding: 4px 0; }
+      .pc-rodada-header { padding: 10px 18px; background: #161620; border-bottom: 1px solid #1E1E2A;
+        display:flex; justify-content:space-between; align-items:center; }
+      .pc-rodada-label { font-family:'Oswald',sans-serif; font-size:0.85rem; font-weight:700;
+        color:#C9A03D; letter-spacing:1px; }
+      .pc-rodada-badge { font-size:0.6rem; font-weight:700; padding:2px 8px; border-radius:10px;
+        background:rgba(201,160,61,0.15); color:#C9A03D; }
+      .pc-luta-row { display:flex; align-items:center; gap:10px; padding:10px 18px;
+        border-bottom:1px solid #1E1E2A; transition:background .2s; }
+      .pc-luta-row:last-child { border-bottom:none; }
+      .pc-luta-row.ao-vivo { background:rgba(0,230,138,0.06); }
+      .pc-luta-row.finalizada { opacity:.6; }
+      .pc-seq { font-family:'Oswald',sans-serif; font-size:0.85rem; color:#5A5A7A; width:28px; text-align:center; flex-shrink:0; }
+      .pc-at { flex:1; min-width:0; }
+      .pc-at-nome { font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .pc-at-acad { font-size:0.65rem; color:#5A5A7A; }
+      .pc-vs { background:#1A1A28; border-radius:4px; padding:2px 7px; font-size:0.65rem;
+        font-weight:700; color:#5A5A7A; flex-shrink:0; }
+      .pc-badge { padding:3px 10px; border-radius:20px; font-size:0.62rem; font-weight:700; white-space:nowrap; }
+      .pc-pend { background:#2A2A10; color:#F59E0B; }
+      .pc-vivo { background:#002A18; color:#00E68A; animation:blink-txt .8s infinite; }
+      .pc-fim { background:#0A1A10; color:#00B36B; }
+      .pc-res { font-size:0.7rem; text-align:right; flex-shrink:0; min-width:70px; }
+      .pc-venc { font-weight:700; color:#00E68A; }
+      .pc-pts { color:#5A5A7A; font-size:0.62rem; }
+      .pc-empty { text-align:center; padding:60px 20px; color:#5A5A7A; }
+      .pc-empty .icon { font-size:2.5rem; margin-bottom:12px; }
+    `;
+    document.head.appendChild(style);
+
+    let atletas = [];
+    let lutas   = [];
+
+    function nomeAtleta(id) {
+      return atletas.find(a => a.id === id)?.nome || '?';
+    }
+    function acadAtleta(id) {
+      return atletas.find(a => a.id === id)?.academia || '';
+    }
+
+    function renderPC() {
+      document.getElementById('ultima-atualizacao').textContent =
+        'às ' + new Date().toTimeString().slice(0,8);
+
+      const areas  = document.getElementById('areas-tabs');
+      const panels = document.getElementById('areas-panels');
+      areas.innerHTML = '';
+
+      if (!lutas.length) {
+        panels.innerHTML = `<div class="pc-empty"><div class="icon">🥊</div>
+          <h3 style="color:#C9A03D;font-family:Oswald,sans-serif;">Sem lutas geradas</h3>
+          <p>Acesse o admin e gere as lutas para ver o cronograma.</p></div>`;
+        return;
+      }
+
+      const rodadas = [...new Set(lutas.map(l => l.rodada))].sort((a,b)=>a-b);
+      let html = '<div class="pc-wrap">';
+
+      // Configuração turno/returno
+      let totalRodTurno = 0;
+      let turnoReturno  = false;
+      const cfgCache = window._pcCfg;
+      if (cfgCache) { turnoReturno = !!cfgCache.turnoReturno; totalRodTurno = cfgCache._totalRodTurno || 0; }
+
+      rodadas.forEach(r => {
+        const lutasR  = lutas.filter(l => l.rodada === r).sort((a,b)=>a.ordem-b.ordem);
+        const feitas  = lutasR.filter(l => l.status==='finalizada').length;
+        const aoVivo  = lutasR.some(l => l.status==='em_andamento');
+        const label   = turnoReturno && totalRodTurno
+          ? (r <= totalRodTurno ? `TURNO ${r}` : `RETURNO ${r - totalRodTurno}`)
+          : `RODADA ${r}`;
+        const badge   = feitas === lutasR.length
+          ? `<span class="pc-rodada-badge">✓ Completa</span>`
+          : aoVivo
+          ? `<span class="pc-rodada-badge" style="color:#00E68A;background:rgba(0,230,138,.15)">🔴 Ao vivo</span>`
+          : `<span class="pc-rodada-badge">${feitas}/${lutasR.length}</span>`;
+
+        html += `<div class="lutas-table-wrap" style="margin-bottom:12px;">
+          <div class="pc-rodada-header"><span class="pc-rodada-label">📍 ${label}</span>${badge}</div>
+          <div class="lutas-rows">`;
+
+        lutasR.forEach((l, i) => {
+          const n1 = nomeAtleta(l.at1Id), n2 = nomeAtleta(l.at2Id);
+          const a1 = acadAtleta(l.at1Id), a2 = acadAtleta(l.at2Id);
+          const st = l.status || 'pendente';
+          const res = l.resultado;
+          let badge = st === 'finalizada'
+            ? `<span class="pc-badge pc-fim">✅ Finalizada</span>`
+            : st === 'em_andamento'
+            ? `<span class="pc-badge pc-vivo">🔴 AO VIVO</span>`
+            : `<span class="pc-badge pc-pend">⏳ Pendente</span>`;
+          let resHtml = '';
+          if (st === 'finalizada' && res) {
+            const venc = res.vencedor === '1' ? n1.split(' ')[0]
+              : res.vencedor === '2' ? n2.split(' ')[0] : 'Empate';
+            resHtml = `<div class="pc-res"><div class="pc-venc">${res.finalizacao?'🔒 ':''}${venc}</div><div class="pc-pts">${res.pts1||0}×${res.pts2||0}</div></div>`;
+          }
+          const rowCls = st==='finalizada'?'finalizada':st==='em_andamento'?'ao-vivo':'';
+          html += `<div class="pc-luta-row ${rowCls}">
+            <div class="pc-seq">${i+1}</div>
+            <div class="pc-at pc-at1" style="text-align:right">
+              <div class="pc-at-nome" style="color:#3B8BFF">${n1}</div>
+              <div class="pc-at-acad">${a1}</div>
+            </div>
+            <div class="pc-vs">VS</div>
+            <div class="pc-at pc-at2">
+              <div class="pc-at-nome" style="color:#FF4444">${n2}</div>
+              <div class="pc-at-acad">${a2}</div>
+            </div>
+            <div>${badge}</div>
+            ${resHtml}
+          </div>`;
+        });
+        html += '</div></div>';
+      });
+      html += '</div>';
+
+      // ── Mata-Mata ──────────────────────────────────────────────
+      const mmReais = mataMata.filter(m => m.metodo !== 'bye' || m.atletaB); // excluir bye puro
+      if (mmReais.length) {
+        const maxRound = Math.max(...mataMata.map(m=>m.rodada));
+        const nomeRodada = r => {
+          if (r === maxRound)     return '🏆 FINAL';
+          if (r === maxRound - 1) return '🥊 SEMIFINAL';
+          if (r === maxRound - 2) return '⚡ QUARTAS DE FINAL';
+          return `🔹 MATA-MATA R${r}`;
+        };
+
+        html += `<div class="lutas-table-wrap" style="margin-bottom:12px;margin-top:20px;border-top:2px solid #C9A03D;padding-top:14px;">
+          <div class="pc-rodada-header" style="margin-bottom:10px;">
+            <span class="pc-rodada-label" style="color:#C9A03D;font-size:1rem;">🏅 FASE MATA-MATA</span>
+          </div>`;
+
+        const rounds = [...new Set(mataMata.map(m=>m.rodada))].sort((a,b)=>a-b);
+        rounds.forEach(r => {
+          const matches = mataMata.filter(m => m.rodada === r).sort((a,b)=>a.posicao-b.posicao);
+          const feitas  = matches.filter(m => m.status === 'finalizado').length;
+          const total   = matches.length;
+          const badge   = feitas === total
+            ? `<span class="pc-rodada-badge">✓ Completa</span>`
+            : `<span class="pc-rodada-badge">${feitas}/${total}</span>`;
+
+          html += `<div style="margin-bottom:10px;">
+            <div class="pc-rodada-header"><span class="pc-rodada-label">${nomeRodada(r)}</span>${badge}</div>
+            <div class="lutas-rows">`;
+
+          matches.forEach(m => {
+            if (m.metodo === 'bye') return; // não mostrar byes
+            const n1 = m.atletaA?.nome || '—';
+            const n2 = m.atletaB?.nome || 'Aguardando...';
+            const a1 = m.atletaA?.academia || '';
+            const a2 = m.atletaB?.academia || '';
+            const s1 = m.atletaA?.semente || '';
+            const s2 = m.atletaB?.semente || '';
+            const st = m.status || 'aguardando';
+            const res = m.resultado;
+
+            let badge = '';
+            if (st === 'finalizado') {
+              badge = `<span class="pc-badge pc-fim">✅ Finalizada</span>`;
+            } else if (st === 'em_andamento') {
+              badge = `<span class="pc-badge pc-vivo">🔴 AO VIVO</span>`;
+            } else if (st === 'aguardando') {
+              badge = `<span class="pc-badge" style="color:#888;background:rgba(128,128,128,.15)">⏳ Aguardando</span>`;
+            } else {
+              badge = `<span class="pc-badge pc-pend">⏳ Pendente</span>`;
+            }
+
+            let resHtml = '';
+            if (st === 'finalizado' && res) {
+              const venc = m.vencedorId === m.atletaA?.id ? n1.split(' ')[0]
+                         : m.vencedorId === m.atletaB?.id ? n2.split(' ')[0] : '—';
+              const metIcon = m.metodo === 'finalizacao' ? '🔒 ' : m.metodo === 'wo' ? 'W.O. ' : '';
+              resHtml = `<div class="pc-res"><div class="pc-venc">${metIcon}${venc}</div><div class="pc-pts">${res.pts1||0}×${res.pts2||0}</div></div>`;
+            }
+
+            const rowCls = st==='finalizado'?'finalizada':st==='em_andamento'?'ao-vivo':'';
+            html += `<div class="pc-luta-row ${rowCls}">
+              <div class="pc-seq" style="font-size:0.65rem;color:#C9A03D;">${s1||'?'}</div>
+              <div class="pc-at pc-at1" style="text-align:right">
+                <div class="pc-at-nome" style="color:#3B8BFF">${n1}</div>
+                ${a1 ? `<div class="pc-at-acad">${a1}</div>` : ''}
+              </div>
+              <div class="pc-vs">VS</div>
+              <div class="pc-at pc-at2">
+                <div class="pc-at-nome" style="color:${m.atletaB?'#FF4444':'#888'}">${n2}</div>
+                ${a2 ? `<div class="pc-at-acad">${a2}</div>` : ''}
+              </div>
+              <div class="pc-seq" style="font-size:0.65rem;color:#C9A03D;">${s2||''}</div>
+              <div>${badge}</div>
+              ${resHtml}
+            </div>`;
+          });
+
+          html += '</div></div>';
+        });
+
+        html += '</div>';
+      }
+
+      panels.innerHTML = html;
+    }
+
+    let mataMata = [];
+
+    async function carregarPC() {
+      // Config
+      const cfgSnap = await getDoc(doc(db,'campeonatos',campId,'pc-config','principal'));
+      const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
+      window._pcCfg = cfg;
+
+      // Atletas
+      const atSnap = await getDocs(collection(db,'campeonatos',campId,'pc-atletas'));
+      atletas = atSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+      // Lutas (round-robin)
+      const ltSnap = await getDocs(collection(db,'campeonatos',campId,'pc-lutas'));
+      lutas = ltSnap.docs.map(d=>({id:d.id,...d.data()}))
+        .sort((a,b)=>(a.rodada-b.rodada)||(a.ordem-b.ordem));
+
+      if (cfg.turnoReturno && lutas.length) {
+        cfg._totalRodTurno = Math.round(Math.max(...lutas.map(l=>l.rodada)) / 2);
+      }
+
+      // Mata-mata
+      const mmSnap = await getDocs(collection(db,'campeonatos',campId,'pc-mata-mata'));
+      mataMata = mmSnap.docs.map(d=>({_id:d.id,...d.data()}))
+        .sort((a,b)=>(a.rodada-b.rodada)||(a.posicao-b.posicao));
+
+      renderPC();
+    }
+
+    await carregarPC();
+    window._pcInterval = setInterval(carregarPC, 5000);
+  }
+}
+</script>
 </body>
 </html>
