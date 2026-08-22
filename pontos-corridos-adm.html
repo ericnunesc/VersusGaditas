@@ -1405,34 +1405,46 @@ window.gerarMataMata = async function() {
   let totalRounds = 0;
   let c = n;
   while (c > 1) { c = Math.ceil(c / 2); totalRounds++; }
-  // R1 pode ter ceil(n/2) matches (bye para o do meio se ímpar)
-  const r1Count = Math.ceil(n / 2);
+  const r1Count = Math.ceil(n / 2); // nº de posições em R1 (incluindo BYE se ímpar)
 
   const batch = writeBatch(db);
 
   // Apagar existente
   (await getDocs(mmCol())).docs.forEach(d => batch.delete(d.ref));
 
-  // Gerar R1: 1º vs último, 2º vs penúltimo...
-  // Se n ímpar: atleta do meio (posição floor(n/2)) vai para a posição final de R1 com BYE
-  for (let i = 0; i < Math.floor(n / 2); i++) {
-    const a = ranking[i];         // seed i+1 (topo)
-    const b = ranking[n - 1 - i]; // seed n-i (base)
-    batch.set(doc(mmCol(), mmDocId(1, i)), {
-      rodada: 1, posicao: i,
-      atletaA: toRef(a, i + 1),
-      atletaB: toRef(b, n - i),
-      vencedorId: null, status: 'pendente', metodo: null,
-    });
-  }
   if (n % 2 === 1) {
-    const mid = ranking[Math.floor(n / 2)];
+    // Ímpar: 1º colocado recebe BYE (benefício do líder)
+    // Outros se enfrentam: 2º vs último, 3º vs penúltimo...
+    for (let i = 0; i < Math.floor(n / 2); i++) {
+      const a = ranking[i + 1];     // seed i+2 (começa do 2º)
+      const b = ranking[n - 1 - i]; // seed n-i  (vem do final)
+      batch.set(doc(mmCol(), mmDocId(1, i)), {
+        rodada: 1, posicao: i,
+        atletaA: toRef(a, i + 2),
+        atletaB: toRef(b, n - i),
+        vencedorId: null, status: 'pendente', metodo: null,
+      });
+    }
+    // 1º colocado na última posição de R1 com BYE
+    const seed1 = ranking[0];
     batch.set(doc(mmCol(), mmDocId(1, Math.floor(n / 2))), {
       rodada: 1, posicao: Math.floor(n / 2),
-      atletaA: toRef(mid, Math.floor(n / 2) + 1),
+      atletaA: toRef(seed1, 1),
       atletaB: null,
-      vencedorId: mid.id, status: 'finalizado', metodo: 'bye',
+      vencedorId: seed1.id, status: 'finalizado', metodo: 'bye',
     });
+  } else {
+    // Par: 1º vs último, 2º vs penúltimo...
+    for (let i = 0; i < n / 2; i++) {
+      const a = ranking[i];
+      const b = ranking[n - 1 - i];
+      batch.set(doc(mmCol(), mmDocId(1, i)), {
+        rodada: 1, posicao: i,
+        atletaA: toRef(a, i + 1),
+        atletaB: toRef(b, n - i),
+        vencedorId: null, status: 'pendente', metodo: null,
+      });
+    }
   }
 
   // Pré-gerar rodadas futuras vazias
@@ -1452,10 +1464,10 @@ window.gerarMataMata = async function() {
   await batch.commit();
   await carregarMataMata();
 
-  // Avançar BYE automaticamente se houver
+  // Avançar BYE do 1º colocado automaticamente
   if (n % 2 === 1) {
-    const mid = ranking[Math.floor(n / 2)];
-    await avancarVencedorMM(1, Math.floor(n / 2), mid.id, toRef(mid, Math.floor(n / 2) + 1));
+    const seed1 = ranking[0];
+    await avancarVencedorMM(1, Math.floor(n / 2), seed1.id, toRef(seed1, 1));
   }
 
   toast(`Mata-mata gerado! ${n} atletas, ${totalRounds} rodada(s).`, 'ok');
