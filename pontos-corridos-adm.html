@@ -291,6 +291,18 @@
       </div>
     </div>
 
+    <!-- Lista pública de atletas (coleção atletas) -->
+    <div class="card" style="margin-top:6px;">
+      <div class="card-title" style="justify-content:space-between;">
+        <span>👥 Lista Pública de Atletas</span>
+        <button class="btn btn-ghost btn-sm" onclick="carregarAtletasPub()" style="font-size:0.7rem;padding:3px 10px;">↺ Atualizar</button>
+      </div>
+      <p style="font-size:0.75rem;color:var(--fraco);margin-bottom:10px;">Atletas confirmados na lista pública (<code>atletas-publico.html</code>). Exclua aqui para sumir da lista.</p>
+      <div id="lista-atletas-pub">
+        <div class="empty"><div class="empty-icon">👥</div><p>Carregando...</p></div>
+      </div>
+    </div>
+
     <!-- Inscrições do formulário público -->
     <div class="card" style="margin-top:6px;">
       <div class="card-title" style="justify-content:space-between;">
@@ -455,6 +467,7 @@ onAuthStateChanged(auth, async user => {
   await carregarAtletas();
   await carregarLutas();
   renderAll();
+  carregarAtletasPub();
   carregarInscricoesPub();
 });
 
@@ -1211,6 +1224,57 @@ window.toast = function(msg, tipo) {
   setTimeout(() => el.remove(), 3000);
 };
 function toast(msg, tipo) { window.toast(msg, tipo); }
+
+// ── Lista pública de atletas (coleção atletas) ─────────────────
+async function carregarAtletasPub() {
+  const el = document.getElementById('lista-atletas-pub');
+  if (!el) return;
+  el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>Carregando...</p></div>';
+  try {
+    const snap = await getDocs(collection(db, 'campeonatos', campId, 'atletas'));
+    const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+    if (!lista.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">👥</div><p>Nenhum atleta na lista pública.</p></div>';
+      return;
+    }
+    el.innerHTML = lista.map(a => {
+      const extra = [a.peso && `⚖️ ${a.peso}kg`, a.faixa && `🥋 ${a.faixa}`, a.categoria && `📂 ${a.categoria}`].filter(Boolean).join(' &nbsp;·&nbsp; ');
+      const academia = a.academia || a.equipe || '';
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px solid var(--borda);gap:8px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:0;">
+          <strong style="font-size:0.85rem;">${a.nome || '—'}</strong>
+          ${academia ? `<span style="font-size:0.72rem;color:var(--fraco);margin-left:6px;">${academia}</span>` : ''}
+          ${extra ? `<div style="font-size:0.72rem;color:var(--fraco);margin-top:2px;">${extra}</div>` : ''}
+        </div>
+        <button onclick="excluirAtletaPub('${a.id}','${(a.nome||'').replace(/'/g,"\\'")}','${(a.inscricaoId||a.inscricao_id||'')}')"
+          style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:0.7rem;cursor:pointer;white-space:nowrap;">
+          🗑️ Excluir
+        </button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">❌</div><p>Erro ao carregar.</p></div>';
+    console.error(e);
+  }
+}
+
+window.excluirAtletaPub = async function(id, nome, inscricaoId) {
+  if (!confirm(`Remover ${nome} da lista pública?\n\nEsta ação não pode ser desfeita.`)) return;
+  try {
+    // Apaga da coleção atletas (lista pública)
+    await deleteDoc(doc(db, 'campeonatos', campId, 'atletas', id));
+    // Se tinha inscrição vinculada, oferece apagar também
+    if (inscricaoId && confirm(`Também excluir a inscrição de ${nome} do formulário público?`)) {
+      try { await deleteDoc(doc(db, 'campeonatos', campId, 'inscricoes', inscricaoId)); } catch(_) {}
+    }
+    toast(`${nome} removido da lista pública.`, 'ok');
+    carregarAtletasPub();
+    carregarInscricoesPub();
+  } catch(e) { toast('Erro ao excluir.', 'erro'); console.error(e); }
+};
+
+window.carregarAtletasPub = carregarAtletasPub;
 
 // ── Inscrições do formulário público ───────────────────────────
 const STATUS_LABEL = { pendente:'⏳ Pendente', aprovado:'✅ Aprovado', rejeitado:'❌ Rejeitado', cancelado:'🚫 Cancelado' };
