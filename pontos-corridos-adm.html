@@ -143,6 +143,30 @@
     .cls-e{color:var(--laranja);}
     .cls-d{color:var(--vermelho);}
 
+    /* ─── MATA-MATA ───────────────────────────────────────────── */
+    .mm-round{margin-bottom:22px;}
+    .mm-round-title{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--fraco);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--borda);}
+    .mm-match{background:var(--surface);border:1.5px solid var(--borda);border-radius:12px;padding:14px;margin-bottom:10px;transition:box-shadow .2s;}
+    .mm-match.pendente{border-left:3px solid var(--ouro);}
+    .mm-match.finalizado{border-left:3px solid var(--verde,#2a7d2a);opacity:.85;}
+    .mm-match.aguardando{border-left:3px solid var(--borda);opacity:.6;}
+    .mm-atleta{display:flex;align-items:center;gap:8px;padding:6px 0;}
+    .mm-atleta+.mm-atleta{border-top:1px dashed var(--borda);}
+    .mm-semente{width:22px;height:22px;border-radius:50%;background:var(--ouro);color:#fff;font-size:0.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .mm-nome{font-weight:600;font-size:0.85rem;flex:1;}
+    .mm-acad{font-size:0.7rem;color:var(--fraco);}
+    .mm-vs{text-align:center;font-size:0.65rem;font-weight:700;color:var(--fraco);padding:2px 0;}
+    .mm-vencedor-badge{background:var(--ouro);color:#fff;border-radius:20px;padding:2px 8px;font-size:0.65rem;font-weight:700;margin-left:auto;}
+    .mm-bye-badge{background:var(--borda);color:var(--fraco);border-radius:20px;padding:2px 8px;font-size:0.65rem;margin-left:auto;}
+    .mm-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+    .mm-btn-a{background:var(--ouro);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:600;cursor:pointer;}
+    .mm-btn-b{background:#1A2C3E;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:0.75rem;font-weight:600;cursor:pointer;}
+    .mm-metodo{border:1.5px solid var(--borda);border-radius:8px;padding:5px 8px;font-size:0.73rem;background:var(--surface);color:var(--txt);flex:1;min-width:100px;}
+    .mm-champion{text-align:center;padding:24px 16px;background:linear-gradient(135deg,#C9A03D22,#C9A03D44);border-radius:14px;border:2px solid var(--ouro);margin-top:10px;}
+    .mm-champion-icon{font-size:2.4rem;margin-bottom:4px;}
+    .mm-champion-nome{font-size:1.2rem;font-weight:800;color:var(--ouro);}
+    .mm-champion-acad{font-size:0.8rem;color:var(--fraco);}
+
     /* ─── CONFIG ──────────────────────────────────────────────── */
     .config-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     @media(max-width:480px){.config-row{grid-template-columns:1fr;}}
@@ -219,6 +243,7 @@
     <button class="tab ativa" onclick="mudarAba('atletas')">👤 Atletas</button>
     <button class="tab" onclick="mudarAba('rodadas')">🥊 Rodadas</button>
     <button class="tab" onclick="mudarAba('classificacao')">🏆 Classificação</button>
+    <button class="tab" onclick="mudarAba('mata-mata')">🏅 Mata-Mata</button>
     <button class="tab" onclick="mudarAba('config')">⚙️ Config</button>
   </div>
 
@@ -355,6 +380,21 @@
     </div>
   </div>
 
+  <!-- ABA: MATA-MATA -->
+  <div id="aba-mata-mata" class="tab-content">
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-weight:700;margin-bottom:3px;">🏅 Fase de Mata-Mata</div>
+        <div style="font-size:0.72rem;color:var(--fraco);">Gerado a partir do ranking do Pontos Corridos. 1º vs último, 2º vs penúltimo...</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-ouro" onclick="gerarMataMata()">⚡ Gerar Mata-Mata</button>
+        <button class="btn btn-danger btn-sm" onclick="resetarMataMata()" id="btn-reset-mm" style="display:none;">🗑️ Apagar</button>
+      </div>
+    </div>
+    <div id="mm-bracket"></div>
+  </div>
+
   <!-- ABA: CONFIG -->
   <div id="aba-config" class="tab-content">
     <div class="card">
@@ -467,6 +507,7 @@ onAuthStateChanged(auth, async user => {
   await carregarAtletas();
   await carregarLutas();
   renderAll();
+  carregarMataMata();
   carregarAtletasPub();
   carregarInscricoesPub();
 });
@@ -1204,15 +1245,289 @@ window.limparTudo = async function() {
   } catch(e) { toast('Erro.', 'erro'); }
 };
 
+// ── MATA-MATA ──────────────────────────────────────────────────
+let mataMataMatches = [];
+
+const mmCol = () => collection(db, 'campeonatos', campId, 'pc-mata-mata');
+const mmDocId = (r, p) => `r${r}p${p}`;
+
+function calcularRanking() {
+  const finalizadas = lutas.filter(l => l.status === 'finalizada');
+  const stats = {};
+  atletas.forEach(a => {
+    stats[a.id] = { id:a.id, nome:a.nome, academia:a.academia||'', pt:0, v:0, vf:0, e:0, d:0, ptJogo:0, van:0, pun:0, lutas:0 };
+  });
+  const ptFin = config.ptFin || 0;
+  finalizadas.forEach(l => {
+    const r = l.resultado; if (!r) return;
+    const s1 = stats[l.at1Id], s2 = stats[l.at2Id]; if (!s1 || !s2) return;
+    s1.lutas++; s2.lutas++;
+    s1.ptJogo += r.pts1||0; s2.ptJogo += r.pts2||0;
+    s1.van += r.van1||0; s2.van += r.van2||0;
+    s1.pun += r.pun1||0; s2.pun += r.pun2||0;
+    if (r.vencedor === '1') {
+      const b = (ptFin > 0 && r.finalizacao) ? ptFin : 0;
+      s1.pt += (config.ptVit||2)+b; s1.v++; s2.d++; if (r.finalizacao) s1.vf++;
+    } else if (r.vencedor === '2') {
+      const b = (ptFin > 0 && r.finalizacao) ? ptFin : 0;
+      s2.pt += (config.ptVit||2)+b; s2.v++; s1.d++; if (r.finalizacao) s2.vf++;
+    } else { s1.pt += config.ptEmp||1; s2.pt += config.ptEmp||1; s1.e++; s2.e++; }
+  });
+  return Object.values(stats).sort((a,b) =>
+    (b.lutas>0?1:0)-(a.lutas>0?1:0) || b.pt-a.pt || b.ptJogo-a.ptJogo || b.van-a.van || a.pun-b.pun
+  );
+}
+
+async function carregarMataMata() {
+  const snap = await getDocs(mmCol());
+  mataMataMatches = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+  renderMataMata();
+}
+
+function renderMataMata() {
+  const el = document.getElementById('mm-bracket');
+  if (!el) return;
+
+  const btnReset = document.getElementById('btn-reset-mm');
+  if (!mataMataMatches.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🏅</div><p>Clique em "⚡ Gerar Mata-Mata" para criar o chaveamento com base no ranking atual.</p></div>';
+    if (btnReset) btnReset.style.display = 'none';
+    return;
+  }
+  if (btnReset) btnReset.style.display = '';
+
+  // Agrupar por rodada
+  const maxRound = Math.max(...mataMataMatches.map(m => m.rodada));
+  const rounds = {};
+  mataMataMatches.forEach(m => { if (!rounds[m.rodada]) rounds[m.rodada] = []; rounds[m.rodada].push(m); });
+  Object.values(rounds).forEach(r => r.sort((a,b) => a.posicao - b.posicao));
+
+  const nomeDaRodada = r => {
+    if (r === maxRound) return '🏆 Final';
+    if (r === maxRound - 1) return '🥊 Semifinal';
+    if (r === maxRound - 2) return '⚡ Quartas de Final';
+    return `🔹 Rodada ${r}`;
+  };
+
+  // Verificar campeão
+  const final = (rounds[maxRound] || [])[0];
+  const champion = final?.status === 'finalizado' && final?.vencedorId
+    ? (final.atletaA?.id === final.vencedorId ? final.atletaA : final.atletaB) : null;
+
+  let html = '';
+
+  if (champion) {
+    html += `<div class="mm-champion">
+      <div class="mm-champion-icon">🏆</div>
+      <div style="font-size:0.7rem;color:var(--fraco);margin-bottom:4px;">CAMPEÃO</div>
+      <div class="mm-champion-nome">${champion.nome}</div>
+      ${champion.academia ? `<div class="mm-champion-acad">${champion.academia}</div>` : ''}
+    </div>`;
+  }
+
+  for (let r = 1; r <= maxRound; r++) {
+    const matches = rounds[r] || [];
+    html += `<div class="mm-round"><div class="mm-round-title">${nomeDaRodada(r)}</div>`;
+    matches.forEach(m => {
+      if (m.status === 'bye_auto') return; // hidden
+      html += renderMatch(m);
+    });
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function renderMatch(m) {
+  const isFinalizado = m.status === 'finalizado';
+  const isAguardando = m.status === 'aguardando';
+  const isBye = m.metodo === 'bye';
+
+  const atletaA = m.atletaA;
+  const atletaB = m.atletaB;
+
+  const renderAtleta = (a, lado) => {
+    if (!a) return `<div class="mm-atleta"><div class="mm-nome" style="color:var(--fraco);font-style:italic;">Aguardando...</div></div>`;
+    const isVenc = m.vencedorId === a.id;
+    return `<div class="mm-atleta">
+      <div class="mm-semente">${a.semente||'?'}</div>
+      <div style="flex:1;">
+        <div class="mm-nome" style="${isVenc?'color:var(--ouro)':''}">${a.nome}</div>
+        ${a.academia ? `<div class="mm-acad">${a.academia}</div>` : ''}
+      </div>
+      ${isVenc && isFinalizado ? `<div class="mm-vencedor-badge">✓ Vencedor</div>` : ''}
+      ${(!atletaB && isFinalizado && m.metodo==='bye') ? `<div class="mm-bye-badge">BYE</div>` : ''}
+    </div>`;
+  };
+
+  const mid = isBye ? '' : `<div class="mm-vs">VS</div>`;
+
+  let actions = '';
+  if (!isFinalizado && !isAguardando && atletaA && atletaB) {
+    const mid_json_a = JSON.stringify({id: atletaA.id, nome: atletaA.nome, academia: atletaA.academia});
+    const mid_json_b = JSON.stringify({id: atletaB.id, nome: atletaB.nome, academia: atletaB.academia});
+    actions = `<div class="mm-actions">
+      <select class="mm-metodo" id="metodo-${m._id}">
+        <option value="pontos">Por Pontos</option>
+        <option value="finalizacao">Finalização</option>
+        <option value="desclassificacao">Desclassificação</option>
+        <option value="wo">W.O.</option>
+      </select>
+      <button class="mm-btn-a" onclick="declararVencedorMM('${m._id}','${atletaA.id}')">
+        🏆 ${atletaA.nome.split(' ')[0]}
+      </button>
+      <button class="mm-btn-b" onclick="declararVencedorMM('${m._id}','${atletaB.id}')">
+        🏆 ${atletaB.nome.split(' ')[0]}
+      </button>
+    </div>`;
+  }
+
+  return `<div class="mm-match ${m.status}">
+    ${renderAtleta(atletaA, 'a')}
+    ${mid}
+    ${atletaB ? renderAtleta(atletaB, 'b') : (isBye ? '' : renderAtleta(null, 'b'))}
+    ${actions}
+    ${isFinalizado && !isBye ? `<div style="font-size:0.7rem;color:var(--fraco);margin-top:8px;text-align:right;">Método: ${m.metodo||'—'}</div>` : ''}
+  </div>`;
+}
+
+window.gerarMataMata = async function() {
+  const ranking = calcularRanking().filter(s => s.lutas > 0);
+  if (ranking.length < 2) {
+    toast('Precisa de pelo menos 2 atletas no ranking. Finalize as rodadas primeiro.', 'erro'); return;
+  }
+  if (mataMataMatches.length > 0 && !confirm('Já existe um mata-mata. Deseja apagar e gerar novamente?')) return;
+
+  const n = ranking.length;
+  const toRef = (a, seed) => ({ id: a.id, nome: a.nome, academia: a.academia || '', semente: seed });
+
+  // Calcular total de rounds necessários
+  let totalRounds = 0;
+  let c = n;
+  while (c > 1) { c = Math.ceil(c / 2); totalRounds++; }
+  // R1 pode ter ceil(n/2) matches (bye para o do meio se ímpar)
+  const r1Count = Math.ceil(n / 2);
+
+  const batch = writeBatch(db);
+
+  // Apagar existente
+  (await getDocs(mmCol())).docs.forEach(d => batch.delete(d.ref));
+
+  // Gerar R1: 1º vs último, 2º vs penúltimo...
+  // Se n ímpar: atleta do meio (posição floor(n/2)) vai para a posição final de R1 com BYE
+  for (let i = 0; i < Math.floor(n / 2); i++) {
+    const a = ranking[i];         // seed i+1 (topo)
+    const b = ranking[n - 1 - i]; // seed n-i (base)
+    batch.set(doc(mmCol(), mmDocId(1, i)), {
+      rodada: 1, posicao: i,
+      atletaA: toRef(a, i + 1),
+      atletaB: toRef(b, n - i),
+      vencedorId: null, status: 'pendente', metodo: null,
+    });
+  }
+  if (n % 2 === 1) {
+    const mid = ranking[Math.floor(n / 2)];
+    batch.set(doc(mmCol(), mmDocId(1, Math.floor(n / 2))), {
+      rodada: 1, posicao: Math.floor(n / 2),
+      atletaA: toRef(mid, Math.floor(n / 2) + 1),
+      atletaB: null,
+      vencedorId: mid.id, status: 'finalizado', metodo: 'bye',
+    });
+  }
+
+  // Pré-gerar rodadas futuras vazias
+  let prevCount = r1Count;
+  for (let r = 2; r <= totalRounds; r++) {
+    const cnt = Math.ceil(prevCount / 2);
+    for (let p = 0; p < cnt; p++) {
+      batch.set(doc(mmCol(), mmDocId(r, p)), {
+        rodada: r, posicao: p,
+        atletaA: null, atletaB: null,
+        vencedorId: null, status: 'aguardando', metodo: null,
+      });
+    }
+    prevCount = cnt;
+  }
+
+  await batch.commit();
+  await carregarMataMata();
+
+  // Avançar BYE automaticamente se houver
+  if (n % 2 === 1) {
+    const mid = ranking[Math.floor(n / 2)];
+    await avancarVencedorMM(1, Math.floor(n / 2), mid.id, toRef(mid, Math.floor(n / 2) + 1));
+  }
+
+  toast(`Mata-mata gerado! ${n} atletas, ${totalRounds} rodada(s).`, 'ok');
+};
+
+async function avancarVencedorMM(rodadaAtual, posicaoAtual, vencedorId, vencedorRef) {
+  // Onde vai o vencedor: R(r+1) P(floor(p/2)), lado A se p par, B se p ímpar
+  const nextRodada = rodadaAtual + 1;
+  const nextPos    = Math.floor(posicaoAtual / 2);
+  const lado       = posicaoAtual % 2 === 0 ? 'atletaA' : 'atletaB';
+
+  const nextDocRef = doc(mmCol(), mmDocId(nextRodada, nextPos));
+  const nextSnap   = await getDoc(nextDocRef);
+  if (!nextSnap.exists()) return; // era a final, não tem próxima
+
+  const updates = { [lado]: vencedorRef, status: 'pendente' };
+
+  // Verificar se o outro lado já tem atleta
+  const current = nextSnap.data();
+  const outroLado = lado === 'atletaA' ? 'atletaB' : 'atletaA';
+  // Se o outro lado já tem atleta (ou é BYE confirmado), manter pendente
+  if (!current[outroLado]) updates.status = 'aguardando';
+
+  await updateDoc(nextDocRef, updates);
+
+  // Se o outro lado também estava aguardando e agora temos ambos, marcar pendente
+  const refreshed = (await getDoc(nextDocRef)).data();
+  if (refreshed.atletaA && refreshed.atletaB) {
+    await updateDoc(nextDocRef, { status: 'pendente' });
+  }
+}
+
+window.declararVencedorMM = async function(matchId, vencedorId) {
+  const m = mataMataMatches.find(x => x._id === matchId);
+  if (!m) return;
+  const metodo = document.getElementById(`metodo-${matchId}`)?.value || 'pontos';
+  const vencRef = m.atletaA?.id === vencedorId ? m.atletaA : m.atletaB;
+  const nomeVenc = vencRef?.nome || '?';
+
+  if (!confirm(`Confirmar vitória de ${nomeVenc}?`)) return;
+  try {
+    await updateDoc(doc(mmCol(), matchId), { vencedorId, status: 'finalizado', metodo });
+    // Avançar para próxima rodada
+    await avancarVencedorMM(m.rodada, m.posicao, vencedorId, vencRef);
+    await carregarMataMata();
+    toast(`${nomeVenc} avançou!`, 'ok');
+  } catch(e) { toast('Erro ao salvar resultado.', 'erro'); console.error(e); }
+};
+
+window.resetarMataMata = async function() {
+  if (!confirm('Apagar o mata-mata e todos os resultados? Não pode ser desfeito.')) return;
+  try {
+    const snap = await getDocs(mmCol());
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    mataMataMatches = [];
+    renderMataMata();
+    toast('Mata-mata apagado.', 'ok');
+  } catch(e) { toast('Erro ao apagar.', 'erro'); }
+};
+
 // ── UTILS ──────────────────────────────────────────────────────
 window.mudarAba = function(aba) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('ativa'));
   document.querySelectorAll('.tab').forEach(el => el.classList.remove('ativa'));
   document.getElementById(`aba-${aba}`).classList.add('ativa');
-  const abas = ['atletas','rodadas','classificacao','config'];
+  const abas = ['atletas','rodadas','classificacao','mata-mata','config'];
   document.querySelectorAll('.tab')[abas.indexOf(aba)]?.classList.add('ativa');
   if (aba === 'rodadas')       renderRodadas();
   if (aba === 'classificacao') renderClassificacao();
+  if (aba === 'mata-mata')     renderMataMata();
 };
 
 window.toast = function(msg, tipo) {
