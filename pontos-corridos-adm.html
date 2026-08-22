@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pontos Corridos — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --ouro:#C9A03D; --ouro-dim:rgba(201,160,61,0.15);
+      --bg:#F0F3F7; --surface:#fff; --borda:#E2E8F0;
+      --nav:#1A2C3E; --nav2:#243547;
+      --texto:#1A2C3E; --fraco:#64748B;
+      --verde:#059669; --azul:#2563EB; --vermelho:#DC2626;
+      --laranja:#D97706;
+    }
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--texto);min-height:100vh;}
+
+    /* ─── HEADER ──────────────────────────────────────────────── */
+    header{background:var(--nav);color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+    .hdr-left{display:flex;align-items:center;gap:12px;}
+    .hdr-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--ouro),#A07828);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+    .hdr-txt h1{font-family:'Oswald',sans-serif;font-size:1rem;color:var(--ouro);letter-spacing:2px;line-height:1;}
+    .hdr-txt p{font-size:0.6rem;color:#8A9CB0;letter-spacing:1px;}
+    .btn-back{background:transparent;border:1px solid #8A9CB0;color:#8A9CB0;padding:5px 12px;border-radius:20px;font-size:0.7rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+    .btn-back:hover{border-color:var(--ouro);color:var(--ouro);}
+    .btn-sair{background:transparent;border:1px solid #EF4444;color:#EF4444;padding:5px 12px;border-radius:20px;font-size:0.7rem;cursor:pointer;}
+    .btn-sair:hover{background:#EF4444;color:#fff;}
+
+    /* ─── LAYOUT ──────────────────────────────────────────────── */
+    .app{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+
+    /* Banner da competição */
+    .banner{background:linear-gradient(135deg,var(--nav),var(--nav2));color:#fff;border-radius:12px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .banner-info h2{font-size:1.05rem;font-weight:700;}
+    .banner-info p{font-size:0.7rem;color:#8A9CB0;margin-top:3px;}
+    .badge-pc{background:rgba(201,160,61,0.18);border:1px solid var(--ouro);color:var(--ouro);padding:4px 12px;border-radius:20px;font-size:0.7rem;font-weight:700;flex-shrink:0;}
+    .banner-stats{display:flex;gap:16px;flex-wrap:wrap;}
+    .stat-item{text-align:center;}
+    .stat-num{font-family:'Oswald',sans-serif;font-size:1.5rem;font-weight:900;color:var(--ouro);}
+    .stat-lbl{font-size:0.58rem;color:#8A9CB0;text-transform:uppercase;letter-spacing:1px;}
+
+    /* ─── ABAS ────────────────────────────────────────────────── */
+    .tabs{display:flex;gap:4px;background:var(--borda);padding:4px;border-radius:10px;margin-bottom:18px;overflow-x:auto;}
+    .tab{flex:1;padding:8px 12px;border:none;background:transparent;border-radius:7px;font-size:0.8rem;font-weight:600;cursor:pointer;color:var(--fraco);white-space:nowrap;transition:all .2s;font-family:'Inter',sans-serif;}
+    .tab.ativa{background:var(--surface);color:var(--nav);box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+    .tab-content{display:none;}
+    .tab-content.ativa{display:block;}
+
+    /* ─── CARDS ───────────────────────────────────────────────── */
+    .card{background:var(--surface);border-radius:12px;border:1px solid var(--borda);padding:18px;margin-bottom:14px;}
+    .card-title{font-size:0.78rem;font-weight:700;color:var(--fraco);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+    .card-title::after{content:'';flex:1;height:1px;background:var(--borda);}
+
+    /* ─── FORM ────────────────────────────────────────────────── */
+    .form-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;}
+    @media(max-width:540px){.form-row{grid-template-columns:1fr;}}
+    .field{display:flex;flex-direction:column;gap:4px;}
+    .field label{font-size:0.7rem;font-weight:600;color:var(--fraco);}
+    .field input,.field select{padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:0.82rem;font-family:'Inter',sans-serif;color:var(--texto);background:#fff;outline:none;transition:border-color .2s;}
+    .field input:focus,.field select:focus{border-color:var(--ouro);}
+
+    /* ─── BOTÕES ──────────────────────────────────────────────── */
+    .btn{padding:9px 18px;border:none;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+    .btn-primary{background:var(--nav);color:#fff;}
+    .btn-primary:hover{background:var(--nav2);}
+    .btn-ouro{background:var(--ouro);color:#fff;}
+    .btn-ouro:hover{opacity:.9;}
+    .btn-verde{background:var(--verde);color:#fff;}
+    .btn-verde:hover{opacity:.9;}
+    .btn-ghost{background:transparent;border:1px solid var(--borda);color:var(--fraco);}
+    .btn-ghost:hover{border-color:var(--fraco);color:var(--texto);}
+    .btn-sm{padding:5px 10px;font-size:0.72rem;}
+    .btn-icon{width:30px;height:30px;padding:0;justify-content:center;font-size:0.8rem;}
+    .btn-danger{background:transparent;border:1px solid #FCA5A5;color:#DC2626;}
+    .btn-danger:hover{background:#DC2626;color:#fff;border-color:#DC2626;}
+
+    /* ─── LISTA ATLETAS ───────────────────────────────────────── */
+    .atleta-list{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+    .atleta-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--borda);}
+    .atleta-num{width:26px;height:26px;border-radius:50%;background:var(--nav);color:#fff;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+    .atleta-nome{font-weight:600;font-size:0.88rem;}
+    .atleta-detalhe{font-size:0.68rem;color:var(--fraco);}
+    .atleta-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+    .atleta-tag{font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--borda);color:var(--fraco);white-space:nowrap;}
+    .atleta-tag.faixa-branca{background:#F1F5F9;color:#475569;}
+    .atleta-tag.faixa-azul{background:#DBEAFE;color:#1D4ED8;}
+    .atleta-tag.faixa-roxa{background:#EDE9FE;color:#6D28D9;}
+    .atleta-tag.faixa-marrom{background:#FEF3C7;color:#92400E;}
+    .atleta-tag.faixa-preta{background:#1E293B;color:#F1F5F9;}
+    .atleta-tag.faixa-cinza{background:#E5E7EB;color:#374151;}
+    .atleta-tag.faixa-amarela{background:#FEF9C3;color:#A16207;}
+    .atleta-tag.faixa-laranja{background:#FFEDD5;color:#C2410C;}
+    .atleta-tag.faixa-verde{background:#D1FAE5;color:#065F46;}
+    .atleta-tag.tag-peso{background:#EFF6FF;color:#1D4ED8;}
+    .atleta-tag.tag-cat{background:#F5F3FF;color:#6D28D9;}
+    .atleta-tag.tag-contact{background:#F0FDF4;color:#15803D;}
+    .atleta-info-extra{font-size:0.68rem;color:var(--fraco);margin-top:2px;}
+    .faixa-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+    /* ─── RODADAS ─────────────────────────────────────────────── */
+    .rodada-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;}
+    .rodada-tab{padding:5px 14px;border:1px solid var(--borda);border-radius:20px;font-size:0.75rem;font-weight:600;cursor:pointer;background:var(--surface);color:var(--fraco);transition:all .2s;}
+    .rodada-tab.ativa{background:var(--nav);color:#fff;border-color:var(--nav);}
+    .rodada-tab.completa{border-color:var(--verde);color:var(--verde);}
+    .rodada-tab.ativa.completa{background:var(--verde);}
+
+    .luta-card{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--borda);margin-bottom:8px;}
+    .luta-num{font-size:0.62rem;font-weight:700;color:var(--fraco);flex-shrink:0;width:20px;}
+    .luta-versus{flex:1;display:flex;align-items:center;gap:8px;min-width:0;}
+    .luta-atleta{font-weight:600;font-size:0.88rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .luta-at1{text-align:right;color:var(--azul);}
+    .luta-at2{color:var(--vermelho);}
+    .vs-badge{background:var(--borda);border-radius:4px;padding:2px 6px;font-size:0.65rem;font-weight:700;color:var(--fraco);flex-shrink:0;}
+    .luta-status{flex-shrink:0;}
+    .status-badge{padding:3px 10px;border-radius:20px;font-size:0.65rem;font-weight:700;}
+    .status-pendente{background:#FEF3C7;color:#92400E;}
+    .status-andamento{background:#DBEAFE;color:#1D4ED8;animation:pulse-badge 1s infinite;}
+    .status-finalizada{background:#D1FAE5;color:#065F46;}
+    @keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:.6}}
+
+    .luta-resultado{text-align:right;font-size:0.72rem;flex-shrink:0;min-width:80px;}
+    .res-venc{font-weight:700;color:var(--verde);}
+    .res-pts{color:var(--fraco);}
+
+    /* ─── CLASSIFICAÇÃO ───────────────────────────────────────── */
+    .cls-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+    .cls-table th{padding:8px 10px;text-align:left;font-size:0.65rem;font-weight:700;color:var(--fraco);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--borda);}
+    .cls-table td{padding:10px 10px;border-bottom:1px solid var(--borda);}
+    .cls-table tr:last-child td{border-bottom:none;}
+    .cls-table tr:hover td{background:var(--bg);}
+    .pos-badge{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0;}
+    .pos-1{background:#FDE68A;color:#92400E;}
+    .pos-2{background:#E2E8F0;color:#374151;}
+    .pos-3{background:#FCD9A0;color:#92400E;}
+    .pos-n{background:var(--bg);color:var(--fraco);}
+    .cls-nome{font-weight:600;}
+    .cls-acad{font-size:0.7rem;color:var(--fraco);}
+    .cls-num{font-family:'Oswald',sans-serif;font-size:1rem;font-weight:700;text-align:center;}
+    .cls-pts{color:var(--nav);font-size:1.1rem;}
+    .cls-v{color:var(--verde);}
+    .cls-e{color:var(--laranja);}
+    .cls-d{color:var(--vermelho);}
+
+    /* ─── CONFIG ──────────────────────────────────────────────── */
+    .config-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    @media(max-width:480px){.config-row{grid-template-columns:1fr;}}
+
+    /* ─── EMPTY STATE ─────────────────────────────────────────── */
+    .empty{text-align:center;padding:40px 20px;color:var(--fraco);}
+    .empty-icon{font-size:2.5rem;margin-bottom:10px;}
+    .empty p{font-size:0.85rem;}
+
+    /* ─── AVISO RESET ─────────────────────────────────────────── */
+    .aviso-reset{background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:12px 16px;font-size:0.78rem;color:#92400E;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start;}
+
+    /* ─── EDIÇÃO INLINE DE ATLETA ─────────────────────────────── */
+    .btn-edit{background:transparent;border:1px solid #93C5FD;color:var(--azul);width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.8rem;transition:all .2s;}
+    .btn-edit:hover{background:var(--azul);color:#fff;border-color:var(--azul);}
+    .atleta-row.editando{background:#EFF6FF;border-color:#93C5FD;}
+    .atleta-row.editando input{padding:5px 8px;border:1px solid #93C5FD;border-radius:7px;font-size:0.82rem;font-family:'Inter',sans-serif;color:var(--texto);background:#fff;outline:none;flex:1;min-width:80px;}
+    .atleta-row.editando input:focus{border-color:var(--azul);}
+    .btn-save{background:var(--verde);border:none;color:#fff;padding:5px 12px;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+    .btn-save:hover{opacity:.85;}
+    .btn-cancel{background:transparent;border:1px solid var(--borda);color:var(--fraco);padding:5px 10px;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer;}
+    .btn-cancel:hover{border-color:var(--fraco);color:var(--texto);}
+
+    /* ─── TOAST ───────────────────────────────────────────────── */
+    #toast-box{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:200;pointer-events:none;}
+    .toast{background:#1A2C3E;color:#fff;padding:8px 18px;border-radius:8px;font-size:0.82rem;font-weight:600;animation:slideUp .2s ease;white-space:nowrap;}
+    .toast.erro{background:#DC2626;}
+    .toast.ok{background:#059669;}
+    @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* Overlay loading */
+    #loading{position:fixed;inset:0;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;z-index:99;font-size:.9rem;color:var(--fraco);}
+    .spin{width:28px;height:28px;border:3px solid var(--borda);border-top-color:var(--ouro);border-radius:50%;animation:spin .8s linear infinite;margin-right:10px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+<div id="loading"><div class="spin"></div>Carregando…</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hdr-left">
+    <div class="hdr-icon">🔄</div>
+    <div class="hdr-txt">
+      <h1>PONTOS CORRIDOS</h1>
+      <p>COMPETIÇÃO INDIVIDUAL · ROUND-ROBIN</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <a href="painel-admin.html" class="btn-back">← Painel</a>
+    <button class="btn-sair" onclick="logout()">Sair</button>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- BANNER -->
+  <div class="banner">
+    <div class="banner-info">
+      <h2 id="banner-nome">—</h2>
+      <p id="banner-sub">Pontos Corridos Individual</p>
+    </div>
+    <div class="banner-stats">
+      <div class="stat-item"><div class="stat-num" id="stat-atletas">0</div><div class="stat-lbl">Atletas</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-lutas">0</div><div class="stat-lbl">Lutas</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-feitas">0</div><div class="stat-lbl">Finalizadas</div></div>
+    </div>
+    <div class="badge-pc" id="badge-modo">🔄 ROUND-ROBIN</div>
+  </div>
+
+  <!-- ABAS -->
+  <div class="tabs">
+    <button class="tab ativa" onclick="mudarAba('atletas')">👤 Atletas</button>
+    <button class="tab" onclick="mudarAba('rodadas')">🥊 Rodadas</button>
+    <button class="tab" onclick="mudarAba('classificacao')">🏆 Classificação</button>
+    <button class="tab" onclick="mudarAba('config')">⚙️ Config</button>
+  </div>
+
+  <!-- ABA: ATLETAS -->
+  <div id="aba-atletas" class="tab-content ativa">
+
+    <!-- Importar das inscrições -->
+    <div class="card" style="border-color:var(--ouro);background:linear-gradient(135deg,rgba(201,160,61,0.06),transparent);">
+      <div class="card-title">📥 Importar das Inscrições</div>
+      <p style="font-size:0.78rem;color:var(--fraco);margin-bottom:12px;">Importa automaticamente os atletas que se inscreveram via formulário público. Atletas já cadastrados aqui são ignorados.
+        &nbsp;·&nbsp;<a id="link-adm-insc" href="#" style="color:var(--ouro);font-weight:600;text-decoration:none;font-size:0.75rem;">📋 Gerenciar Inscrições →</a>
+      </p>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <select id="imp-status" style="padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:0.82rem;background:#fff;color:var(--texto);outline:none;">
+          <option value="todos">Todos os status</option>
+          <option value="confirmado">Apenas Confirmados</option>
+          <option value="pendente">Apenas Pendentes</option>
+        </select>
+        <button class="btn btn-ouro" onclick="importarInscricoes()">📥 Importar Atletas</button>
+      </div>
+      <div id="imp-result" style="margin-top:10px;font-size:0.78rem;color:var(--verde);display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">➕ Cadastrar Atleta Manualmente</div>
+      <div class="form-row">
+        <div class="field">
+          <label>Nome completo *</label>
+          <input type="text" id="inp-nome" placeholder="Ex: João Silva" />
+        </div>
+        <div class="field">
+          <label>Academia / Equipe</label>
+          <input type="text" id="inp-acad" placeholder="Ex: Gracie Barra" />
+        </div>
+        <button class="btn btn-primary" onclick="adicionarAtleta()">Adicionar</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:8px;" id="form-extras">
+        <div class="field">
+          <label>Faixa</label>
+          <select id="inp-faixa" style="padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:0.82rem;background:#fff;color:var(--texto);">
+            <option value="">—</option>
+            <option>Branca</option><option>Cinza</option><option>Amarela</option>
+            <option>Laranja</option><option>Verde</option><option>Azul</option>
+            <option>Roxa</option><option>Marrom</option><option>Preta</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Peso (kg)</label>
+          <input type="number" id="inp-peso" placeholder="Ex: 75.5" step="0.1" min="1" style="padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:0.82rem;"/>
+        </div>
+        <div class="field">
+          <label>Sexo</label>
+          <select id="inp-sexo" style="padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:0.82rem;background:#fff;color:var(--texto);">
+            <option value="">—</option>
+            <option value="M">Masculino</option>
+            <option value="F">Feminino</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Telefone</label>
+          <input type="text" id="inp-tel" placeholder="(11) 99999-0000" style="padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:0.82rem;"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Atletas Inscritos</div>
+      <div id="lista-atletas">
+        <div class="empty"><div class="empty-icon">👤</div><p>Nenhum atleta cadastrado ainda.</p></div>
+      </div>
+    </div>
+
+    <!-- Inscrições do formulário público -->
+    <div class="card" style="margin-top:6px;">
+      <div class="card-title" style="justify-content:space-between;">
+        <span>📝 Inscrições do Formulário Público</span>
+        <button class="btn btn-ghost btn-sm" onclick="carregarInscricoesPub()" style="font-size:0.7rem;padding:3px 10px;">↺ Atualizar</button>
+      </div>
+      <p style="font-size:0.75rem;color:var(--fraco);margin-bottom:10px;">Todas as inscrições recebidas. Aqui você pode excluir duplicatas ou inscrições indevidas.</p>
+      <div id="lista-insc-pub">
+        <div class="empty"><div class="empty-icon">📝</div><p>Carregando...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA: RODADAS -->
+  <div id="aba-rodadas" class="tab-content">
+    <div id="aviso-reset" class="aviso-reset" style="display:none;">
+      ⚠️ <span>Regenerar as lutas <strong>apagará todos os resultados</strong> e criará um novo sorteio. Faça isso apenas antes de começar.</span>
+    </div>
+
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-weight:700;margin-bottom:3px;" id="rodadas-titulo">—</div>
+        <div style="font-size:0.72rem;color:var(--fraco);" id="rodadas-sub">Gere as lutas para começar</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-ouro" onclick="gerarLutas()" id="btn-gerar">⚡ Gerar Lutas</button>
+        <button class="btn btn-ghost btn-sm" onclick="regenerarLutas()" id="btn-regen" style="display:none;">🔄 Regenerar</button>
+        <button class="btn btn-danger btn-sm" onclick="apagarRodadas()" id="btn-apagar" style="display:none;">🗑️ Apagar Rodadas</button>
+      </div>
+    </div>
+
+    <div id="rodadas-area" style="display:none;">
+      <div class="rodada-tabs" id="rodada-tabs"></div>
+      <div id="rodada-conteudo"></div>
+    </div>
+
+    <div id="rodadas-empty" class="empty">
+      <div class="empty-icon">🥊</div>
+      <p>Cadastre os atletas e clique em "Gerar Lutas".</p>
+    </div>
+  </div>
+
+  <!-- ABA: CLASSIFICAÇÃO -->
+  <div id="aba-classificacao" class="tab-content">
+    <div class="card">
+      <div class="card-title">🏆 Classificação Geral</div>
+      <div id="tabela-cls">
+        <div class="empty"><div class="empty-icon">🏆</div><p>Nenhuma luta finalizada ainda.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA: CONFIG -->
+  <div id="aba-config" class="tab-content">
+    <div class="card">
+      <div class="card-title">⚙️ Configurações</div>
+      <div class="config-row">
+        <div class="field">
+          <label>Tempo de luta (minutos)</label>
+          <input type="number" id="cfg-tempo" value="5" min="1" max="30" />
+        </div>
+        <div class="field">
+          <label>Pontos por Vitória</label>
+          <input type="number" id="cfg-vit" value="2" min="1" max="5" />
+        </div>
+        <div class="field">
+          <label>Pontos por Empate</label>
+          <input type="number" id="cfg-emp" value="1" min="0" max="3" />
+        </div>
+        <div class="field">
+          <label>Pontos por Derrota</label>
+          <input type="number" id="cfg-der" value="0" min="0" max="1" disabled style="opacity:.5;" />
+        </div>
+      </div>
+
+      <!-- Turno e Returno -->
+      <div style="margin-top:16px;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--borda);">
+        <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;font-size:0.82rem;font-weight:600;">
+          <input type="checkbox" id="cfg-tr-on" style="width:17px;height:17px;accent-color:var(--ouro);cursor:pointer;">
+          🔄 Turno e Returno — cada atleta luta 2× contra cada adversário
+        </label>
+        <p style="font-size:0.7rem;color:var(--fraco);margin-top:6px;">Com 5 atletas: 4 rodadas de Turno + 4 de Returno = 8 rodadas no total. <strong>Gere as lutas após ativar.</strong></p>
+      </div>
+
+      <!-- Bônus de finalização -->
+      <div style="margin-top:12px;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--borda);">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;font-size:0.82rem;font-weight:600;">
+            <input type="checkbox" id="cfg-fin-on" onchange="toggleFinInput()" style="width:17px;height:17px;accent-color:var(--verde);cursor:pointer;">
+            🔒 Ponto extra por Finalização / Submissão
+          </label>
+          <div id="cfg-fin-wrap" style="display:none;display:flex;align-items:center;gap:6px;">
+            <span style="font-size:0.75rem;color:var(--fraco);">+</span>
+            <input type="number" id="cfg-fin" value="1" min="1" max="3"
+              style="width:60px;padding:6px 8px;border:1px solid var(--borda);border-radius:8px;font-size:0.88rem;font-weight:700;text-align:center;color:var(--verde);outline:none;" />
+            <span style="font-size:0.75rem;color:var(--fraco);">ponto(s) extra ao vencedor</span>
+          </div>
+        </div>
+        <p style="font-size:0.7rem;color:var(--fraco);margin-top:6px;">Quando ativado, uma vitória por submissão vale <strong>Pontos por Vitória + bônus</strong>.</p>
+      </div>
+
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="salvarConfig()">💾 Salvar Configurações</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#DC2626;">⚠️ Zona de Perigo</div>
+      <p style="font-size:0.8rem;color:var(--fraco);margin-bottom:12px;">Estas ações não podem ser desfeitas.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-danger btn-sm" onclick="limparLutas()">🗑️ Apagar todas as lutas</button>
+        <button class="btn btn-danger btn-sm" onclick="limparTudo()">☠️ Apagar atletas e lutas</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<div id="toast-box"></div>
+
+<script type="module">
+import { initializeApp }      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, doc, addDoc, getDocs, getDoc, setDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot, writeBatch }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const app  = initializeApp({
+  apiKey:"AIzaSyA0HOHKPd9gCpJx0pnFWaKdLU-1WJks-gA",
+  authDomain:"campeonatobjj.firebaseapp.com",
+  projectId:"campeonatobjj",
+  storageBucket:"campeonatobjj.firebasestorage.app",
+  messagingSenderId:"399016509024",
+  appId:"1:399016509024:web:b4e46aa9b4b2e0e5c70c70"
+});
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+const params = new URLSearchParams(location.search);
+const campId = params.get('id');
+if (!campId) { alert('ID do campeonato não encontrado.'); location.replace('painel-admin.html'); }
+
+// ── Estado ─────────────────────────────────────────────────────
+let atletas  = [];   // [{id, nome, academia}]
+let lutas    = [];   // [{id, at1Id, at2Id, rodada, ordem, status, resultado}]
+let config   = { tempo:5, ptVit:2, ptEmp:1, ptFin:0, turnoReturno:false };
+let rodadaAtiva = 1;
+
+// BroadcastChannel para receber resultados do placar
+const canal = `pc_${campId}`;
+const ch    = new BroadcastChannel(canal);
+let janelasPlacar = {}; // lutaId → janela aberta
+
+// Link para adm-inscricoes com o id correto
+document.getElementById('link-adm-insc').href = `adm-inscricoes.html?id=${campId}`;
+
+// ── Auth ───────────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (!user) { location.replace(`login.html?redirect=${encodeURIComponent(location.href)}`); return; }
+  document.getElementById('loading').style.display = 'none';
+  await carregarConfig();
+  await carregarAtletas();
+  await carregarLutas();
+  renderAll();
+  carregarInscricoesPub();
+});
+
+window.logout = () => signOut(auth).then(() => location.replace('painel-admin.html'));
+
+// ── Referências Firestore ─────────────────────────────────────
+const cfgRef  = () => doc(db, 'campeonatos', campId, 'pc-config', 'principal');
+const atsCol  = () => collection(db, 'campeonatos', campId, 'pc-atletas');
+const lutasCol = () => collection(db, 'campeonatos', campId, 'pc-lutas');
+
+// ── Carregar dados ─────────────────────────────────────────────
+async function carregarConfig() {
+  try {
+    const snap = await getDoc(cfgRef());
+    if (snap.exists()) Object.assign(config, snap.data());
+    // atualizar campos config
+    document.getElementById('cfg-tempo').value   = config.tempo || 5;
+    document.getElementById('cfg-vit').value     = config.ptVit || 2;
+    document.getElementById('cfg-emp').value     = config.ptEmp || 1;
+    document.getElementById('cfg-tr-on').checked = !!config.turnoReturno;
+    document.getElementById('cfg-fin-on').checked = !!(config.ptFin > 0);
+    document.getElementById('cfg-fin').value     = config.ptFin || 1;
+    toggleFinInput();
+    // nome do campeonato
+    const cSnap = await getDoc(doc(db, 'campeonatos', campId));
+    if (cSnap.exists()) document.getElementById('banner-nome').textContent = cSnap.data().nome || 'Competição';
+  } catch(e) { console.error(e); }
+}
+
+async function carregarAtletas() {
+  const snap = await getDocs(query(atsCol(), orderBy('criadoEm','asc')));
+  atletas = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+}
+
+async function carregarLutas() {
+  // Sem orderBy composto (evita exigir índice no Firestore) — ordenamos em JS
+  const snap = await getDocs(lutasCol());
+  lutas = snap.docs.map(d => ({ id:d.id, ...d.data() }))
+    .sort((a, b) => (a.rodada - b.rodada) || (a.ordem - b.ordem));
+}
+
+// ── Render geral ───────────────────────────────────────────────
+function renderAll() {
+  renderAtletas();
+  renderRodadas();
+  renderClassificacao();
+  renderStats();
+}
+
+function renderStats() {
+  document.getElementById('stat-atletas').textContent = atletas.length;
+  document.getElementById('stat-lutas').textContent   = lutas.length;
+  document.getElementById('stat-feitas').textContent  = lutas.filter(l => l.status === 'finalizada').length;
+  document.getElementById('badge-modo').textContent   = config.turnoReturno ? '🔄 TURNO & RETURNO' : '🔄 ROUND-ROBIN';
+}
+
+// ── ATLETAS ────────────────────────────────────────────────────
+const FAIXA_COR = {
+  branca:'faixa-branca', cinza:'faixa-cinza', amarela:'faixa-amarela',
+  laranja:'faixa-laranja', verde:'faixa-verde', azul:'faixa-azul',
+  roxa:'faixa-roxa', marrom:'faixa-marrom', preta:'faixa-preta'
+};
+function faixaTag(f) {
+  if (!f) return '';
+  const cls = FAIXA_COR[(f||'').toLowerCase()] || '';
+  return `<span class="atleta-tag ${cls}">${f}</span>`;
+}
+
+function renderAtletas() {
+  const el = document.getElementById('lista-atletas');
+  if (!atletas.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>Nenhum atleta cadastrado ainda.</p></div>';
+    return;
+  }
+  el.innerHTML = `<div class="atleta-list">${atletas.map((a,i) => {
+    const tags = [
+      faixaTag(a.faixa),
+      a.peso    ? `<span class="atleta-tag tag-peso">⚖ ${a.peso} kg</span>` : '',
+      a.sexo    ? `<span class="atleta-tag">${a.sexo === 'M' ? '♂ Masc' : '♀ Fem'}</span>` : '',
+      a.categoria ? `<span class="atleta-tag tag-cat">${a.categoria}</span>` : '',
+    ].filter(Boolean).join('');
+
+    const contacts = [
+      a.telefone ? `📱 ${a.telefone}` : '',
+      a.email    ? `✉ ${a.email}` : '',
+      a.cpf      ? `CPF: ${a.cpf}` : '',
+    ].filter(Boolean).join(' · ');
+
+    return `
+    <div class="atleta-row" id="row-${a.id}">
+      <div class="atleta-num">${i+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="atleta-nome">${a.nome}</div>
+        ${a.academia ? `<div class="atleta-detalhe">${a.academia}</div>` : ''}
+        ${tags ? `<div class="atleta-tags">${tags}</div>` : ''}
+        ${contacts ? `<div class="atleta-info-extra">${contacts}</div>` : ''}
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0;margin-top:2px;">
+        <button class="btn-edit" onclick="editarAtleta('${a.id}')" title="Editar">✏️</button>
+        <button class="btn btn-danger btn-icon btn-sm" onclick="removerAtleta('${a.id}')" title="Remover">🗑</button>
+      </div>
+    </div>`;
+  }).join('')}
+  </div>`;
+}
+
+window.editarAtleta = function(id) {
+  const a = atletas.find(x => x.id === id);
+  if (!a) return;
+  const row = document.getElementById(`row-${id}`);
+  if (!row || row.classList.contains('editando')) return;
+  row.classList.add('editando');
+
+  const esc = v => (v||'').toString().replace(/"/g,'&quot;');
+  const selOpt = (vals, cur) => vals.map(v =>
+    `<option value="${v}"${cur===v?' selected':''}>${v||'—'}</option>`).join('');
+  const faixas = ['','Branca','Cinza','Amarela','Laranja','Verde','Azul','Roxa','Marrom','Preta'];
+  const sexos  = [['','—'],['M','Masculino'],['F','Feminino']];
+
+  row.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px;width:100%;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="field" style="margin:0"><label style="font-size:0.68rem;font-weight:700;color:var(--fraco);">Nome *</label>
+          <input id="en-nome-${id}" value="${esc(a.nome)}" placeholder="Nome completo" /></div>
+        <div class="field" style="margin:0"><label style="font-size:0.68rem;font-weight:700;color:var(--fraco);">Academia</label>
+          <input id="en-acad-${id}" value="${esc(a.academia)}" placeholder="Academia / Equipe" /></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
+        <div class="field" style="margin:0"><label style="font-size:0.68rem;font-weight:700;color:var(--fraco);">Faixa</label>
+          <select id="en-faixa-${id}" style="padding:7px 8px;border:1px solid #93C5FD;border-radius:7px;font-size:0.8rem;background:#fff;">${selOpt(faixas, a.faixa)}</select></div>
+        <div class="field" style="margin:0"><label style="font-size:0.68rem;font-weight:700;color:var(--fraco);">Peso (kg)</label>
+          <input type="number" id="en-peso-${id}" value="${esc(a.peso)}" placeholder="Ex: 75.5" step="0.1" min="1" /></div>
+        <div class="field" style="margin:0"><label style="font-size:0.68rem;font-weight:700;color:var(--fraco);">Sexo</label>
+          <select id="en-sexo-${id}" style="padding:7px 8px;border:1px solid #93C5FD;border-radius:7px;font-size:0.8rem;background:#fff;">${sexos.map(([v,l])=>`<option value="${v}"${a.sexo===v?' selected':''}>${l}</option>`).join('')}</select></div>
+        <div class="field" style="margin:0"><label style="font-size:0.68rem;font-weight:700;color:var(--fraco);">Categoria</label>
+          <input id="en-cat-${id}" value="${esc(a.categoria)}" placeholder="Ex: Adulto" /></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div class="field" style="margin:0"><label style="font-size:0.68rem;font-weight:700;color:var(--fraco);">Telefone</label>
+          <input id="en-tel-${id}" value="${esc(a.telefone)}" placeholder="(11) 99999-0000" /></div>
+        <div class="field" style="margin:0"><label style="font-size:0.68rem;font-weight:700;color:var(--fraco);">E-mail</label>
+          <input id="en-email-${id}" value="${esc(a.email)}" placeholder="email@..." /></div>
+        <div class="field" style="margin:0"><label style="font-size:0.68rem;font-weight:700;color:var(--fraco);">CPF</label>
+          <input id="en-cpf-${id}" value="${esc(a.cpf)}" placeholder="000.000.000-00" /></div>
+      </div>
+      <div style="display:flex;gap:6px;justify-content:flex-end;">
+        <button class="btn-cancel" onclick="renderAtletas()">✕ Cancelar</button>
+        <button class="btn-save" onclick="salvarEdicaoAtleta('${id}')">✔ Salvar</button>
+      </div>
+    </div>`;
+  document.getElementById(`en-nome-${id}`)?.focus();
+};
+
+window.salvarEdicaoAtleta = async function(id) {
+  const g = suf => document.getElementById(`en-${suf}-${id}`)?.value?.trim() ?? '';
+  const novoNome = g('nome');
+  if (!novoNome) { toast('O nome não pode ficar vazio.', 'erro'); return; }
+  const dados = {
+    nome:      novoNome,
+    academia:  g('acad'),
+    faixa:     g('faixa'),
+    peso:      g('peso'),
+    sexo:      g('sexo'),
+    categoria: g('cat'),
+    telefone:  g('tel'),
+    email:     g('email'),
+    cpf:       g('cpf'),
+  };
+  try {
+    await updateDoc(doc(db, 'campeonatos', campId, 'pc-atletas', id), dados);
+    const atleta = atletas.find(a => a.id === id);
+    if (atleta) Object.assign(atleta, dados);
+    renderAtletas();
+    renderClassificacao();
+    toast('Atleta atualizado!', 'ok');
+  } catch(e) { toast('Erro ao salvar.', 'erro'); console.error(e); }
+};
+
+window.adicionarAtleta = async function() {
+  const nome  = document.getElementById('inp-nome').value.trim();
+  const acad  = document.getElementById('inp-acad').value.trim();
+  const faixa = document.getElementById('inp-faixa').value;
+  const peso  = document.getElementById('inp-peso').value.trim();
+  const sexo  = document.getElementById('inp-sexo').value;
+  const tel   = document.getElementById('inp-tel').value.trim();
+  if (!nome) { toast('Informe o nome do atleta.', 'erro'); return; }
+
+  const dados = { nome, academia: acad, faixa, peso, sexo, telefone: tel, categoria: '', email: '', cpf: '', criadoEm: Date.now() };
+  try {
+    const ref = await addDoc(atsCol(), dados);
+    atletas.push({ id: ref.id, ...dados });
+    ['inp-nome','inp-acad','inp-peso','inp-tel'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('inp-faixa').value = '';
+    document.getElementById('inp-sexo').value  = '';
+    renderAtletas();
+    renderStats();
+    toast(`${nome} adicionado!`, 'ok');
+  } catch(e) { toast('Erro ao salvar.', 'erro'); console.error(e); }
+};
+
+window.importarInscricoes = async function() {
+  const statusFiltro = document.getElementById('imp-status').value;
+  const resEl = document.getElementById('imp-result');
+  resEl.style.display = 'none';
+  toast('Buscando inscrições…');
+  try {
+    const snap = await getDocs(collection(db, 'campeonatos', campId, 'inscricoes'));
+    const inscritos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Filtrar por status
+    const filtrados = statusFiltro === 'todos'
+      ? inscritos
+      : inscritos.filter(i => (i.status || 'pendente') === statusFiltro);
+
+    if (!filtrados.length) {
+      toast(`Nenhuma inscrição com status "${statusFiltro}".`, 'erro');
+      return;
+    }
+
+    // Nomes já cadastrados no pc-atletas (evitar duplicatas)
+    const nomesExistentes = new Set(atletas.map(a => a.nome.toLowerCase().trim()));
+
+    const novos = filtrados.filter(i => {
+      const nome = (i.nome || '').trim();
+      return nome && !nomesExistentes.has(nome.toLowerCase());
+    });
+
+    if (!novos.length) {
+      toast('Todos os atletas já estão cadastrados aqui.', 'ok');
+      return;
+    }
+
+    // Inserir no pc-atletas com todos os dados da inscrição
+    await Promise.all(novos.map(i => {
+      const nome     = (i.nome || '').trim();
+      const academia = (i.equipeNome || i.equipe || '').trim();
+      return addDoc(atsCol(), {
+        nome,
+        academia,
+        faixa:           i.faixa          || '',
+        peso:            i.peso            || '',
+        sexo:            i.sexo            || '',
+        categoria:       i.categoria       || '',
+        dataNascimento:  i.dataNascimento  || '',
+        telefone:        i.telefone        || '',
+        email:           i.email           || '',
+        cpf:             i.cpf             || '',
+        absoluto:        i.absoluto        || false,
+        inscricaoId:     i.id,
+        criadoEm:        Date.now()
+      });
+    }));
+
+    await carregarAtletas();
+    renderAtletas();
+    renderStats();
+
+    resEl.style.display = 'block';
+    resEl.textContent = `✅ ${novos.length} atleta(s) importado(s)!`;
+    toast(`${novos.length} atleta(s) importado(s)!`, 'ok');
+  } catch(e) {
+    toast('Erro ao importar: ' + (e?.message || 'desconhecido'), 'erro');
+    console.error(e);
+  }
+};
+
+window.removerAtleta = async function(id) {
+  const atleta = atletas.find(a => a.id === id);
+  if (!atleta) return;
+
+  // Montar mensagem de confirmação
+  let msg = `Remover ${atleta.nome}?`;
+  if (lutas.length) msg += '\n\n⚠️ As rodadas geradas serão apagadas.';
+  if (!confirm(msg)) return;
+
+  // Se o atleta veio de uma inscrição, perguntar se apaga lá também
+  let apagarInscricao = false;
+  if (atleta.inscricaoId) {
+    apagarInscricao = confirm(
+      `Apagar também da lista pública de inscrições?\n\n` +
+      `✅ SIM → remove de tudo (lista pública + PC)\n` +
+      `❌ NÃO → remove só do Pontos Corridos`
+    );
+  }
+
+  try {
+    const ops = [deleteDoc(doc(db, 'campeonatos', campId, 'pc-atletas', id))];
+    if (apagarInscricao) {
+      ops.push(deleteDoc(doc(db, 'campeonatos', campId, 'inscricoes', atleta.inscricaoId)));
+    }
+    await Promise.all(ops);
+    atletas = atletas.filter(a => a.id !== id);
+    if (lutas.length) await limparLutasFirestore();
+    renderAll();
+    toast(apagarInscricao ? 'Atleta removido da inscrição e do PC.' : 'Atleta removido do PC.', 'ok');
+  } catch(e) { toast('Erro ao remover.', 'erro'); console.error(e); }
+};
+
+// ── ROUND-ROBIN ────────────────────────────────────────────────
+function gerarMatchups(ids) {
+  const list = [...ids];
+  if (list.length % 2 !== 0) list.push(null); // bye
+  const n = list.length;
+  const matchups = [];
+  for (let r = 0; r < n - 1; r++) {
+    for (let i = 0; i < n / 2; i++) {
+      const a1 = list[i], a2 = list[n - 1 - i];
+      if (a1 !== null && a2 !== null) matchups.push({ at1Id: a1, at2Id: a2, rodada: r + 1, ordem: i + 1 });
+    }
+    // Rotate: fix [0], rotate rest
+    const last = list.pop();
+    list.splice(1, 0, last);
+  }
+  return matchups;
+}
+
+window.gerarLutas = async function() {
+  if (atletas.length < 2) { toast('Cadastre pelo menos 2 atletas.', 'erro'); return; }
+  if (lutas.length && !confirm(`Isso apagará as ${lutas.length} lutas atuais. Continuar?`)) return;
+  await gerarESalvar();
+};
+
+window.regenerarLutas = async function() {
+  if (!confirm(`Regenerar o sorteio apagará todos os resultados. Continuar?`)) return;
+  await gerarESalvar();
+};
+
+window.apagarRodadas = async function() {
+  const finalizadas = lutas.filter(l => l.status === 'finalizada').length;
+  const msg = finalizadas > 0
+    ? `Existem ${finalizadas} luta(s) já finalizada(s). Apagar todas as rodadas e resultados? Esta ação não pode ser desfeita.`
+    : `Apagar todas as ${lutas.length} rodadas? Esta ação não pode ser desfeita.`;
+  if (!confirm(msg)) return;
+  try {
+    await limparLutasFirestore();
+    renderAll();
+    toast('Rodadas apagadas.', 'ok');
+  } catch(e) { toast('Erro ao apagar.', 'erro'); console.error(e); }
+};
+
+async function gerarESalvar() {
+  toast('Gerando lutas…');
+  try {
+    await limparLutasFirestore();
+    const shuffled = [...atletas].sort(() => Math.random() - 0.5);
+    const turno = gerarMatchups(shuffled.map(a => a.id));
+    const totalRodTurno = Math.max(...turno.map(m => m.rodada));
+
+    let allMatchups = [...turno];
+
+    if (config.turnoReturno) {
+      // Returno: mesmos confrontos com at1/at2 invertidos, rodadas continuam após o turno
+      const returno = turno.map(m => ({
+        at1Id:  m.at2Id,
+        at2Id:  m.at1Id,
+        rodada: m.rodada + totalRodTurno,
+        ordem:  m.ordem,
+      }));
+      allMatchups = [...turno, ...returno];
+    }
+
+    // Salvar cada luta individualmente (mais robusto que writeBatch para criação)
+    await Promise.all(
+      allMatchups.map(m => addDoc(lutasCol(), { ...m, status: 'pendente', resultado: null }))
+    );
+    await carregarLutas();
+    rodadaAtiva = 1;
+    const totalRods = Math.max(...lutas.map(l => l.rodada));
+    const sufixo = config.turnoReturno ? ` (${totalRodTurno} turno + ${totalRodTurno} returno)` : '';
+    toast(`${lutas.length} lutas geradas em ${totalRods} rodadas${sufixo}!`, 'ok');
+    renderAll();
+  } catch(e) { toast('Erro ao gerar lutas: ' + (e?.message || e?.code || 'verifique o console'), 'erro'); console.error(e); }
+}
+
+async function limparLutasFirestore() {
+  const snap = await getDocs(lutasCol());
+  const batch = writeBatch(db);
+  snap.docs.forEach(d => batch.delete(d.ref));
+  await batch.commit();
+  lutas = [];
+}
+
+// ── RENDER RODADAS ─────────────────────────────────────────────
+function renderRodadas() {
+  const area    = document.getElementById('rodadas-area');
+  const empty   = document.getElementById('rodadas-empty');
+  const titulo  = document.getElementById('rodadas-titulo');
+  const sub     = document.getElementById('rodadas-sub');
+  const btnReg  = document.getElementById('btn-regen');
+  const btnGer  = document.getElementById('btn-gerar');
+
+  if (!lutas.length) {
+    area.style.display  = 'none';
+    empty.style.display = 'block';
+    titulo.textContent  = 'Sem lutas geradas';
+    sub.textContent     = 'Clique em "Gerar Lutas" após cadastrar os atletas';
+    btnReg.style.display = 'none';
+    btnGer.style.display = '';
+    document.getElementById('btn-apagar').style.display = 'none';
+    document.getElementById('aviso-reset').style.display = 'none';
+    return;
+  }
+
+  const totalRodadas = Math.max(...lutas.map(l => l.rodada));
+  const finalizadas  = lutas.filter(l => l.status === 'finalizada').length;
+  area.style.display  = 'block';
+  empty.style.display = 'none';
+  titulo.textContent  = `${atletas.length} atletas · ${lutas.length} lutas · ${totalRodadas} rodadas`;
+  sub.textContent     = `${finalizadas} de ${lutas.length} lutas finalizadas`;
+  const btnAp = document.getElementById('btn-apagar');
+  btnReg.style.display = finalizadas === 0 ? '' : 'none';
+  btnGer.style.display = lutas.length ? 'none' : '';
+  btnAp.style.display  = lutas.length ? '' : 'none';
+
+  const aviso = document.getElementById('aviso-reset');
+  aviso.style.display = finalizadas > 0 ? 'none' : 'flex';
+
+  // Abas de rodadas com suporte a Turno / Returno
+  const tabsEl = document.getElementById('rodada-tabs');
+  tabsEl.innerHTML = '';
+  const metade = config.turnoReturno ? Math.round(totalRodadas / 2) : 0;
+
+  function sepLabel(txt, cor) {
+    const s = document.createElement('span');
+    s.style.cssText = `font-size:0.6rem;font-weight:800;color:${cor};padding:0 4px;display:flex;align-items:center;letter-spacing:1px;white-space:nowrap;opacity:.8;`;
+    s.textContent = txt;
+    return s;
+  }
+
+  if (config.turnoReturno) tabsEl.appendChild(sepLabel('TURNO', 'var(--azul)'));
+
+  for (let r = 1; r <= totalRodadas; r++) {
+    if (config.turnoReturno && r === metade + 1) {
+      tabsEl.appendChild(sepLabel('RETURNO', 'var(--vermelho)'));
+    }
+    const lutasR   = lutas.filter(l => l.rodada === r);
+    const feitas   = lutasR.filter(l => l.status === 'finalizada').length;
+    const completa = feitas === lutasR.length;
+    const btn = document.createElement('button');
+    btn.className = `rodada-tab${r === rodadaAtiva ? ' ativa' : ''}${completa ? ' completa' : ''}`;
+    const label = config.turnoReturno
+      ? (r <= metade ? `T${r}` : `R${r - metade}`)
+      : `R${r}`;
+    btn.textContent = `${label}${completa ? ' ✓' : ''}`;
+    btn.onclick = () => { rodadaAtiva = r; renderRodada(); renderRodadaTabs(); };
+    tabsEl.appendChild(btn);
+  }
+
+  renderRodada();
+}
+
+function renderRodadaTabs() {
+  // Sincroniza a aba ativa reprocessando o índice correto nos botões .rodada-tab
+  let idx = 1;
+  document.getElementById('rodada-tabs').querySelectorAll('.rodada-tab').forEach(btn => {
+    btn.classList.toggle('ativa', idx === rodadaAtiva);
+    idx++;
+  });
+}
+
+function renderRodada() {
+  const el = document.getElementById('rodada-conteudo');
+  const lutasR = lutas.filter(l => l.rodada === rodadaAtiva);
+  el.innerHTML = lutasR.map((l, i) => {
+    const a1 = atletas.find(a => a.id === l.at1Id);
+    const a2 = atletas.find(a => a.id === l.at2Id);
+    const n1 = a1?.nome || '?';
+    const n2 = a2?.nome || '?';
+    const st = l.status || 'pendente';
+    const res = l.resultado;
+
+    let resHtml = '';
+    if (st === 'finalizada' && res) {
+      const venc = res.vencedor === '1' ? n1.split(' ')[0] : res.vencedor === '2' ? n2.split(' ')[0] : 'Empate';
+      const t1 = (res.mon1||0)+(res.pas1||0)+(res.der1||0);
+      const t2 = (res.mon2||0)+(res.pas2||0)+(res.der2||0);
+      resHtml = `<div class="luta-resultado"><div class="res-venc">${res.finalizacao?'🔒 ':''} ${venc}</div><div class="res-pts">${t1} × ${t2}</div></div>`;
+    }
+
+    let btnHtml = '';
+    if (st === 'pendente') {
+      btnHtml = `<button class="btn btn-verde btn-sm" onclick="abrirPlacar('${l.id}')">▶ Pontuar</button>`;
+    } else if (st === 'em_andamento') {
+      btnHtml = `<button class="btn btn-sm" style="background:#DBEAFE;color:#1D4ED8;" onclick="abrirPlacar('${l.id}')">● Em andamento</button>`;
+    } else {
+      btnHtml = `<button class="btn btn-ghost btn-sm" onclick="corrigirLuta('${l.id}')">✎ Corrigir</button>`;
+    }
+
+    return `<div class="luta-card" id="luta-card-${l.id}">
+      <div class="luta-num">${i+1}</div>
+      <div class="luta-versus">
+        <div class="luta-atleta luta-at1">${n1}</div>
+        <div class="vs-badge">VS</div>
+        <div class="luta-atleta luta-at2">${n2}</div>
+      </div>
+      <div class="luta-status"><span class="status-badge status-${st}">${st === 'pendente' ? '⏳ Pendente' : st === 'em_andamento' ? '🔴 Ao vivo' : '✅ Finalizada'}</span></div>
+      ${resHtml}
+      <div>${btnHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── PLACAR ─────────────────────────────────────────────────────
+window.abrirPlacar = async function(lutaId) {
+  const luta = lutas.find(l => l.id === lutaId);
+  if (!luta) return;
+  const a1 = atletas.find(a => a.id === luta.at1Id);
+  const a2 = atletas.find(a => a.id === luta.at2Id);
+
+  // Índice único para localStorage
+  const idx = lutas.indexOf(luta);
+
+  // Salvar dados no localStorage para o placar ler
+  const initData = {
+    categoria:  'PONTOS CORRIDOS',
+    faixaLabel: '',
+    rodada:     luta.rodada,
+    equipe1:    a1?.academia || '',
+    equipe2:    a2?.academia || '',
+    atleta1:    a1?.nome || '?',
+    atleta2:    a2?.nome || '?',
+    tempoLuta:  (config.tempo || 5) * 60
+  };
+  localStorage.setItem(`liga_luta_init_${campId}_${idx}`, JSON.stringify(initData));
+
+  // Atualizar status
+  await updateDoc(doc(db, 'campeonatos', campId, 'pc-lutas', lutaId), { status: 'em_andamento' });
+  luta.status = 'em_andamento';
+  renderRodada();
+
+  // Abrir janela do placar
+  const url = `liga-luta-tv.html?id=${campId}&idx=${idx}&canal=${canal}`;
+  const win = window.open(url, `placar_${lutaId}`, 'width=1280,height=720');
+  janelasPlacar[lutaId] = { win, idx };
+};
+
+window.corrigirLuta = async function(lutaId) {
+  if (!confirm('Reabrir esta luta para corrigir o resultado?')) return;
+  await updateDoc(doc(db, 'campeonatos', campId, 'pc-lutas', lutaId), { status: 'pendente', resultado: null });
+  const luta = lutas.find(l => l.id === lutaId);
+  if (luta) { luta.status = 'pendente'; luta.resultado = null; }
+  renderRodada();
+  renderClassificacao();
+  renderStats();
+  toast('Luta reaberta.', 'ok');
+};
+
+// ── OUVIR RESULTADOS DO PLACAR ─────────────────────────────────
+ch.addEventListener('message', async e => {
+  const { type, idx, state } = e.data || {};
+
+  // Encontrar a luta pelo idx
+  const lutaId = Object.keys(janelasPlacar).find(id => janelasPlacar[id].idx === idx);
+  if (!lutaId) return;
+  const luta   = lutas.find(l => l.id === lutaId);
+  if (!luta) return;
+
+  if (type === 'tv_score') {
+    // Atualização de placar ao vivo (opcional: mostrar no card)
+    const card = document.getElementById(`luta-card-${lutaId}`);
+    if (card) {
+      const status = card.querySelector('.status-badge');
+      if (status) status.textContent = `🔴 ${state.pts1||0} × ${state.pts2||0}`;
+    }
+  }
+
+  if (type === 'tv_finalizar') {
+    const resultado = {
+      vencedor:    state.vencedor,
+      finalizacao: state.finalizacao || false,
+      pts1: state.pts1||0, pts2: state.pts2||0,
+      van1: state.van1||0, van2: state.van2||0,
+      pun1: state.pun1||0, pun2: state.pun2||0,
+      mon1: state.mon1||0, pas1: state.pas1||0, der1: state.der1||0,
+      mon2: state.mon2||0, pas2: state.pas2||0, der2: state.der2||0,
+    };
+    try {
+      await updateDoc(doc(db, 'campeonatos', campId, 'pc-lutas', lutaId), {
+        status: 'finalizada', resultado
+      });
+      luta.status    = 'finalizada';
+      luta.resultado = resultado;
+      delete janelasPlacar[lutaId];
+      renderRodada();
+      renderRodadas(); // atualiza tabs
+      renderClassificacao();
+      renderStats();
+      toast(`Luta finalizada! Vencedor: ${nomeVenc(luta)}`, 'ok');
+    } catch(err) { toast('Erro ao salvar resultado.', 'erro'); console.error(err); }
+  }
+
+  if (type === 'tv_encerrar') {
+    await updateDoc(doc(db, 'campeonatos', campId, 'pc-lutas', lutaId), { status: 'pendente' });
+    luta.status = 'pendente';
+    delete janelasPlacar[lutaId];
+    renderRodada();
+    renderStats();
+  }
+});
+
+function nomeVenc(luta) {
+  if (!luta.resultado) return '—';
+  const v = luta.resultado.vencedor;
+  if (v === 'empate') return 'Empate';
+  const atId = v === '1' ? luta.at1Id : luta.at2Id;
+  return atletas.find(a => a.id === atId)?.nome?.split(' ')[0] || '?';
+}
+
+// ── CLASSIFICAÇÃO ──────────────────────────────────────────────
+function renderClassificacao() {
+  const el = document.getElementById('tabela-cls');
+  const finalizadas = lutas.filter(l => l.status === 'finalizada');
+
+  if (!finalizadas.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🏆</div><p>Nenhuma luta finalizada ainda.</p></div>';
+    return;
+  }
+
+  // Calcular stats por atleta
+  const stats = {};
+  atletas.forEach(a => {
+    stats[a.id] = { id:a.id, nome:a.nome, academia:a.academia||'', pt:0, v:0, vf:0, e:0, d:0, ptJogo:0, van:0, pun:0, lutas:0 };
+  });
+
+  const ptFin = config.ptFin || 0;
+
+  finalizadas.forEach(l => {
+    const r = l.resultado;
+    if (!r) return;
+    const s1 = stats[l.at1Id], s2 = stats[l.at2Id];
+    if (!s1 || !s2) return;
+    s1.lutas++; s2.lutas++;
+    s1.ptJogo += r.pts1||0; s2.ptJogo += r.pts2||0;
+    s1.van    += r.van1||0; s2.van    += r.van2||0;
+    s1.pun    += r.pun1||0; s2.pun    += r.pun2||0;
+    if (r.vencedor === '1') {
+      const bonus = (ptFin > 0 && r.finalizacao) ? ptFin : 0;
+      s1.pt += (config.ptVit||2) + bonus; s1.v++; s2.d++;
+      if (r.finalizacao) s1.vf++;
+    } else if (r.vencedor === '2') {
+      const bonus = (ptFin > 0 && r.finalizacao) ? ptFin : 0;
+      s2.pt += (config.ptVit||2) + bonus; s2.v++; s1.d++;
+      if (r.finalizacao) s2.vf++;
+    } else {
+      s1.pt += config.ptEmp||1; s2.pt += config.ptEmp||1; s1.e++; s2.e++;
+    }
+  });
+
+  const ranking = Object.values(stats).filter(s => s.lutas > 0).sort((a,b) =>
+    b.pt-a.pt || b.ptJogo-a.ptJogo || b.van-a.van || a.pun-b.pun
+  );
+
+  if (!ranking.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🏆</div><p>Nenhum resultado computado.</p></div>';
+    return;
+  }
+
+  const posBadge = i => {
+    if (i===0) return 'pos-1'; if (i===1) return 'pos-2'; if (i===2) return 'pos-3'; return 'pos-n';
+  };
+
+  const mostrarFin = ptFin > 0;
+  el.innerHTML = `<div style="overflow-x:auto;">
+  <table class="cls-table">
+    <thead>
+      <tr>
+        <th>Pos</th><th>Atleta</th><th style="text-align:center">PTS</th>
+        <th style="text-align:center">V</th>
+        ${mostrarFin ? '<th style="text-align:center" title="Vitórias por Finalização">🔒</th>' : ''}
+        <th style="text-align:center">E</th><th style="text-align:center">D</th>
+        <th style="text-align:center">PTS Luta</th><th style="text-align:center">Van</th><th style="text-align:center">Pun</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${ranking.map((s,i) => `
+      <tr>
+        <td><span class="pos-badge ${posBadge(i)}">${i+1}</span></td>
+        <td>
+          <div class="cls-nome">${s.nome}</div>
+          ${s.academia ? `<div class="cls-acad">${s.academia}</div>` : ''}
+        </td>
+        <td><div class="cls-num cls-pts">${s.pt}</div></td>
+        <td><div class="cls-num cls-v">${s.v}</div></td>
+        ${mostrarFin ? `<td><div class="cls-num" style="color:var(--verde)">${s.vf||0}</div></td>` : ''}
+        <td><div class="cls-num cls-e">${s.e}</div></td>
+        <td><div class="cls-num cls-d">${s.d}</div></td>
+        <td><div class="cls-num">${s.ptJogo}</div></td>
+        <td><div class="cls-num">${s.van}</div></td>
+        <td><div class="cls-num">${s.pun}</div></td>
+      </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+// ── CONFIG ─────────────────────────────────────────────────────
+window.toggleFinInput = function() {
+  const on  = document.getElementById('cfg-fin-on').checked;
+  const wrap = document.getElementById('cfg-fin-wrap');
+  wrap.style.display = on ? 'flex' : 'none';
+};
+
+window.salvarConfig = async function() {
+  config.tempo        = parseInt(document.getElementById('cfg-tempo').value) || 5;
+  config.ptVit        = parseInt(document.getElementById('cfg-vit').value)   || 2;
+  config.ptEmp        = parseInt(document.getElementById('cfg-emp').value)   || 1;
+  config.turnoReturno = document.getElementById('cfg-tr-on').checked;
+  const finOn         = document.getElementById('cfg-fin-on').checked;
+  config.ptFin        = finOn ? (parseInt(document.getElementById('cfg-fin').value) || 1) : 0;
+  try {
+    await setDoc(cfgRef(), config, { merge: true });
+    renderClassificacao(); // recalcular com novo bônus
+    toast('Configurações salvas!', 'ok');
+  } catch(e) { toast('Erro ao salvar.', 'erro'); }
+};
+
+// ── DANGER ZONE ────────────────────────────────────────────────
+window.limparLutas = async function() {
+  if (!confirm('Apagar TODAS as lutas e resultados?')) return;
+  await limparLutasFirestore();
+  renderAll();
+  toast('Lutas apagadas.', 'ok');
+};
+
+window.limparTudo = async function() {
+  if (!confirm('Apagar ATLETAS e LUTAS? Esta ação é irreversível!')) return;
+  try {
+    const b = writeBatch(db);
+    (await getDocs(atsCol())).docs.forEach(d => b.delete(d.ref));
+    (await getDocs(lutasCol())).docs.forEach(d => b.delete(d.ref));
+    await b.commit();
+    atletas = []; lutas = [];
+    renderAll();
+    toast('Dados apagados.', 'ok');
+  } catch(e) { toast('Erro.', 'erro'); }
+};
+
+// ── UTILS ──────────────────────────────────────────────────────
+window.mudarAba = function(aba) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('ativa'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('ativa'));
+  document.getElementById(`aba-${aba}`).classList.add('ativa');
+  const abas = ['atletas','rodadas','classificacao','config'];
+  document.querySelectorAll('.tab')[abas.indexOf(aba)]?.classList.add('ativa');
+  if (aba === 'rodadas')       renderRodadas();
+  if (aba === 'classificacao') renderClassificacao();
+};
+
+window.toast = function(msg, tipo) {
+  const box = document.getElementById('toast-box');
+  const el  = document.createElement('div');
+  el.className  = `toast ${tipo||''}`;
+  el.textContent = msg;
+  box.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+};
+function toast(msg, tipo) { window.toast(msg, tipo); }
+
+// ── Inscrições do formulário público ───────────────────────────
+const STATUS_LABEL = { pendente:'⏳ Pendente', aprovado:'✅ Aprovado', rejeitado:'❌ Rejeitado', cancelado:'🚫 Cancelado' };
+const STATUS_COR   = { pendente:'#b08d00', aprovado:'#2a7d2a', rejeitado:'#c0392b', cancelado:'#666' };
+
+async function carregarInscricoesPub() {
+  const el = document.getElementById('lista-insc-pub');
+  if (!el) return;
+  el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>Carregando...</p></div>';
+  try {
+    const snap = await getDocs(collection(db, 'campeonatos', campId, 'inscricoes'));
+    const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+    if (!lista.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><p>Nenhuma inscrição recebida.</p></div>';
+      return;
+    }
+    el.innerHTML = lista.map(i => {
+      const st = i.status || 'pendente';
+      const cor = STATUS_COR[st] || '#666';
+      const label = STATUS_LABEL[st] || st;
+      const extra = [i.peso && `⚖️ ${i.peso}kg`, i.faixa && `🥋 ${i.faixa}`, i.categoria && `📂 ${i.categoria}`].filter(Boolean).join(' &nbsp;·&nbsp; ');
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px solid var(--borda);gap:8px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:0;">
+          <strong style="font-size:0.85rem;">${i.nome || '—'}</strong>
+          <span style="margin-left:8px;font-size:0.7rem;font-weight:600;color:${cor};">${label}</span>
+          ${extra ? `<div style="font-size:0.72rem;color:var(--fraco);margin-top:2px;">${extra}</div>` : ''}
+        </div>
+        <button onclick="excluirInscPub('${i.id}','${(i.nome||'').replace(/'/g,"\\'")}','${i.status||''}')"
+          style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:0.7rem;cursor:pointer;white-space:nowrap;">
+          🗑️ Excluir
+        </button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">❌</div><p>Erro ao carregar inscrições.</p></div>';
+    console.error(e);
+  }
+}
+
+window.excluirInscPub = async function(id, nome, status) {
+  const aviso = status === 'aprovado'
+    ? `Excluir inscrição APROVADA de ${nome}? O atleta poderá perder acesso.`
+    : `Excluir permanentemente a inscrição de ${nome}?`;
+  if (!confirm(aviso + '\n\nEsta ação não pode ser desfeita.')) return;
+  try {
+    await deleteDoc(doc(db, 'campeonatos', campId, 'inscricoes', id));
+    toast(`Inscrição de ${nome} excluída.`, 'ok');
+    carregarInscricoesPub();
+  } catch(e) { toast('Erro ao excluir.', 'erro'); console.error(e); }
+};
+
+window.carregarInscricoesPub = carregarInscricoesPub;
+</script>
+</body>
+</html>
