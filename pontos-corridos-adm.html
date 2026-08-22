@@ -106,7 +106,11 @@
     .rodada-tab.completa{border-color:var(--verde);color:var(--verde);}
     .rodada-tab.ativa.completa{background:var(--verde);}
 
-    .luta-card{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--borda);margin-bottom:8px;}
+    .luta-card{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--borda);margin-bottom:8px;flex-wrap:wrap;}
+    .luta-sched{display:flex;gap:4px;align-items:center;margin-left:auto;flex-shrink:0;}
+    .sched-input{border:1.5px solid var(--borda);border-radius:7px;padding:3px 6px;font-size:0.72rem;background:var(--surface);color:var(--txt);font-family:'Inter',sans-serif;cursor:pointer;}
+    .sched-input:focus{outline:none;border-color:var(--ouro);}
+    .sched-hora-badge{font-size:0.7rem;color:var(--ouro);font-weight:700;white-space:nowrap;}
     .luta-num{font-size:0.62rem;font-weight:700;color:var(--fraco);flex-shrink:0;width:20px;}
     .luta-versus{flex:1;display:flex;align-items:center;gap:8px;min-width:0;}
     .luta-atleta{font-weight:600;font-size:0.88rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1005,12 +1009,41 @@ function renderRodada() {
         <div class="vs-badge">VS</div>
         <div class="luta-atleta luta-at2">${n2}</div>
       </div>
+      <div class="luta-sched">
+        <input type="date" class="sched-input" id="data-${l.id}" value="${l.data||''}"
+          onchange="salvarHorarioLuta('${l.id}')" title="Data da luta">
+        <input type="time" class="sched-input" id="hora-${l.id}" value="${l.horario||''}"
+          onchange="salvarHorarioLuta('${l.id}')" title="Horário da luta">
+      </div>
       <div class="luta-status"><span class="status-badge status-${st}">${st === 'pendente' ? '⏳ Pendente' : st === 'em_andamento' ? '🔴 Ao vivo' : '✅ Finalizada'}</span></div>
       ${resHtml}
       <div>${btnHtml}</div>
     </div>`;
   }).join('');
 }
+
+// ── HORÁRIOS ───────────────────────────────────────────────────
+window.salvarHorarioLuta = async function(lutaId) {
+  const data    = document.getElementById(`data-${lutaId}`)?.value || '';
+  const horario = document.getElementById(`hora-${lutaId}`)?.value || '';
+  const luta = lutas.find(l => l.id === lutaId);
+  if (!luta) return;
+  try {
+    await updateDoc(doc(db, 'campeonatos', campId, 'pc-lutas', lutaId), { data, horario });
+    luta.data = data; luta.horario = horario;
+  } catch(e) { toast('Erro ao salvar horário.', 'erro'); console.error(e); }
+};
+
+window.salvarHorarioMM = async function(matchId) {
+  const data    = document.getElementById(`mm-data-${matchId}`)?.value || '';
+  const horario = document.getElementById(`mm-hora-${matchId}`)?.value || '';
+  const m = mataMataMatches.find(x => x._id === matchId);
+  if (!m) return;
+  try {
+    await updateDoc(doc(mmCol(), matchId), { data, horario });
+    m.data = data; m.horario = horario;
+  } catch(e) { toast('Erro ao salvar horário.', 'erro'); console.error(e); }
+};
 
 // ── PLACAR ─────────────────────────────────────────────────────
 window.abrirPlacar = async function(lutaId) {
@@ -1456,10 +1489,19 @@ function renderMatch(m) {
     }
   }
 
-  return `<div class="mm-match ${m.status}">
+  const schedMM = !isBye ? `<div class="luta-sched" style="margin-top:8px;">
+    <span style="font-size:0.7rem;color:var(--fraco);">🕐</span>
+    <input type="date" class="sched-input" id="mm-data-${m._id}" value="${m.data||''}"
+      onchange="salvarHorarioMM('${m._id}')" title="Data">
+    <input type="time" class="sched-input" id="mm-hora-${m._id}" value="${m.horario||''}"
+      onchange="salvarHorarioMM('${m._id}')" title="Horário">
+  </div>` : '';
+
+  return `<div class="mm-match ${m.status}" id="mm-card-${m._id}">
     ${renderAtleta(atletaA, 'a')}
     ${mid}
     ${atletaB ? renderAtleta(atletaB, 'b') : (isBye ? '' : renderAtleta(null, 'b'))}
+    ${schedMM}
     ${actions}
     ${isFinalizado && !isBye ? `<div style="font-size:0.7rem;color:var(--fraco);margin-top:8px;text-align:right;">Método: ${m.metodo||'—'}</div>` : ''}
   </div>`;

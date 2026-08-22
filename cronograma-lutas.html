@@ -1266,13 +1266,17 @@ else {
             resHtml = `<div class="pc-res"><div class="pc-venc">${res.finalizacao?'🔒 ':''}${venc}</div><div class="pc-pts">${res.pts1||0}×${res.pts2||0}</div></div>`;
           }
           const rowCls = st==='finalizada'?'finalizada':st==='em_andamento'?'ao-vivo':'';
+          const horaBadge = l.horario ? `<div style="font-size:0.68rem;color:#C9A03D;font-weight:700;white-space:nowrap;">🕐 ${l.horario}${l.data ? ' · ' + l.data.split('-').reverse().join('/') : ''}</div>` : '';
           html += `<div class="pc-luta-row ${rowCls}">
             <div class="pc-seq">${i+1}</div>
             <div class="pc-at pc-at1" style="text-align:right">
               <div class="pc-at-nome" style="color:#3B8BFF">${n1}</div>
               <div class="pc-at-acad">${a1}</div>
             </div>
-            <div class="pc-vs">VS</div>
+            <div class="pc-vs" style="flex-direction:column;gap:2px;">
+              <span>VS</span>
+              ${horaBadge}
+            </div>
             <div class="pc-at pc-at2">
               <div class="pc-at-nome" style="color:#FF4444">${n2}</div>
               <div class="pc-at-acad">${a2}</div>
@@ -1345,13 +1349,17 @@ else {
             }
 
             const rowCls = st==='finalizado'?'finalizada':st==='em_andamento'?'ao-vivo':'';
+            const horaBadgeMM = m.horario ? `<div style="font-size:0.68rem;color:#C9A03D;font-weight:700;white-space:nowrap;">🕐 ${m.horario}${m.data ? ' · ' + m.data.split('-').reverse().join('/') : ''}</div>` : '';
             html += `<div class="pc-luta-row ${rowCls}">
               <div class="pc-seq" style="font-size:0.65rem;color:#C9A03D;">${s1||'?'}</div>
               <div class="pc-at pc-at1" style="text-align:right">
                 <div class="pc-at-nome" style="color:#3B8BFF">${n1}</div>
                 ${a1 ? `<div class="pc-at-acad">${a1}</div>` : ''}
               </div>
-              <div class="pc-vs">VS</div>
+              <div class="pc-vs" style="flex-direction:column;gap:2px;">
+                <span>VS</span>
+                ${horaBadgeMM}
+              </div>
               <div class="pc-at pc-at2">
                 <div class="pc-at-nome" style="color:${m.atletaB?'#FF4444':'#888'}">${n2}</div>
                 ${a2 ? `<div class="pc-at-acad">${a2}</div>` : ''}
