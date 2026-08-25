@@ -1032,13 +1032,21 @@ function renderCalendario() {
   document.getElementById('btn-limpar-cal').style.display = confsF.length ? 'inline-flex' : 'none';
 
   const el = document.getElementById('confrontos-list');
-  if (!confsF.length) {
+
+  // Separar jogos normais de mata-mata e final-individual
+  const confsNormal = confsF.filter(c => c.fase !== 'mata-mata' && c.fase !== 'final-individual');
+  const confsMM     = confsF.filter(c => c.fase === 'mata-mata' && c.metodo !== 'bye');
+  const confsFI     = confsF.filter(c => c.fase === 'final-individual');
+
+  if (!confsNormal.length && !confsMM.length && !confsFI.length) {
     el.innerHTML = `<div class="vazio"><span>📅</span>Nenhum jogo para ${fl}. Gere o calendário acima.</div>`;
     return;
   }
+
   const byRound = {};
-  confsF.forEach(c => { if (!byRound[c.rodada]) byRound[c.rodada] = []; byRound[c.rodada].push(c); });
-  el.innerHTML = Object.keys(byRound).map(r => {
+  confsNormal.forEach(c => { if (!byRound[c.rodada]) byRound[c.rodada] = []; byRound[c.rodada].push(c); });
+
+  let html = Object.keys(byRound).sort((a,b)=>Number(a)-Number(b)).map(r => {
     const ms = byRound[r];
     const done = ms.filter(m => m.status === 'concluido').length;
     const prim = ms[0] || {};
@@ -1061,6 +1069,64 @@ function renderCalendario() {
     </div>
     ${ms.map(m => renderConfrontoCard(m)).join('')}`;
   }).join('');
+
+  // ── Mata-Mata ────────────────────────────────────────────────
+  if (confsMM.length) {
+    const maxR = Math.max(...confsMM.map(m => m.rodada));
+    const nomeRodada = r => r===maxR?'🏆 Final':r===maxR-1?'🥊 Semifinal':r===maxR-2?'⚡ Quartas de Final':`🔹 Rodada ${r}`;
+    const mmRounds = [...new Set(confsMM.map(m=>m.rodada))].sort((a,b)=>a-b);
+
+    html += `<div style="border-top:2px solid #C9A03D;margin:20px 0 12px;padding-top:14px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#C9A03D;">🏅 Fase Mata-Mata</span>
+      <div style="flex:1;height:1px;background:linear-gradient(to right,#C9A03D44,transparent);"></div>
+    </div>`;
+
+    mmRounds.forEach(r => {
+      const ms = confsMM.filter(m=>m.rodada===r).sort((a,b)=>a.posicao-b.posicao);
+      const done = ms.filter(m=>m.status==='concluido').length;
+      html += `<div class="rodada-label" style="background:linear-gradient(90deg,#FFF8E8,#FAFAFA);border-left:3px solid #C9A03D;">
+        <span>${nomeRodada(r)}</span>
+        <span style="margin-left:auto;font-weight:400">${done}/${ms.length} concluídos</span>
+      </div>
+      ${ms.map(m => renderConfrontoCard(m)).join('')}`;
+    });
+  }
+
+  // ── Final Individual ─────────────────────────────────────────
+  if (confsFI.length) {
+    html += `<div style="border-top:2px solid #C9A03D;margin:20px 0 12px;padding-top:14px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#C9A03D;">🥇 Final Individual por Categoria</span>
+      <div style="flex:1;height:1px;background:linear-gradient(to right,#C9A03D44,transparent);"></div>
+    </div>`;
+    const catOrder = getCategorias();
+    confsFI.sort((a,b)=>catOrder.indexOf(a.categoria)-catOrder.indexOf(b.categoria)).forEach(m => {
+      const at1 = atletas.find(a=>a.id===m.atleta1Id), at2 = atletas.find(a=>a.id===m.atleta2Id);
+      const eq1 = equipes.find(e=>e.id===m.equipe1Id), eq2 = equipes.find(e=>e.id===m.equipe2Id);
+      const isDone = m.status==='concluido';
+      const statusBadge = isDone
+        ? `<span class="badge b-concluido" style="background:#DCFCE7;color:#16A34A;border:1px solid #BBF7D0;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">✅ Definido</span>`
+        : `<span class="badge" style="background:#FFF8E8;color:#C9A03D;border:1px solid #FDE68A;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">🥇 Final</span>`;
+      const vAt = isDone ? atletas.find(a=>a.id===m.vencedorId) : null;
+      html += `<div class="conf-pair">
+        <div class="conf-row" style="opacity:1;">
+          <div class="conf-meta">${statusBadge}<span style="font-weight:700;color:#C9A03D;font-size:0.72rem;">🥋 ${m.categoria}</span></div>
+          <div class="conf-eq-l">
+            <div class="conf-eq" style="font-size:0.82rem;">${at1?.nome||'—'}</div>
+            <div class="conf-sub">${eq1?.nome||'—'} · 1º colocado</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            ${isDone&&vAt?`<span style="font-size:0.72rem;font-weight:800;color:#C9A03D;">🥇 ${vAt.nome.split(' ')[0]}</span>`:`<span style="font-size:0.8rem;color:#94A3B8;">× </span>`}
+          </div>
+          <div class="conf-eq-r">
+            <div class="conf-eq" style="font-size:0.82rem;">${at2?.nome||'—'}</div>
+            <div class="conf-sub">${eq2?.nome||'—'} · 2º colocado</div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  el.innerHTML = html;
 }
 
 function renderConfrontoCard(m) {
