@@ -103,6 +103,47 @@
       .desktop-only{display:none;}
       .mobile-only{display:block;}
     }
+
+    /* ── Bracket / Finais ── */
+    .fase-title{display:flex;align-items:center;gap:10px;margin:6px 0 12px;}
+    .fase-title-line{flex:1;height:1px;background:linear-gradient(to right,#C9A03D55,transparent);}
+    .fase-title-line.rev{background:linear-gradient(to left,#C9A03D55,transparent);}
+    .fase-title-text{font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#C9A03D;}
+    .round-label{font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#8A9CB0;padding-bottom:6px;border-bottom:1px solid #F1F5F9;margin-bottom:8px;}
+
+    .match-card{border:1.5px solid #E2E8F0;border-radius:13px;background:#FAFAFA;overflow:hidden;margin-bottom:10px;}
+    .match-card.pendente{border-color:#C9A03D;background:#FFFDF8;}
+    .match-card.concluido{border-color:#D1D5DB;background:#F9FAFB;}
+    .match-row{display:flex;align-items:center;gap:9px;padding:11px 14px;}
+    .match-row.winner{background:linear-gradient(90deg,#FFF8E8,#FFFDF5);}
+    .match-vs{display:flex;align-items:center;gap:8px;background:#F8FAFC;border-top:1px solid #F1F5F9;border-bottom:1px solid #F1F5F9;padding:5px 14px;}
+    .match-vs-line{flex:1;height:1px;background:#E2E8F0;}
+    .match-vs-txt{font-size:0.58rem;font-weight:800;color:#94A3B8;letter-spacing:.8px;}
+    .match-vs-badge{font-size:0.58rem;font-weight:700;border-radius:20px;padding:2px 8px;}
+    .match-vs-badge.done{color:#16A34A;background:#DCFCE7;}
+    .match-vs-badge.pend{color:#C9A03D;background:#FFF8E8;}
+    .match-vs-badge.wait{color:#94A3B8;background:#F1F5F9;}
+    .match-vs-badge.final{color:#C9A03D;background:#FFF8E8;}
+    .match-name{font-size:0.83rem;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .match-name.winner-text{color:#B8860B;}
+    .match-name.wait-text{color:#94A3B8;font-style:italic;font-weight:400;}
+    .match-seed{min-width:22px;height:22px;border-radius:11px;background:#C9A03D;color:#fff;font-size:0.58rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 5px;}
+    .match-check{background:#C9A03D;color:#fff;border-radius:20px;padding:2px 9px;font-size:0.6rem;font-weight:800;flex-shrink:0;}
+    .match-check-ph{width:52px;flex-shrink:0;}
+
+    .champ-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:18px;}
+    .champ-card{text-align:center;padding:12px 8px;background:linear-gradient(135deg,#FFFDF8,#FFF8E8);border:1.5px solid #C9A03D44;border-radius:12px;}
+    .champ-foto{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #C9A03D;margin-bottom:6px;}
+    .champ-foto-ph{width:44px;height:44px;border-radius:50%;background:#FFF8E8;border:2px solid #C9A03D;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin:0 auto 6px;}
+    .champ-cat{font-size:0.58rem;font-weight:800;letter-spacing:1px;color:#C9A03D;text-transform:uppercase;}
+    .champ-nome{font-size:0.75rem;font-weight:700;color:#1A2C3E;margin-top:2px;line-height:1.2;}
+    .champ-eq{font-size:0.62rem;color:#8A9CB0;margin-top:2px;}
+
+    .champ-equipe-card{text-align:center;padding:18px 16px;background:linear-gradient(135deg,#FFF8E8,#FFF3CC);border-radius:14px;border:2px solid #C9A03D;margin-bottom:20px;box-shadow:0 2px 12px #C9A03D22;}
+    .champ-equipe-logo{width:60px;height:60px;object-fit:contain;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 8px #C9A03D44;}
+    .champ-equipe-logo-ph{font-size:2.5rem;margin-bottom:8px;}
+    .champ-equipe-label{font-size:0.6rem;font-weight:800;letter-spacing:2px;color:#C9A03D;text-transform:uppercase;margin-bottom:4px;}
+    .champ-equipe-nome{font-size:1.15rem;font-weight:800;color:#1A2C3E;}
   </style>
 </head>
 <body>
@@ -170,7 +211,7 @@ function calcularClassificacao(faixa) {
   const eqs = estado.equipes;
   const stats = {};
   eqs.forEach(e => { stats[e.id] = { equipe:e, j:0, v:0, emp:0, d:0, pts:0, cv:0 }; });
-  for (const c of estado.confrontos.filter(x => x.faixa === faixa && x.status === 'concluido' && x.resultado)) {
+  for (const c of estado.confrontos.filter(x => x.faixa === faixa && x.status === 'concluido' && x.resultado && x.fase !== 'mata-mata' && x.fase !== 'final-individual')) {
     const s1 = stats[c.equipe1Id], s2 = stats[c.equipe2Id];
     if (!s1 || !s2) continue;
     const v1 = c.resultado.vitoriasEq1||0, v2 = c.resultado.vitoriasEq2||0;
@@ -196,6 +237,138 @@ window._setFaixa = function(f) {
   renderFaixaTabs();
   renderClassificacao();
 };
+
+// ── Helpers visuais ────────────────────────────────────────────
+function eqLogo(eq, sz) {
+  return eq?.logoBase64
+    ? `<img src="${eq.logoBase64}" style="width:${sz}px;height:${sz}px;object-fit:contain;border-radius:${sz/4}px;flex-shrink:0;">`
+    : `<div style="width:${sz}px;height:${sz}px;border-radius:${sz/4}px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:${sz*0.5}px;flex-shrink:0;">🏅</div>`;
+}
+function atFoto(at, sz) {
+  return at?.fotoBase64
+    ? `<img src="${at.fotoBase64}" style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #E2E8F0;">`
+    : `<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:#F1F5F9;border:2px solid #E2E8F0;display:flex;align-items:center;justify-content:center;font-size:${sz*0.4}px;flex-shrink:0;">👤</div>`;
+}
+function faseTitle(txt) {
+  return `<div class="fase-title"><div class="fase-title-line"></div><span class="fase-title-text">${txt}</span><div class="fase-title-line rev"></div></div>`;
+}
+function vsBadge(status) {
+  if (status==='concluido') return `<span class="match-vs-badge done">✅ Finalizado</span>`;
+  if (status==='pendente')  return `<span class="match-vs-badge pend">🟡 Pendente</span>`;
+  return `<span class="match-vs-badge wait">⏳ Aguardando</span>`;
+}
+function seedPin(s) {
+  return s ? `<span class="match-seed">${s}º</span>` : `<span style="width:22px;flex-shrink:0;display:inline-block;"></span>`;
+}
+
+// ── Render Mata-Mata (equipes) ─────────────────────────────────
+function renderMataMata(faixa) {
+  const mm = (estado.confrontos||[]).filter(c => c.faixa === faixa && c.fase === 'mata-mata' && c.metodo !== 'bye');
+  if (!mm.length) return '';
+  const maxR = Math.max(...mm.map(m => m.rodada));
+  const nomeRodada = r => r===maxR?'🏆 Final':r===maxR-1?'🥊 Semifinal':r===maxR-2?'⚡ Quartas de Final':`🔹 Rodada ${r}`;
+  const eqs = estado.equipes||[];
+  let html = `<div class="card"><div class="card-header"><h3>🏅 Fase Mata-Mata por Equipes</h3></div>`;
+
+  // Campeão
+  const final = mm.find(m => m.rodada === maxR && m.posicao === 0);
+  if (final?.status==='concluido' && final?.vencedorId) {
+    const eq = eqs.find(e => e.id === final.vencedorId);
+    const logo = eq?.logoBase64
+      ? `<img class="champ-equipe-logo" src="${eq.logoBase64}">`
+      : `<div class="champ-equipe-logo-ph">🏆</div>`;
+    html += `<div class="champ-equipe-card">${logo}
+      <div class="champ-equipe-label">🏆 Campeão</div>
+      <div class="champ-equipe-nome">${eq?.nome||'—'}</div>
+    </div>`;
+  }
+
+  const rounds = [...new Set(mm.map(m=>m.rodada))].sort((a,b)=>a-b);
+  rounds.forEach(r => {
+    const matches = mm.filter(m=>m.rodada===r).sort((a,b)=>a.posicao-b.posicao);
+    html += `<div style="margin-bottom:16px;"><div class="round-label">${nomeRodada(r)}</div>`;
+    matches.forEach(m => {
+      const eq1 = eqs.find(e=>e.id===m.equipe1Id);
+      const eq2 = eqs.find(e=>e.id===m.equipe2Id);
+      const nome1 = eq1?.nome||(m.equipe1Id?'—':'Aguardando...');
+      const nome2 = eq2?.nome||(m.equipe2Id?'—':'Aguardando...');
+      const isPend=m.status==='pendente', isDone=m.status==='concluido', isAgt=m.status==='aguardando';
+      const v1=isDone&&m.vencedorId===m.equipe1Id, v2=isDone&&m.vencedorId===m.equipe2Id;
+      const row = (eq,nome,seed,isV,isW) => `<div class="match-row${isV?' winner':''}">
+        ${eqLogo(eq,34)}
+        <span class="match-name${isV?' winner-text':isW?' wait-text':''}">${nome}</span>
+        ${seedPin(seed)}
+        ${isV?`<span class="match-check">✓</span>`:`<span class="match-check-ph"></span>`}
+      </div>`;
+      html += `<div class="match-card ${isDone?'concluido':isPend?'pendente':''}" style="opacity:${isAgt?.5:1}">
+        ${row(eq1,nome1,m.semente1,v1,!eq1&&!m.equipe1Id)}
+        <div class="match-vs"><div class="match-vs-line"></div><span class="match-vs-txt">VS</span><div class="match-vs-line"></div>${vsBadge(m.status)}</div>
+        ${row(eq2,nome2,m.semente2,v2,!eq2&&!m.equipe2Id)}
+      </div>`;
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+// ── Render Final Individual ────────────────────────────────────
+function renderFinalIndividual(faixa) {
+  const fi = (estado.confrontos||[]).filter(c => c.faixa === faixa && c.fase === 'final-individual');
+  if (!fi.length) return '';
+  const ats = estado.atletas||[], eqs = estado.equipes||[];
+  const cats = getCategorias();
+  fi.sort((a,b)=>cats.indexOf(a.categoria)-cats.indexOf(b.categoria));
+
+  let html = `<div class="card"><div class="card-header"><h3>🥇 Final Individual por Categoria</h3></div>`;
+
+  // Grid de campeões definidos
+  const definidos = fi.filter(m=>m.status==='concluido');
+  if (definidos.length) {
+    html += `<div class="champ-grid">`;
+    definidos.forEach(m => {
+      const vAt = ats.find(a=>a.id===m.vencedorId);
+      const vEq = eqs.find(e=>e.id===vAt?.equipeId);
+      const foto = vAt?.fotoBase64
+        ? `<img class="champ-foto" src="${vAt.fotoBase64}" style="margin:0 auto 6px;">`
+        : `<div class="champ-foto-ph">🥇</div>`;
+      html += `<div class="champ-card">${foto}
+        <div class="champ-cat">${m.categoria}</div>
+        <div class="champ-nome">${vAt?.nome||'—'}</div>
+        <div class="champ-eq">${vEq?.nome||'—'}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  fi.forEach(m => {
+    const at1=ats.find(a=>a.id===m.atleta1Id), at2=ats.find(a=>a.id===m.atleta2Id);
+    const eq1=eqs.find(e=>e.id===m.equipe1Id), eq2=eqs.find(e=>e.id===m.equipe2Id);
+    const isDone=m.status==='concluido';
+    const v1=isDone&&m.vencedorId===m.atleta1Id, v2=isDone&&m.vencedorId===m.atleta2Id;
+    const atRow = (at,eq,seed,isV) => `<div class="match-row${isV?' winner':''}">
+      ${atFoto(at,34)}
+      <div style="flex:1;min-width:0;">
+        <div class="match-name${isV?' winner-text':''}">${at?.nome||'—'}</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
+          ${eq?.logoBase64?`<img src="${eq.logoBase64}" style="width:14px;height:14px;object-fit:contain;border-radius:3px;">` : ''}
+          <span style="font-size:0.65rem;color:#8A9CB0;">${eq?.nome||'—'}</span>
+        </div>
+      </div>
+      ${seedPin(seed)}
+      ${isV?`<span class="match-check">🥇</span>`:`<span class="match-check-ph"></span>`}
+    </div>`;
+    html += `<div style="margin-bottom:12px;">${faseTitle(m.categoria)}
+      <div class="match-card ${isDone?'concluido':'pendente'}">
+        ${atRow(at1,eq1,1,v1)}
+        <div class="match-vs"><div class="match-vs-line"></div><span class="match-vs-txt">VS</span><div class="match-vs-line"></div><span class="match-vs-badge final">🥇 Final</span></div>
+        ${atRow(at2,eq2,2,v2)}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
 
 function renderClassificacao() {
   const el = document.getElementById('classificacao-content');
@@ -334,6 +507,13 @@ function renderClassificacao() {
   });
 
   html += '</div>';
+
+  // ── Mata-Mata por Equipes ──────────────────────────────────
+  html += renderMataMata(faixaAtiva);
+
+  // ── Final Individual por Categoria ─────────────────────────
+  html += renderFinalIndividual(faixaAtiva);
+
   el.innerHTML = html;
 }
 

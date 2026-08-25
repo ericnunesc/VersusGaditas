@@ -544,6 +544,7 @@ async function iniciar() {
     snap => {
       confrontos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       atualizarBadgePendentes();
+      salvarEstado(); // sync público em tempo real
       if (tabAtiva === 'classificacao') renderClassificacao();
     }
   );
