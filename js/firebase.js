@@ -105,6 +105,10 @@ export async function atualizarInscricao(campeonatoId, inscricaoId, dados) {
   await updateDoc(doc(db, "campeonatos", campeonatoId, "inscricoes", inscricaoId), dados);
 }
 
+export async function deletarInscricao(campeonatoId, inscricaoId) {
+  await deleteDoc(doc(db, "campeonatos", campeonatoId, "inscricoes", inscricaoId));
+}
+
 // ── Configurações ────────────────────────────────────────────
 export async function salvarConfig(campeonatoId, cfg) {
   await setDoc(doc(db, "campeonatos", campeonatoId, "config", "principal"), cfg);
@@ -241,4 +245,4 @@ export async function deletarCliente(id) {
   await deleteDoc(doc(db, "clientes", id));
 }
 
-export { db, auth, onSnapshot, collection, doc, query, where, orderBy, signInAnonymously };
+export { db, auth, onSnapshot, collection, doc, query, where, orderBy, signInAnonymously, getDocs, getDoc, setDoc, updateDoc, deleteDoc, addDoc };

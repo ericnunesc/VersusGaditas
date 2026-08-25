@@ -470,7 +470,8 @@ import {
   salvarLigaAtleta, listarLigaAtletas, atualizarLigaAtleta, deletarLigaAtleta,
   salvarLigaConfronto, listarLigaConfrontos, atualizarLigaConfronto, deletarLigaConfronto,
   salvarLigaHistorico, listarLigaHistorico, deletarLigaHistorico,
-  salvarLigaConfig, buscarLigaConfig, salvarEstadoPublico
+  salvarLigaConfig, buscarLigaConfig, salvarEstadoPublico,
+  db, collection, doc, getDocs, setDoc, updateDoc, deleteDoc
 } from './js/firebase.js';
 
 // ── Constantes ────────────────────────────────────────────────
@@ -795,7 +796,7 @@ function calcularClassificacao(faixa) {
   const stats = {};
   eqs.forEach(e => { stats[e.id] = { equipe:e, j:0, v:0, emp:0, d:0, pts:0, cv:0, cd:0 }; });
   confrontos
-    .filter(c => c.faixa === faixa && c.status === 'concluido' && c.resultado)
+    .filter(c => c.faixa === faixa && c.status === 'concluido' && c.resultado && c.fase !== 'mata-mata')
     .forEach(c => {
       const s1 = stats[c.equipe1Id], s2 = stats[c.equipe2Id];
       if (!s1 || !s2) return;
@@ -1573,8 +1574,235 @@ function renderClassificacao() {
     </div>`;
   });
   html += `</div>`;
+
+  // ── Botão Gerar Mata-Mata ──────────────────────────────────
+  const mmExistentes = confrontos.filter(c => c.faixa === faixaSelecionada && c.fase === 'mata-mata');
+  html += `<div class="card" style="margin-top:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <div>
+        <strong style="font-size:0.92rem;">🏅 Fase Mata-Mata</strong>
+        <div style="font-size:0.72rem;color:#8A9CB0;margin-top:2px;">Gerado a partir da classificação atual. 1º×último, 2º×penúltimo...</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="gerarMataMataLiga('${faixaSelecionada}')">⚡ ${mmExistentes.length?'Regenerar':'Gerar'} Mata-Mata</button>
+        ${mmExistentes.length ? `<button class="btn btn-danger btn-sm" onclick="apagarMataMataLiga('${faixaSelecionada}')">🗑️ Apagar</button>` : ''}
+      </div>
+    </div>
+    <div id="mm-liga-bracket-${faixaSelecionada}" style="margin-top:12px;">${renderMataMataLiga(faixaSelecionada, mmExistentes)}</div>
+  </div>`;
+
   el.innerHTML = html;
 }
+
+// ── Mata-Mata Liga ────────────────────────────────────────────
+const mmDocId = (faixa, rodada, posicao) => `mm_${faixa}_r${rodada}p${posicao}`;
+const mmCol = () => collection(db, 'campeonatos', campeonatoId, 'liga-confrontos');
+
+function renderMataMataLiga(faixa, mmMatches) {
+  if (!mmMatches || !mmMatches.length) {
+    return `<div style="text-align:center;color:#8A9CB0;font-size:0.82rem;padding:16px 0;">Clique em "⚡ Gerar Mata-Mata" para criar o chaveamento com base na classificação atual.</div>`;
+  }
+
+  const maxRodada = Math.max(...mmMatches.map(m => m.rodada));
+  const nomeRodada = r => {
+    if (r === maxRodada)     return '🏆 Final';
+    if (r === maxRodada - 1) return '🥊 Semifinal';
+    if (r === maxRodada - 2) return '⚡ Quartas de Final';
+    return `🔹 Rodada ${r}`;
+  };
+
+  // Verificar campeão
+  const final = mmMatches.find(m => m.rodada === maxRodada && m.posicao === 0);
+  let html = '';
+  if (final?.status === 'concluido' && final?.vencedorId) {
+    const eq = equipes.find(e => e.id === final.vencedorId);
+    html += `<div style="text-align:center;padding:16px;background:linear-gradient(135deg,#C9A03D22,#C9A03D44);border-radius:12px;border:2px solid #C9A03D;margin-bottom:14px;">
+      <div style="font-size:2rem;">🏆</div>
+      <div style="font-size:0.7rem;color:#8A9CB0;">CAMPEÃO</div>
+      <div style="font-size:1.1rem;font-weight:800;color:#C9A03D;">${eq?.nome || '—'}</div>
+    </div>`;
+  }
+
+  const rounds = [...new Set(mmMatches.map(m => m.rodada))].sort((a,b)=>a-b);
+  rounds.forEach(r => {
+    const matches = mmMatches.filter(m => m.rodada === r).sort((a,b)=>a.posicao-b.posicao);
+    html += `<div style="margin-bottom:14px;"><div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#8A9CB0;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #E2E8F0;">${nomeRodada(r)}</div>`;
+    matches.forEach(m => {
+      if (m.metodo === 'bye') return;
+      const eq1 = equipes.find(e => e.id === m.equipe1Id);
+      const eq2 = equipes.find(e => e.id === m.equipe2Id);
+      const nome1 = eq1?.nome || (m.equipe1Id ? '—' : 'Aguardando...');
+      const nome2 = eq2?.nome || (m.equipe2Id ? '—' : 'Aguardando...');
+      const isPend = m.status === 'pendente';
+      const isDone = m.status === 'concluido';
+      const isAgt  = m.status === 'aguardando';
+      const v1 = isDone && m.vencedorId === m.equipe1Id;
+      const v2 = isDone && m.vencedorId === m.equipe2Id;
+      const seedBadge = (s, nome) => s
+        ? `<span style="width:20px;height:20px;border-radius:50%;background:#C9A03D;color:#fff;font-size:0.6rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:6px;">${s}</span>`
+        : '';
+
+      let actions = '';
+      if (isPend && eq1 && eq2) {
+        actions = `<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+          <button onclick="declararVencedorLigaMM('${m.id}','${m.equipe1Id}')" style="flex:1;background:#C9A03D;color:#fff;border:none;border-radius:8px;padding:7px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">🏆 ${nome1.split(' ')[0]}</button>
+          <button onclick="declararVencedorLigaMM('${m.id}','${m.equipe2Id}')" style="flex:1;background:#1A2C3E;color:#fff;border:none;border-radius:8px;padding:7px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">🏆 ${nome2.split(' ')[0]}</button>
+        </div>`;
+      }
+
+      html += `<div style="border:1.5px solid ${isDone?'#E2E8F0':isPend?'#C9A03D':'#E2E8F0'};border-radius:10px;padding:12px;margin-bottom:8px;opacity:${isAgt?'.6':'1'};">
+        <div style="display:flex;align-items:center;padding:5px 0;gap:6px;">
+          ${seedBadge(m.semente1, nome1)}
+          <span style="font-weight:700;font-size:0.85rem;flex:1;color:${v1?'#C9A03D':'inherit'}">${nome1}</span>
+          ${v1?'<span style="background:#C9A03D;color:#fff;border-radius:20px;padding:2px 8px;font-size:0.62rem;font-weight:700;">✓ Vencedor</span>':''}
+        </div>
+        <div style="text-align:center;font-size:0.62rem;font-weight:700;color:#8A9CB0;">VS</div>
+        <div style="display:flex;align-items:center;padding:5px 0;gap:6px;">
+          ${seedBadge(m.semente2, nome2)}
+          <span style="font-weight:700;font-size:0.85rem;flex:1;color:${v2?'#C9A03D':'inherit'};${!eq2?'font-style:italic;color:#8A9CB0':''}">${nome2}</span>
+          ${v2?'<span style="background:#C9A03D;color:#fff;border-radius:20px;padding:2px 8px;font-size:0.62rem;font-weight:700;">✓ Vencedor</span>':''}
+        </div>
+        ${actions}
+        ${isDone&&!m.metodo?.includes('bye')?`<div style="font-size:0.68rem;color:#8A9CB0;margin-top:6px;text-align:right;">Finalizado</div>`:''}
+      </div>`;
+    });
+    html += '</div>';
+  });
+  return html;
+}
+
+window.gerarMataMataLiga = async function(faixa) {
+  const ranking = calcularClassificacao(faixa);
+  if (ranking.length < 2) { alert('Precisa de pelo menos 2 equipes classificadas.'); return; }
+  if (confrontos.some(c => c.faixa === faixa && c.fase === 'mata-mata')) {
+    if (!confirm('Já existe um mata-mata para esta faixa. Deseja apagar e gerar novamente?')) return;
+    await apagarMataMataLiga(faixa, true); // silent
+  }
+
+  const n = ranking.length;
+  const toRef = (eq, seed) => ({ id: eq.equipe.id, nome: eq.equipe.nome, semente: seed });
+
+  // Próxima potência de 2
+  let nSlots = 1; while (nSlots < n) nSlots *= 2;
+  const totalRounds = Math.log2(nSlots);
+
+  // Seeding padrão (1 vs N, 4 vs N-3, 2 vs N-1, 3 vs N-2...)
+  function gerarPareamentos(slots) {
+    let pairs = [[1, 2]]; let sz = 2;
+    while (sz < slots) {
+      sz *= 2;
+      const novo = [];
+      for (const [a, b] of pairs) { novo.push([a, sz+1-a]); novo.push([b, sz+1-b]); }
+      pairs = novo;
+    }
+    return pairs;
+  }
+
+  const pairs = gerarPareamentos(nSlots);
+  const byeMatches = [];
+
+  // Apagar existentes e criar novos
+  for (const [seedA, seedB] of pairs.entries ? Object.entries(pairs) : pairs.map((p,i)=>[i,p])) {
+    // Fix: pairs is array of [seedA, seedB], enumerate with index
+  }
+
+  // Criar R1
+  for (let pos = 0; pos < pairs.length; pos++) {
+    const [seedA, seedB] = pairs[pos];
+    const eqA = seedA <= n ? ranking[seedA-1] : null;
+    const eqB = seedB <= n ? ranking[seedB-1] : null;
+
+    if (!eqA && !eqB) continue;
+
+    const id = mmDocId(faixa, 1, pos);
+    if (!eqA || !eqB) {
+      const winner = eqA || eqB;
+      await setDoc(doc(mmCol(), id), {
+        faixa, fase: 'mata-mata', rodada: 1, posicao: pos,
+        equipe1Id: winner.equipe.id, equipe2Id: null,
+        semente1: eqA ? seedA : seedB, semente2: null,
+        vencedorId: winner.equipe.id, status: 'concluido', metodo: 'bye',
+      });
+      byeMatches.push({ faixa, rodada: 1, posicao: pos, vencedorId: winner.equipe.id, vencedorRef: toRef(winner, eqA ? seedA : seedB) });
+    } else {
+      await setDoc(doc(mmCol(), id), {
+        faixa, fase: 'mata-mata', rodada: 1, posicao: pos,
+        equipe1Id: eqA.equipe.id, equipe2Id: eqB.equipe.id,
+        semente1: seedA, semente2: seedB,
+        vencedorId: null, status: 'pendente', metodo: null,
+      });
+    }
+  }
+
+  // Pré-gerar rounds futuros
+  let prevCount = pairs.length;
+  for (let r = 2; r <= totalRounds; r++) {
+    const cnt = prevCount / 2;
+    for (let p = 0; p < cnt; p++) {
+      await setDoc(doc(mmCol(), mmDocId(faixa, r, p)), {
+        faixa, fase: 'mata-mata', rodada: r, posicao: p,
+        equipe1Id: null, equipe2Id: null,
+        vencedorId: null, status: 'aguardando', metodo: null,
+      });
+    }
+    prevCount = cnt;
+  }
+
+  // Avançar BYEs
+  for (const bye of byeMatches) {
+    await avancarVencedorLigaMM(bye.faixa, bye.rodada, bye.posicao, bye.vencedorId, bye.vencedorRef);
+  }
+
+  // Recarregar e rerender
+  confrontos = await listarLigaConfrontos(campeonatoId);
+  renderClassificacao();
+};
+
+async function avancarVencedorLigaMM(faixa, rodadaAtual, posicaoAtual, vencedorId, vencedorRef) {
+  const nextRodada = rodadaAtual + 1;
+  const nextPos    = Math.floor(posicaoAtual / 2);
+  const lado       = posicaoAtual % 2 === 0 ? 'equipe1Id' : 'equipe2Id';
+  const sementeKey = posicaoAtual % 2 === 0 ? 'semente1' : 'semente2';
+  const nextId     = mmDocId(faixa, nextRodada, nextPos);
+
+  try {
+    const nextRef = doc(mmCol(), nextId);
+    const updates = { [lado]: vencedorId, [sementeKey]: vencedorRef?.semente || null, status: 'aguardando' };
+    await updateDoc(nextRef, updates);
+    // Verificar se ambos os lados estão preenchidos → pendente
+    const snap = await getDocs(mmCol());
+    const nextDoc = snap.docs.find(d => d.id === nextId);
+    if (nextDoc) {
+      const data = nextDoc.data();
+      if (data.equipe1Id && data.equipe2Id) await updateDoc(doc(mmCol(), nextId), { status: 'pendente' });
+    }
+  } catch(_) {} // próxima rodada pode não existir (Final já declarada)
+}
+
+window.declararVencedorLigaMM = async function(confrontoId, vencedorId) {
+  const m = confrontos.find(c => c.id === confrontoId);
+  if (!m) return;
+  const eq = equipes.find(e => e.id === vencedorId);
+  if (!confirm(`Confirmar vitória de ${eq?.nome || '—'}?`)) return;
+  try {
+    await updateDoc(doc(mmCol(), confrontoId), { vencedorId, status: 'concluido', metodo: 'declarado' });
+    const vencedorRef = { id: vencedorId, nome: eq?.nome || '', semente: vencedorId === m.equipe1Id ? m.semente1 : m.semente2 };
+    await avancarVencedorLigaMM(m.faixa, m.rodada, m.posicao, vencedorId, vencedorRef);
+    confrontos = await listarLigaConfrontos(campeonatoId);
+    renderClassificacao();
+    alert(`${eq?.nome} avançou!`);
+  } catch(e) { alert('Erro ao salvar.'); console.error(e); }
+};
+
+window.apagarMataMataLiga = async function(faixa, silent) {
+  if (!silent && !confirm(`Apagar o mata-mata de ${FAIXAS_LABEL[faixa]}? Não pode ser desfeito.`)) return;
+  const snap = await getDocs(mmCol());
+  for (const d of snap.docs) {
+    if (d.id.startsWith(`mm_${faixa}_`)) await deleteDoc(doc(mmCol(), d.id));
+  }
+  confrontos = await listarLigaConfrontos(campeonatoId);
+  if (!silent) renderClassificacao();
+};
 
 // ── Hall of Fame ───────────────────────────────────────────────
 function renderHoF() {
