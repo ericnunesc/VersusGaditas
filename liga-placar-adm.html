@@ -981,7 +981,7 @@ async function recalcularStatsFaixa(faixa) {
   atsF.forEach(a => { acc[a.id] = { ...zero(), catStats: {} }; });
 
   const confsAll = confrontos.map(c => c.id === confrontoAtivo.id ? { ...c, ...confrontoAtivo } : c);
-  for (const c of confsAll.filter(x => x.faixa === faixa && x.status === 'concluido' && x.resultado)) {
+  for (const c of confsAll.filter(x => x.faixa === faixa && x.status === 'concluido' && x.resultado && x.fase !== 'mata-mata' && x.fase !== 'final-individual')) {
     for (const cr of (c.resultado.categorias || [])) {
       if (!cr.vencedor) continue;
       const isAbs = cr.categoria === 'Absoluto';
