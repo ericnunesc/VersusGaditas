@@ -65,6 +65,76 @@
       body { background:#fff; }
       .grupo.print-oculto { display:none !important; }
     }
+
+    /* Modal de Pagamento */
+    .modal-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+      z-index:1000; align-items:center; justify-content:center; padding:16px;
+    }
+    .modal-overlay.aberto { display:flex; }
+    .modal-box {
+      background:#fff; border-radius:16px; max-width:440px; width:100%;
+      box-shadow:0 20px 60px rgba(0,0,0,0.25); overflow:hidden;
+    }
+    .modal-header {
+      background:linear-gradient(135deg,#1A2C3E,#2A4A6E);
+      color:#fff; padding:18px 20px; display:flex; justify-content:space-between; align-items:center;
+    }
+    .modal-header h3 { font-size:1rem; font-weight:700; margin:0; }
+    .modal-close { background:none; border:none; color:rgba(255,255,255,0.7); font-size:1.4rem; cursor:pointer; line-height:1; padding:0; }
+    .modal-close:hover { color:#fff; }
+    .modal-body { padding:20px; }
+    .modal-step { display:none; }
+    .modal-step.ativo { display:block; }
+    .modal-label { font-size:0.8rem; font-weight:600; color:#4A5568; margin-bottom:6px; display:block; }
+    .modal-input {
+      width:100%; border:1.5px solid #E2E8F0; border-radius:10px;
+      padding:10px 14px; font-size:0.9rem; outline:none; transition:border-color 0.2s;
+    }
+    .modal-input:focus { border-color:#C9A03D; }
+    .modal-btn {
+      width:100%; padding:11px; border:none; border-radius:10px; font-size:0.9rem;
+      font-weight:700; cursor:pointer; margin-top:10px; transition:opacity 0.2s;
+    }
+    .modal-btn:hover { opacity:0.88; }
+    .modal-btn-primary { background:#C9A03D; color:#fff; }
+    .modal-btn-secondary { background:#E2E8F0; color:#1A2C3E; }
+    .modal-erro { background:#FEE2E2; color:#B91C1C; border-radius:8px; padding:9px 12px; font-size:0.8rem; margin-top:8px; display:none; }
+    .modal-erro.visivel { display:block; }
+    .pix-box {
+      background:#F0FDF4; border:1.5px solid #BBF7D0; border-radius:10px;
+      padding:14px 16px; margin-bottom:14px;
+    }
+    .pix-box .pix-label { font-size:0.72rem; color:#166534; font-weight:700; text-transform:uppercase; margin-bottom:4px; }
+    .pix-box .pix-value { font-size:1rem; font-weight:700; color:#14532D; word-break:break-all; }
+    .pix-copy-btn {
+      background:#16A34A; color:#fff; border:none; border-radius:7px;
+      padding:6px 14px; font-size:0.78rem; font-weight:700; cursor:pointer; margin-top:8px;
+    }
+    .link-box {
+      background:#EFF6FF; border:1.5px solid #BFDBFE; border-radius:10px;
+      padding:14px 16px; margin-bottom:14px;
+    }
+    .link-box a { color:#1D4ED8; font-weight:700; font-size:0.9rem; text-decoration:none; word-break:break-all; }
+    .link-box a:hover { text-decoration:underline; }
+    .upload-area {
+      border:2px dashed #E2E8F0; border-radius:10px; padding:20px;
+      text-align:center; cursor:pointer; transition:border-color 0.2s;
+      margin-top:8px;
+    }
+    .upload-area:hover, .upload-area.dragover { border-color:#C9A03D; background:#FFFBEB; }
+    .upload-area p { font-size:0.82rem; color:#8A9CB0; margin-top:6px; }
+    .upload-preview { max-width:100%; max-height:160px; border-radius:8px; margin-top:10px; display:none; }
+    .modal-sucesso { text-align:center; padding:10px 0; }
+    .modal-sucesso .ok-icon { font-size:3rem; margin-bottom:10px; }
+    .modal-sucesso p { font-size:0.9rem; color:#4A5568; }
+
+    .status-pendente-btn {
+      padding:3px 10px; border-radius:20px; font-size:0.68rem; font-weight:700;
+      white-space:nowrap; background:#FEF9C3; color:#92400E;
+      border:none; cursor:pointer; transition:background 0.15s;
+    }
+    .status-pendente-btn:hover { background:#FDE68A; }
   </style>
 </head>
 <body>
@@ -113,14 +183,89 @@
   <div id="conteudo"></div>
 </div>
 
+<!-- Modal de Pagamento -->
+<div class="modal-overlay" id="modal-pagamento">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>💳 Regularizar Inscrição</h3>
+      <button class="modal-close" onclick="fecharModal()">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Step 1: identificação -->
+      <div class="modal-step ativo" id="step-identificacao">
+        <p style="font-size:0.85rem;color:#4A5568;margin-bottom:14px;">
+          Digite seu <strong>CPF</strong> ou <strong>e-mail</strong> para localizar sua inscrição e ver as informações de pagamento.
+        </p>
+        <label class="modal-label">CPF ou E-mail</label>
+        <input class="modal-input" id="campo-identificacao" type="text" placeholder="000.000.000-00 ou email@exemplo.com" oninput="limparErroModal()">
+        <div class="modal-erro" id="erro-identificacao">Inscrição não encontrada. Verifique o CPF ou e-mail digitado.</div>
+        <button class="modal-btn modal-btn-primary" onclick="buscarInscricao()">🔍 Localizar Inscrição</button>
+      </div>
+
+      <!-- Step 2: pagamento -->
+      <div class="modal-step" id="step-pagamento">
+        <p style="font-size:0.85rem;color:#166534;background:#F0FDF4;border-radius:8px;padding:10px 12px;margin-bottom:16px;">
+          ✅ Inscrição localizada: <strong id="nome-inscrito"></strong>
+        </p>
+
+        <div id="pix-section" style="display:none">
+          <div class="pix-box">
+            <div class="pix-label">🔑 Chave PIX</div>
+            <div class="pix-value" id="pix-chave"></div>
+            <button class="pix-copy-btn" onclick="copiarPix()">📋 Copiar chave</button>
+          </div>
+        </div>
+
+        <div id="link-section" style="display:none">
+          <div class="link-box">
+            <div style="font-size:0.72rem;color:#1E40AF;font-weight:700;text-transform:uppercase;margin-bottom:4px;">🔗 Link de Pagamento</div>
+            <a id="link-pagamento" href="#" target="_blank" rel="noopener">Clique aqui para pagar</a>
+          </div>
+        </div>
+
+        <div id="sem-config" style="display:none;background:#FEF9C3;border-radius:8px;padding:12px;font-size:0.82rem;color:#92400E;margin-bottom:12px;">
+          ⚠️ A organização ainda não configurou os dados de pagamento. Entre em contato diretamente.
+        </div>
+
+        <div style="border-top:1px solid #E2E8F0;padding-top:14px;">
+          <label class="modal-label">📎 Enviar Comprovante de Pagamento</label>
+          <div class="upload-area" id="upload-area" onclick="document.getElementById('file-comprovante').click()" ondragover="dragOver(event)" ondrop="dragDrop(event)">
+            <div style="font-size:2rem;">📤</div>
+            <p>Clique ou arraste a imagem do comprovante aqui</p>
+            <img id="upload-preview" class="upload-preview">
+          </div>
+          <input type="file" id="file-comprovante" accept="image/*" style="display:none" onchange="previewComprovante(event)">
+          <div class="modal-erro" id="erro-upload">Selecione uma imagem para enviar.</div>
+          <button class="modal-btn modal-btn-primary" onclick="enviarComprovante()" id="btn-enviar" style="margin-top:12px;">📤 Enviar Comprovante</button>
+        </div>
+      </div>
+
+      <!-- Step 3: sucesso -->
+      <div class="modal-step" id="step-sucesso">
+        <div class="modal-sucesso">
+          <div class="ok-icon">✅</div>
+          <h3 style="font-weight:700;margin-bottom:8px;">Comprovante enviado!</h3>
+          <p>Seu comprovante foi recebido. A organização irá confirmar seu pagamento em breve.</p>
+          <button class="modal-btn modal-btn-secondary" onclick="fecharModal()" style="margin-top:16px;">Fechar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script src="js/config.js?v=3.3.5"></script>
 <script src="js/categorias.js?v=3.3.5"></script>
 <script type="module">
-  import { listarAtletas, listarInscricoes, buscarCampeonato } from './js/firebase.js';
+  import { listarAtletas, listarInscricoes, buscarCampeonato, buscarConfig, atualizarInscricao } from './js/firebase.js';
 
   const campeonatoId = new URLSearchParams(location.search).get('id');
   let todosAtletas = [];
+  let todasInscricoes = [];  // referência completa das inscrições pendentes com id/cpf/email
+  let configPagamento = null;
   let viewAtual = 'categoria';
+  let inscricaoAtiva = null; // inscricao sendo paga no modal
 
   const FAIXA_COR = {
     'Branca':'#FFFFFF','Cinza':'#9CA3AF','Amarela':'#FCD34D','Laranja':'#FB923C',
@@ -173,10 +318,12 @@
 
   async function carregarDados() {
     if (!campeonatoId) return;
-    const [atletas, inscricoes] = await Promise.all([
+    const [atletas, inscricoes, cfg] = await Promise.all([
       listarAtletas(campeonatoId),
-      listarInscricoes(campeonatoId)
+      listarInscricoes(campeonatoId),
+      buscarConfig(campeonatoId).catch(() => null)
     ]);
+    configPagamento = cfg && cfg.pagamento ? cfg.pagamento : null;
     const confirmados = atletas.map(a => {
       const cat = a.categoria || calcularCategoria(a);
       return {
@@ -202,9 +349,12 @@
           sexo: i.sexo || '—',
           academia: i.equipeNome || i.equipe || '—',
           categoria: cat,
-          status: 'pendente'
+          status: 'pendente',
+          inscricaoId: i.id   // preservar para identificação no modal
         };
       });
+    // guardar lista completa de inscrições pendentes para lookup por cpf/email
+    todasInscricoes = inscricoes.filter(i => i.status === 'pendente');
     todosAtletas = [...confirmados, ...pendentes];
   }
 
@@ -262,7 +412,7 @@
     const borda = FAIXA_BORDA[a.faixa] || '#CBD5E1';
     const badge = a.status === 'confirmado'
       ? '<span class="status-badge status-confirmado">✅ Confirmado</span>'
-      : '<span class="status-badge status-pendente">⏳ Pendente</span>';
+      : `<button class="status-pendente-btn" onclick="abrirModalPagamento('${a.inscricaoId || ''}',event)" title="Clique para pagar">⏳ Pendente — Pagar</button>`;
     return `<div class="atleta-row">
       <div style="display:flex;align-items:center;gap:10px">
         <span class="faixa-dot" style="background:${cor};border:1.5px solid ${borda}"></span>
@@ -346,6 +496,162 @@
     document.getElementById('ultima-atualizacao').textContent =
       'Atualizado: ' + new Date().toLocaleString('pt-BR');
   };
+
+  // ── Modal de Pagamento ──────────────────────────────────────────────────────
+
+  window.abrirModalPagamento = function(inscricaoId, ev) {
+    if (ev) ev.stopPropagation();
+    inscricaoAtiva = null;
+    // Resetar todos os steps
+    document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('ativo'));
+    document.getElementById('step-identificacao').classList.add('ativo');
+    document.getElementById('campo-identificacao').value = '';
+    document.getElementById('erro-identificacao').classList.remove('visivel');
+    document.getElementById('erro-upload').classList.remove('visivel');
+    document.getElementById('upload-preview').style.display = 'none';
+    document.getElementById('upload-preview').src = '';
+    document.getElementById('file-comprovante').value = '';
+    document.getElementById('modal-pagamento').classList.add('aberto');
+    // Se já temos o id direto (via botão com id), podemos preencher o nome logo após step 1
+    if (inscricaoId) {
+      const insc = todasInscricoes.find(i => i.id === inscricaoId);
+      if (insc) {
+        inscricaoAtiva = insc;
+        mostrarStepPagamento();
+        return;
+      }
+    }
+    setTimeout(() => document.getElementById('campo-identificacao').focus(), 100);
+  };
+
+  window.fecharModal = function() {
+    document.getElementById('modal-pagamento').classList.remove('aberto');
+    inscricaoAtiva = null;
+  };
+
+  // Fechar clicando fora
+  document.getElementById('modal-pagamento').addEventListener('click', function(e) {
+    if (e.target === this) fecharModal();
+  });
+
+  window.limparErroModal = function() {
+    document.getElementById('erro-identificacao').classList.remove('visivel');
+  };
+
+  window.buscarInscricao = function() {
+    const val = document.getElementById('campo-identificacao').value.trim().toLowerCase();
+    if (!val) {
+      document.getElementById('erro-identificacao').classList.add('visivel');
+      return;
+    }
+    // normaliza CPF para só números
+    const valNum = val.replace(/\D/g,'');
+    const found = todasInscricoes.find(i => {
+      const cpfI = (i.cpf || '').replace(/\D/g,'');
+      const emailI = (i.email || '').toLowerCase();
+      return cpfI === valNum || emailI === val;
+    });
+    if (!found) {
+      document.getElementById('erro-identificacao').classList.add('visivel');
+      return;
+    }
+    inscricaoAtiva = found;
+    mostrarStepPagamento();
+  };
+
+  function mostrarStepPagamento() {
+    document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('ativo'));
+    document.getElementById('step-pagamento').classList.add('ativo');
+    document.getElementById('nome-inscrito').textContent = inscricaoAtiva.nome || '—';
+
+    // PIX
+    const pixSection = document.getElementById('pix-section');
+    const linkSection = document.getElementById('link-section');
+    const semCfg = document.getElementById('sem-config');
+    const pixChave = configPagamento && configPagamento.pix && configPagamento.pix.chave;
+    const linkUrl = configPagamento && configPagamento.link && configPagamento.link.url;
+
+    if (pixChave) {
+      document.getElementById('pix-chave').textContent = pixChave;
+      pixSection.style.display = 'block';
+    } else {
+      pixSection.style.display = 'none';
+    }
+    if (linkUrl) {
+      const la = document.getElementById('link-pagamento');
+      la.href = linkUrl;
+      la.textContent = linkUrl.length > 45 ? linkUrl.slice(0,45) + '…' : linkUrl;
+      linkSection.style.display = 'block';
+    } else {
+      linkSection.style.display = 'none';
+    }
+    if (!pixChave && !linkUrl) {
+      semCfg.style.display = 'block';
+    } else {
+      semCfg.style.display = 'none';
+    }
+  }
+
+  window.copiarPix = function() {
+    const chave = document.getElementById('pix-chave').textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText(chave).then(() => alert('Chave PIX copiada!'));
+    else { const t = document.createElement('textarea'); t.value = chave; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); alert('Chave PIX copiada!'); }
+  };
+
+  window.dragOver = function(e) { e.preventDefault(); document.getElementById('upload-area').classList.add('dragover'); };
+  window.dragDrop = function(e) {
+    e.preventDefault();
+    document.getElementById('upload-area').classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) processarArquivo(file);
+  };
+
+  window.previewComprovante = function(e) {
+    const file = e.target.files[0];
+    if (file) processarArquivo(file);
+  };
+
+  let comprovanteBase64 = null;
+  function processarArquivo(file) {
+    if (!file.type.startsWith('image/')) { alert('Selecione apenas imagens (JPG, PNG, etc.)'); return; }
+    const reader = new FileReader();
+    reader.onload = function(e2) {
+      comprovanteBase64 = e2.target.result;
+      const prev = document.getElementById('upload-preview');
+      prev.src = comprovanteBase64;
+      prev.style.display = 'block';
+      document.getElementById('upload-area').querySelector('p').textContent = file.name;
+      document.getElementById('erro-upload').classList.remove('visivel');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  window.enviarComprovante = async function() {
+    if (!comprovanteBase64) {
+      document.getElementById('erro-upload').classList.add('visivel');
+      return;
+    }
+    const btn = document.getElementById('btn-enviar');
+    btn.disabled = true;
+    btn.textContent = '⏳ Enviando...';
+    try {
+      await atualizarInscricao(campeonatoId, inscricaoAtiva.id, {
+        comprovante: comprovanteBase64,
+        comprovantePendente: true,
+        comprovanteEnviadoEm: new Date().toISOString()
+      });
+      comprovanteBase64 = null;
+      document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('ativo'));
+      document.getElementById('step-sucesso').classList.add('ativo');
+    } catch(err) {
+      alert('Erro ao enviar: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '📤 Enviar Comprovante';
+    }
+  };
+
+  // ────────────────────────────────────────────────────────────────────────────
 
   async function iniciar() {
     if (!campeonatoId) {
