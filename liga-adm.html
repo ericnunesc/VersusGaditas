@@ -546,18 +546,27 @@ async function iniciar() {
 
       // Auto-avançar vencedores mata-mata para próxima rodada
       for (const c of confrontos) {
-        if (c.fase !== 'mata-mata' || c.status !== 'concluido' || !c.vencedorId) continue;
+        if (c.fase !== 'mata-mata' || c.status !== 'concluido') continue;
+        // Determinar vencedor: usa vencedorId salvo no doc ou calcula do resultado
+        let vencedorId = c.vencedorId;
+        if (!vencedorId && c.resultado?.categorias) {
+          let v1 = 0, v2 = 0;
+          c.resultado.categorias.forEach(cr => { if (cr.vencedor==='1') v1++; else if (cr.vencedor==='2') v2++; });
+          if (v1 > v2) vencedorId = c.equipe1Id;
+          else if (v2 > v1) vencedorId = c.equipe2Id;
+        }
+        if (!vencedorId) continue;
         const nextRodada = c.rodada + 1;
         const nextPos    = Math.floor(c.posicao / 2);
         const nextId     = mmDocId(c.faixa, nextRodada, nextPos);
         const nextConf   = confrontos.find(x => x.id === nextId);
         if (!nextConf) continue; // não existe próxima rodada
         const lado = c.posicao % 2 === 0 ? 'equipe1Id' : 'equipe2Id';
-        if (nextConf[lado] === c.vencedorId) continue; // já avançado, ignorar
+        if (nextConf[lado] === vencedorId) continue; // já avançado, ignorar
         // Avançar vencedor
-        const eq = equipes.find(e => e.id === c.vencedorId);
-        const vencedorRef = { id: c.vencedorId, nome: eq?.nome || '', semente: c.vencedorId === c.equipe1Id ? c.semente1 : c.semente2 };
-        avancarVencedorLigaMM(c.faixa, c.rodada, c.posicao, c.vencedorId, vencedorRef).catch(console.error);
+        const eq = equipes.find(e => e.id === vencedorId);
+        const vencedorRef = { id: vencedorId, nome: eq?.nome || '', semente: vencedorId === c.equipe1Id ? c.semente1 : c.semente2 };
+        avancarVencedorLigaMM(c.faixa, c.rodada, c.posicao, vencedorId, vencedorRef).catch(console.error);
       }
 
       atualizarBadgePendentes();
