@@ -947,8 +947,16 @@ window.finalizarConfronto = async function() {
   const pend = cats.filter(c => !c.vencedor).length;
   if (pend > 0 && !confirm(`Ainda há ${pend} categoria(s) sem resultado.\nFinalizar mesmo assim?`)) return;
   try {
-    // 1. Salva confronto como concluido no Firestore
-    await atualizarLigaConfronto(campId, confrontoAtivo.id, { status:'concluido', resultado: confrontoAtivo.resultado });
+    // 1. Salva confronto como concluido no Firestore (inclui vencedorId p/ mata-mata)
+    const extraFields = {};
+    if (confrontoAtivo.fase === 'mata-mata') {
+      const cats = confrontoAtivo.resultado?.categorias || [];
+      let v1 = 0, v2 = 0;
+      cats.forEach(cr => { if (cr.vencedor === '1') v1++; else if (cr.vencedor === '2') v2++; });
+      if (v1 > v2) extraFields.vencedorId = confrontoAtivo.equipe1Id;
+      else if (v2 > v1) extraFields.vencedorId = confrontoAtivo.equipe2Id;
+    }
+    await atualizarLigaConfronto(campId, confrontoAtivo.id, { status:'concluido', resultado: confrontoAtivo.resultado, ...extraFields });
     confrontoAtivo.status = 'concluido';
 
     // 2. Recalcula stats de todos os atletas da faixa do zero (evita acúmulo)

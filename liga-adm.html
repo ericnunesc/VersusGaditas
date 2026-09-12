@@ -543,6 +543,23 @@ async function iniciar() {
     query(collection(db, 'campeonatos', campeonatoId, 'liga-confrontos'), orderBy('rodada', 'asc')),
     snap => {
       confrontos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Auto-avançar vencedores mata-mata para próxima rodada
+      for (const c of confrontos) {
+        if (c.fase !== 'mata-mata' || c.status !== 'concluido' || !c.vencedorId) continue;
+        const nextRodada = c.rodada + 1;
+        const nextPos    = Math.floor(c.posicao / 2);
+        const nextId     = mmDocId(c.faixa, nextRodada, nextPos);
+        const nextConf   = confrontos.find(x => x.id === nextId);
+        if (!nextConf) continue; // não existe próxima rodada
+        const lado = c.posicao % 2 === 0 ? 'equipe1Id' : 'equipe2Id';
+        if (nextConf[lado] === c.vencedorId) continue; // já avançado, ignorar
+        // Avançar vencedor
+        const eq = equipes.find(e => e.id === c.vencedorId);
+        const vencedorRef = { id: c.vencedorId, nome: eq?.nome || '', semente: c.vencedorId === c.equipe1Id ? c.semente1 : c.semente2 };
+        avancarVencedorLigaMM(c.faixa, c.rodada, c.posicao, c.vencedorId, vencedorRef).catch(console.error);
+      }
+
       atualizarBadgePendentes();
       salvarEstado(); // sync público em tempo real
       if (tabAtiva === 'classificacao') renderClassificacao();
