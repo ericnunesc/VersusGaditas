@@ -1142,9 +1142,12 @@ function renderCalendario() {
         <!-- header -->
         <div style="background:${isDone?'#F0FDF4':'#FFFBF0'};padding:8px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid ${isDone?'#BBF7D0':'#FDE68A'};">
           <span style="font-size:0.75rem;font-weight:800;color:#92400E;letter-spacing:0.5px;">🥋 ${m.categoria}</span>
-          ${isDone
-            ? `<span style="font-size:0.6rem;font-weight:700;color:#16A34A;background:#DCFCE7;padding:2px 8px;border-radius:10px;">✅ Definido</span>`
-            : `<span style="font-size:0.6rem;font-weight:700;color:#B45309;background:#FEF3C7;padding:2px 8px;border-radius:10px;">🏅 Final</span>`}
+          <div style="display:flex;align-items:center;gap:6px;">
+            ${isDone
+              ? `<span style="font-size:0.6rem;font-weight:700;color:#16A34A;background:#DCFCE7;padding:2px 8px;border-radius:10px;">✅ Definido</span>`
+              : `<span style="font-size:0.6rem;font-weight:700;color:#B45309;background:#FEF3C7;padding:2px 8px;border-radius:10px;">🏅 Final</span>`}
+            <button onclick="toggleEditConfronto('${m.id}')" title="Editar data/hora/local" style="background:transparent;border:1px solid #E2E8F0;border-radius:6px;padding:2px 6px;font-size:0.72rem;cursor:pointer;color:#64748B;" title="Editar data/local">📅</button>
+          </div>
         </div>
         <!-- athletes -->
         <div style="padding:10px 12px;display:flex;flex-direction:column;gap:5px;">
@@ -1166,7 +1169,31 @@ function renderCalendario() {
             ${w2?`<span style="font-size:1rem;flex-shrink:0;">🥇</span>`:''}
           </div>
         </div>
+        <!-- winner banner -->
         ${isDone&&vAt?`<div style="background:linear-gradient(90deg,#FFF8E8,#FFFBEB);border-top:1px solid #FDE68A;padding:6px 12px;text-align:center;font-size:0.72rem;font-weight:800;color:#B45309;">🥇 ${vAt.nome}</div>`:''}
+        <!-- action buttons -->
+        <div style="padding:8px 12px;border-top:1px solid #F1F5F9;display:flex;gap:6px;flex-wrap:wrap;">
+          ${isDone
+            ? `<button onclick="reativarConfronto('${m.id}')" style="flex:1;background:#F59E0B;color:#fff;border:none;border-radius:8px;padding:7px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">🔄 Reativar</button>`
+            : `<button onclick="window.open('liga-placar-adm.html?id=${campeonatoId}&confronto=${m.id}','_blank')" style="flex:1;background:#059669;color:#fff;border:none;border-radius:8px;padding:7px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">▶ Ao Vivo</button>
+               <button onclick="this.closest('div').nextElementSibling.style.display=this.closest('div').nextElementSibling.style.display==='none'?'flex':'none'" style="background:#F1F5F9;color:#334155;border:none;border-radius:8px;padding:7px 10px;font-size:0.75rem;font-weight:700;cursor:pointer;">📝 Resultado</button>`}
+        </div>
+        <!-- declarar vencedor manual (toggle) -->
+        ${isDone?'':`<div style="display:none;padding:0 12px 10px;gap:6px;">
+          <button onclick="declararVencedorFI('${m.id}','${m.atleta1Id}')" style="flex:1;background:#1D4ED8;color:#fff;border:none;border-radius:8px;padding:8px 6px;font-size:0.72rem;font-weight:700;cursor:pointer;">🥇 ${n1.split(' ')[0]}</button>
+          <button onclick="declararVencedorFI('${m.id}','${m.atleta2Id}')" style="flex:1;background:#B91C1C;color:#fff;border:none;border-radius:8px;padding:8px 6px;font-size:0.72rem;font-weight:700;cursor:pointer;">🥇 ${n2.split(' ')[0]}</button>
+        </div>`}
+        <!-- edit data form -->
+        <div id="edit-conf-${m.id}" class="erf-row" style="display:none;padding:8px 12px 10px;border-top:1px solid #F1F5F9;flex-wrap:wrap;gap:6px;">
+          <div style="width:100%;font-size:0.7rem;font-weight:700;margin-bottom:2px;color:#1A2C3E;">📅 Editar data/hora/local</div>
+          <div class="erf-col" style="min-width:130px"><div class="erf-label">Data</div><input type="date" id="edc-data-${m.id}" value="${m.data||''}"></div>
+          <div class="erf-col"><div class="erf-label">Horário</div><input type="time" id="edc-hora-${m.id}" value="${m.hora||'19:00'}" style="width:110px"></div>
+          <div class="erf-col" style="flex:1;min-width:140px"><div class="erf-label">Local</div><input type="text" id="edc-local-${m.id}" value="${(m.local||'').replace(/"/g,'&quot;')}" placeholder="Ex: Ginásio Municipal"></div>
+          <div style="display:flex;gap:6px;width:100%;">
+            <button class="btn btn-primary btn-sm" onclick="salvarDataConfronto('${m.id}')">💾 Salvar</button>
+            <button class="btn btn-secondary btn-sm" onclick="toggleEditConfronto('${m.id}')">Cancelar</button>
+          </div>
+        </div>
       </div>`;
     });
 
