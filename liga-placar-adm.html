@@ -396,7 +396,7 @@ async function iniciar() {
   if (cfg) ligaConfig = cfg;
   else if (st.ligaConfig) ligaConfig = st.ligaConfig;
 
-  // Se vier com ?confronto=ID direto (mata-mata), auto-ativar esse confronto
+  // Se vier com ?confronto=ID direto (mata-mata ou final-individual), auto-ativar esse confronto
   if (confrontoParam) {
     const cParam = confrontos.find(c => c.id === confrontoParam);
     if (cParam) {
@@ -406,10 +406,11 @@ async function iniciar() {
         mostrarControle();
         return;
       } else if (cParam.status === 'pendente') {
-        const resultado = {
-          categorias: getCategorias().map(cat => ({ categoria: cat, vencedor: null, finalizacao: false })),
-          vitoriasEq1: 0, vitoriasEq2: 0
-        };
+        // Final Individual: apenas 1 categoria (a do confronto)
+        const catsList = cParam.fase === 'final-individual'
+          ? [{ categoria: cParam.categoria || 'Final Individual', vencedor: null, finalizacao: false }]
+          : getCategorias().map(cat => ({ categoria: cat, vencedor: null, finalizacao: false }));
+        const resultado = { categorias: catsList, vitoriasEq1: 0, vitoriasEq2: 0 };
         await atualizarLigaConfronto(campId, cParam.id, { status: 'ao_vivo', resultado });
         cParam.status = 'ao_vivo';
         cParam.resultado = resultado;
@@ -558,8 +559,15 @@ function renderCatsLive() {
   const cats = c.resultado?.categorias || [];
 
   document.getElementById('cats-live').innerHTML = cats.map((cr, idx) => {
-    const at1 = atletas.find(a => a.equipeId === c.equipe1Id && a.faixa === c.faixa && a.categoria === cr.categoria);
-    const at2 = atletas.find(a => a.equipeId === c.equipe2Id && a.faixa === c.faixa && a.categoria === cr.categoria);
+    // Final Individual: usa atleta1Id/atleta2Id diretamente; outros: busca por equipe+faixa+categoria
+    let at1, at2;
+    if (c.fase === 'final-individual') {
+      at1 = atletas.find(a => a.id === c.atleta1Id);
+      at2 = atletas.find(a => a.id === c.atleta2Id);
+    } else {
+      at1 = atletas.find(a => a.equipeId === c.equipe1Id && a.faixa === c.faixa && a.categoria === cr.categoria);
+      at2 = atletas.find(a => a.equipeId === c.equipe2Id && a.faixa === c.faixa && a.categoria === cr.categoria);
+    }
     const nome1 = at1?.nome || eq1.split(' ')[0];
     const nome2 = at2?.nome || eq2.split(' ')[0];
     const ld    = lutaData[idx] || {};
