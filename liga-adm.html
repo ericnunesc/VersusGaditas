@@ -1994,6 +1994,8 @@ window.gerarFinalIndividual = async function(faixa) {
       semente2: 2,
       status: 'pendente',
       vencedorId: null,
+      rodada: 0,   // necessário para aparecer no onSnapshot (orderBy rodada)
+      posicao: 0,
       criadoEm: new Date().toISOString()
     });
   }
@@ -2006,8 +2008,11 @@ window.gerarFinalIndividual = async function(faixa) {
 window.apagarFinalIndividual = async function(faixa, silent = false) {
   if (!silent && !confirm('Apagar todas as finais individuais desta faixa?')) return;
   const col = mmCol();
-  const fi = confrontos.filter(c => c.faixa === faixa && c.fase === 'final-individual');
-  for (const m of fi) await deleteDoc(doc(col, m.id));
+  // Busca direto no Firestore (docs fi_* podem não estar no array se criados sem rodada)
+  const snap = await getDocs(col);
+  for (const d of snap.docs) {
+    if (d.id.startsWith(`fi_${faixa}_`)) await deleteDoc(doc(col, d.id));
+  }
   confrontos = confrontos.filter(c => !(c.faixa === faixa && c.fase === 'final-individual'));
   if (!silent) renderClassificacao();
 };
