@@ -1120,36 +1120,57 @@ function renderCalendario() {
 
   // ── Final Individual ─────────────────────────────────────────
   if (confsFI.length) {
+    const doneCount = confsFI.filter(m=>m.status==='concluido').length;
     html += `<div style="border-top:2px solid #C9A03D;margin:20px 0 12px;padding-top:14px;display:flex;align-items:center;gap:10px;">
       <span style="font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#C9A03D;">🥇 Final Individual por Categoria</span>
       <div style="flex:1;height:1px;background:linear-gradient(to right,#C9A03D44,transparent);"></div>
-    </div>`;
+      <span style="font-size:0.68rem;color:#8A9CB0;font-weight:600;">${doneCount}/${confsFI.length} concluídos</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;margin-bottom:8px;">`;
+
     const catOrder = getCategorias();
     confsFI.sort((a,b)=>catOrder.indexOf(a.categoria)-catOrder.indexOf(b.categoria)).forEach(m => {
       const at1 = atletas.find(a=>a.id===m.atleta1Id), at2 = atletas.find(a=>a.id===m.atleta2Id);
       const eq1 = equipes.find(e=>e.id===m.equipe1Id), eq2 = equipes.find(e=>e.id===m.equipe2Id);
       const isDone = m.status==='concluido';
-      const statusBadge = isDone
-        ? `<span class="badge b-concluido" style="background:#DCFCE7;color:#16A34A;border:1px solid #BBF7D0;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">✅ Definido</span>`
-        : `<span class="badge" style="background:#FFF8E8;color:#C9A03D;border:1px solid #FDE68A;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">🥇 Final</span>`;
       const vAt = isDone ? atletas.find(a=>a.id===m.vencedorId) : null;
-      html += `<div class="conf-pair">
-        <div class="conf-row" style="opacity:1;">
-          <div class="conf-meta">${statusBadge}<span style="font-weight:700;color:#C9A03D;font-size:0.72rem;">🥋 ${m.categoria}</span></div>
-          <div class="conf-eq-l">
-            <div class="conf-eq" style="font-size:0.82rem;">${at1?.nome||'—'}</div>
-            <div class="conf-sub">${eq1?.nome||'—'} · 1º colocado</div>
+      const n1 = at1?.nome||'—', n2 = at2?.nome||'—';
+      const t1 = eq1?.nome||'—', t2 = eq2?.nome||'—';
+      const w1 = vAt?.id===m.atleta1Id, w2 = vAt?.id===m.atleta2Id;
+
+      html += `<div style="background:#fff;border:1px solid ${isDone?'#BBF7D0':'#E2E8F0'};border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+        <!-- header -->
+        <div style="background:${isDone?'#F0FDF4':'#FFFBF0'};padding:8px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid ${isDone?'#BBF7D0':'#FDE68A'};">
+          <span style="font-size:0.75rem;font-weight:800;color:#92400E;letter-spacing:0.5px;">🥋 ${m.categoria}</span>
+          ${isDone
+            ? `<span style="font-size:0.6rem;font-weight:700;color:#16A34A;background:#DCFCE7;padding:2px 8px;border-radius:10px;">✅ Definido</span>`
+            : `<span style="font-size:0.6rem;font-weight:700;color:#B45309;background:#FEF3C7;padding:2px 8px;border-radius:10px;">🏅 Final</span>`}
+        </div>
+        <!-- athletes -->
+        <div style="padding:10px 12px;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;border:1.5px solid ${w1?'#FDE68A':isDone?'#E2E8F0':'#DBEAFE'};background:${w1?'#FFFBEB':isDone?'#FAFAFA':'#EFF6FF'};">
+            <span style="width:22px;height:22px;background:#3B82F6;color:#fff;border-radius:50%;font-size:0.55rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:-0.5px;">1º</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:0.8rem;color:#1A2C3E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${n1}</div>
+              <div style="font-size:0.63rem;color:#64748B;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t1}</div>
+            </div>
+            ${w1?`<span style="font-size:1rem;flex-shrink:0;">🥇</span>`:''}
           </div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            ${isDone&&vAt?`<span style="font-size:0.72rem;font-weight:800;color:#C9A03D;">🥇 ${vAt.nome.split(' ')[0]}</span>`:`<span style="font-size:0.8rem;color:#94A3B8;">× </span>`}
-          </div>
-          <div class="conf-eq-r">
-            <div class="conf-eq" style="font-size:0.82rem;">${at2?.nome||'—'}</div>
-            <div class="conf-sub">${eq2?.nome||'—'} · 2º colocado</div>
+          <div style="text-align:center;font-size:0.65rem;font-weight:800;color:#CBD5E1;letter-spacing:2px;padding:1px 0;">VS</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;border:1.5px solid ${w2?'#FDE68A':isDone?'#E2E8F0':'#FEE2E2'};background:${w2?'#FFFBEB':isDone?'#FAFAFA':'#FEF2F2'};">
+            <span style="width:22px;height:22px;background:#EF4444;color:#fff;border-radius:50%;font-size:0.55rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:-0.5px;">2º</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:0.8rem;color:#1A2C3E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${n2}</div>
+              <div style="font-size:0.63rem;color:#64748B;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t2}</div>
+            </div>
+            ${w2?`<span style="font-size:1rem;flex-shrink:0;">🥇</span>`:''}
           </div>
         </div>
+        ${isDone&&vAt?`<div style="background:linear-gradient(90deg,#FFF8E8,#FFFBEB);border-top:1px solid #FDE68A;padding:6px 12px;text-align:center;font-size:0.72rem;font-weight:800;color:#B45309;">🥇 ${vAt.nome}</div>`:''}
       </div>`;
     });
+
+    html += `</div>`;
   }
 
   el.innerHTML = html;
