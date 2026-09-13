@@ -909,6 +909,7 @@ function montarChaveVisual(cat, crono, chave){
 
 // ===== RENDER PRINCIPAL =====
 function carregarTV(){
+    if (window._pcMode) return; // Modo Pontos Corridos ativo — não sobrescrever
     horarioInicio=localStorage.getItem('gaditas_horario_inicio')||'09:00';
     var raw=localStorage.getItem('gaditas_torneio_atual');
     var _tc; try{_tc=JSON.parse(raw||'{}');}catch(e){_tc={};}
@@ -1140,5 +1141,218 @@ window.addEventListener('storage', function(e){
 });
 </script>
 <script src="js/install-prompt.js"></script>
+
+<!-- ═══ PONTOS CORRIDOS: detecção automática por ?id ═══ -->
+<script type="module">
+import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, getDoc, collection, getDocs }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const campId = new URLSearchParams(location.search).get('id');
+if (!campId) { /* modo local normal */ }
+else {
+  const app = initializeApp({
+    apiKey:"AIzaSyA0HOHKPd9gCpJx0pnFWaKdLU-1WJks-gA",
+    authDomain:"campeonatobjj.firebaseapp.com",
+    projectId:"campeonatobjj",
+    storageBucket:"campeonatobjj.firebasestorage.app",
+    messagingSenderId:"399016509024",
+    appId:"1:399016509024:web:b4e46aa9b4b2e0e5c70c70"
+  }, 'pc-tv');
+  const db = getFirestore(app);
+
+  const campSnap = await getDoc(doc(db, 'campeonatos', campId));
+  if (campSnap.exists() && campSnap.data().tipo === 'pontos-corridos') {
+    window._pcMode = true; // Bloqueia carregarTV() imediatamente
+    const nomeComp = campSnap.data().nome || 'Pontos Corridos';
+
+    // Injetar estilos TV para PC
+    const style = document.createElement('style');
+    style.textContent = `
+      #tv-content { padding: 12px 16px; }
+      .pc-tv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+      .pc-tv-rodada { background: #09090F; border: 1px solid #1A1A28; border-radius: 12px; overflow: hidden; }
+      .pc-tv-rod-hdr { padding: 10px 16px; background: #0F0F18; border-bottom: 1px solid #1A1A28;
+        display: flex; justify-content: space-between; align-items: center; }
+      .pc-tv-rod-label { font-family:'Oswald',sans-serif; font-size:0.9rem; font-weight:700;
+        color:#C9A03D; letter-spacing:2px; }
+      .pc-tv-rod-badge { font-size:0.6rem; font-weight:700; padding:2px 8px; border-radius:10px; }
+      .pc-tv-badge-pend { background:rgba(245,158,11,.15); color:#F59E0B; }
+      .pc-tv-badge-ok   { background:rgba(0,230,138,.15);  color:#00E68A; }
+      .pc-tv-badge-live { background:rgba(255,68,68,.15);   color:#FF4444; animation:blink-txt .8s infinite; }
+      .pc-tv-luta { display:flex; align-items:center; gap:8px; padding:10px 14px;
+        border-bottom:1px solid #1A1A28; }
+      .pc-tv-luta:last-child { border-bottom: none; }
+      .pc-tv-luta.vivo { background:rgba(0,230,138,.05); }
+      .pc-tv-luta.fim  { opacity:.55; }
+      .pc-tv-at { flex:1; min-width:0; }
+      .pc-tv-nome { font-weight:700; font-size:0.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .pc-tv-acad { font-size:0.62rem; color:#5A5A7A; }
+      .pc-tv-vs { font-family:'Oswald',sans-serif; font-size:0.75rem; font-weight:900;
+        color:#5A5A7A; flex-shrink:0; background:#141420; padding:2px 6px; border-radius:4px; }
+      .pc-tv-st { flex-shrink:0; font-size:0.6rem; font-weight:700; padding:3px 8px;
+        border-radius:10px; white-space:nowrap; }
+      .pc-tv-st.pend { background:#2A2A10; color:#F59E0B; }
+      .pc-tv-st.vivo { background:#002A18; color:#00E68A; }
+      .pc-tv-st.fim  { background:#0A1A10; color:#00B36B; }
+      .pc-tv-res { font-size:0.7rem; text-align:right; flex-shrink:0; min-width:65px; }
+      .pc-tv-venc { font-weight:700; color:#00E68A; font-size:0.78rem; }
+      .pc-tv-pts  { color:#5A5A7A; font-size:0.6rem; }
+      .pc-empty { text-align:center; padding:80px 20px; color:#5A5A7A; }
+      .pc-empty .icon { font-size:3rem; margin-bottom:14px; }
+      .pc-cls { background:#09090F; border:1px solid #1A1A28; border-radius:12px; overflow:hidden; margin-top:16px; }
+      .pc-cls-hdr { padding:10px 16px; background:#0F0F18; font-family:'Oswald',sans-serif;
+        font-size:0.9rem; color:#C9A03D; letter-spacing:2px; border-bottom:1px solid #1A1A28; }
+      .pc-cls-row { display:flex; align-items:center; gap:10px; padding:10px 16px;
+        border-bottom:1px solid #1A1A28; }
+      .pc-cls-row:last-child { border-bottom:none; }
+      .pc-cls-pos { width:28px; height:28px; border-radius:50%; display:flex; align-items:center;
+        justify-content:center; font-size:0.75rem; font-weight:900; flex-shrink:0; }
+      .pc-cls-p1 { background:#FDE68A; color:#78350F; }
+      .pc-cls-p2 { background:#E2E8F0; color:#374151; }
+      .pc-cls-p3 { background:#FCD9A0; color:#92400E; }
+      .pc-cls-pn { background:#1A1A28; color:#5A5A7A; }
+      .pc-cls-nome { flex:1; font-weight:700; font-size:0.88rem; }
+      .pc-cls-acad { font-size:0.65rem; color:#5A5A7A; }
+      .pc-cls-pts { font-family:'Oswald',sans-serif; font-size:1.4rem; font-weight:900; color:#C9A03D; min-width:36px; text-align:center; }
+      .pc-cls-stats { font-size:0.65rem; color:#5A5A7A; display:flex; gap:8px; }
+      .pc-cls-v { color:#00E68A; } .pc-cls-e { color:#F59E0B; } .pc-cls-d { color:#FF4444; }
+    `;
+    document.head.appendChild(style);
+
+    let atletas = [], lutas = [], config = {};
+    const nomeAt = id => atletas.find(a=>a.id===id)?.nome || '?';
+    const acadAt = id => atletas.find(a=>a.id===id)?.academia || '';
+
+    function renderPCTV() {
+      const compEl = document.getElementById('comp-nome');
+      if (compEl) compEl.textContent = '🔄 ' + nomeComp;
+
+      const content = document.getElementById('tv-content');
+      if (!content) return;
+
+      if (!lutas.length) {
+        content.innerHTML = `<div class="pc-empty"><div class="icon">🥊</div>
+          <h2 style="color:#C9A03D;font-family:Oswald,sans-serif;letter-spacing:2px;">SEM LUTAS GERADAS</h2>
+          <p>Acesse o admin de Pontos Corridos e gere as rodadas.</p></div>`;
+        return;
+      }
+
+      const rodadas = [...new Set(lutas.map(l=>l.rodada))].sort((a,b)=>a-b);
+      const totalRods = Math.max(...rodadas);
+      const totalRodTurno = config.turnoReturno ? Math.round(totalRods/2) : 0;
+
+      // ── Classificação ──
+      const finalizadas = lutas.filter(l=>l.status==='finalizada');
+      const stats = {};
+      atletas.forEach(a => { stats[a.id]={id:a.id,nome:a.nome,academia:a.academia||'',pt:0,v:0,e:0,d:0,ptJ:0}; });
+      const ptFin = config.ptFin || 0;
+      finalizadas.forEach(l => {
+        const r=l.resultado; if(!r) return;
+        const s1=stats[l.at1Id], s2=stats[l.at2Id]; if(!s1||!s2) return;
+        s1.ptJ += r.pts1||0; s2.ptJ += r.pts2||0;
+        if (r.vencedor==='1') { s1.pt+=(config.ptVit||2)+((ptFin>0&&r.finalizacao)?ptFin:0); s1.v++; s2.d++; }
+        else if (r.vencedor==='2') { s2.pt+=(config.ptVit||2)+((ptFin>0&&r.finalizacao)?ptFin:0); s2.v++; s1.d++; }
+        else { s1.pt+=config.ptEmp||1; s2.pt+=config.ptEmp||1; s1.e++; s2.e++; }
+      });
+      const ranking = Object.values(stats).filter(s=>s.v+s.e+s.d>0)
+        .sort((a,b)=>b.pt-a.pt||b.ptJ-a.ptJ);
+
+      // ── Rodadas grid ──
+      let rodHtml = '<div class="pc-tv-grid">';
+      rodadas.forEach(r => {
+        const lutasR = lutas.filter(l=>l.rodada===r).sort((a,b)=>a.ordem-b.ordem);
+        const feitas = lutasR.filter(l=>l.status==='finalizada').length;
+        const live   = lutasR.some(l=>l.status==='em_andamento');
+        const label  = config.turnoReturno && totalRodTurno
+          ? (r<=totalRodTurno ? `T${r}` : `R${r-totalRodTurno}`)
+          : `RODADA ${r}`;
+        const badge  = feitas===lutasR.length
+          ? `<span class="pc-tv-rod-badge pc-tv-badge-ok">✓ OK</span>`
+          : live
+          ? `<span class="pc-tv-rod-badge pc-tv-badge-live">🔴 AO VIVO</span>`
+          : `<span class="pc-tv-rod-badge pc-tv-badge-pend">${feitas}/${lutasR.length}</span>`;
+
+        rodHtml += `<div class="pc-tv-rodada">
+          <div class="pc-tv-rod-hdr"><span class="pc-tv-rod-label">${label}</span>${badge}</div>`;
+        lutasR.forEach(l => {
+          const n1=nomeAt(l.at1Id), n2=nomeAt(l.at2Id);
+          const a1=acadAt(l.at1Id), a2=acadAt(l.at2Id);
+          const st = l.status||'pendente';
+          const res = l.resultado;
+          let stBadge = st==='finalizada'
+            ? `<span class="pc-tv-st fim">✅ FIM</span>`
+            : st==='em_andamento'
+            ? `<span class="pc-tv-st vivo">🔴 AO VIVO</span>`
+            : `<span class="pc-tv-st pend">⏳</span>`;
+          let resHtml = '';
+          if (st==='finalizada' && res) {
+            const venc = res.vencedor==='1'?n1.split(' ')[0]:res.vencedor==='2'?n2.split(' ')[0]:'Empate';
+            resHtml = `<div class="pc-tv-res"><div class="pc-tv-venc">${res.finalizacao?'🔒':''} ${venc}</div><div class="pc-tv-pts">${res.pts1||0}×${res.pts2||0}</div></div>`;
+          }
+          const rowCls = st==='em_andamento'?'vivo':st==='finalizada'?'fim':'';
+          rodHtml += `<div class="pc-tv-luta ${rowCls}">
+            <div class="pc-tv-at" style="text-align:right">
+              <div class="pc-tv-nome" style="color:#3B8BFF">${n1}</div>
+              <div class="pc-tv-acad">${a1}</div>
+            </div>
+            <div class="pc-tv-vs">VS</div>
+            <div class="pc-tv-at">
+              <div class="pc-tv-nome" style="color:#FF4444">${n2}</div>
+              <div class="pc-tv-acad">${a2}</div>
+            </div>
+            <div>${stBadge}</div>
+            ${resHtml}
+          </div>`;
+        });
+        rodHtml += '</div>';
+      });
+      rodHtml += '</div>';
+
+      // ── Classificação parcial ──
+      let clsHtml = '';
+      if (ranking.length) {
+        clsHtml = `<div class="pc-cls"><div class="pc-cls-hdr">🏆 CLASSIFICAÇÃO PARCIAL</div>`;
+        ranking.forEach((s,i) => {
+          const posCls = i===0?'pc-cls-p1':i===1?'pc-cls-p2':i===2?'pc-cls-p3':'pc-cls-pn';
+          clsHtml += `<div class="pc-cls-row">
+            <div class="pc-cls-pos ${posCls}">${i+1}</div>
+            <div style="flex:1;min-width:0"><div class="pc-cls-nome">${s.nome}</div><div class="pc-cls-acad">${s.academia}</div></div>
+            <div class="pc-cls-stats">
+              <span class="pc-cls-v">V${s.v}</span>
+              <span class="pc-cls-e">E${s.e}</span>
+              <span class="pc-cls-d">D${s.d}</span>
+            </div>
+            <div class="pc-cls-pts">${s.pt}</div>
+          </div>`;
+        });
+        clsHtml += '</div>';
+      }
+
+      content.innerHTML = rodHtml + clsHtml;
+    }
+
+    async function carregarPCTV() {
+      const [cfgSnap, atSnap, ltSnap] = await Promise.all([
+        getDoc(doc(db,'campeonatos',campId,'pc-config','principal')),
+        getDocs(collection(db,'campeonatos',campId,'pc-atletas')),
+        getDocs(collection(db,'campeonatos',campId,'pc-lutas')),
+      ]);
+      config   = cfgSnap.exists() ? cfgSnap.data() : {};
+      atletas  = atSnap.docs.map(d=>({id:d.id,...d.data()}));
+      lutas    = ltSnap.docs.map(d=>({id:d.id,...d.data()}))
+        .sort((a,b)=>(a.rodada-b.rodada)||(a.ordem-b.ordem));
+      renderPCTV();
+    }
+
+    // Ocultar abas do modo chaveamento
+    const tabsEl = document.getElementById('areas-tabs');
+    if (tabsEl) tabsEl.style.display = 'none';
+
+    await carregarPCTV();
+    window._pcTVInterval = setInterval(carregarPCTV, 5000);
+  }
+}
+</script>
 </body>
 </html>

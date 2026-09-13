@@ -493,8 +493,17 @@
   </script>
 
   <script>
+  // Chave de pagamento SEMPRE vinculada ao campeonato da URL
+  // evita que dados de outro evento vazem via localStorage global
+  const _pagCampId = new URLSearchParams(location.search).get('id') || 'local';
+  const _pagKey    = 'gaditas_pagamento_' + _pagCampId;
+
+  function _getPagCfg() {
+    return JSON.parse(localStorage.getItem(_pagKey) || '{}');
+  }
+
   window.atualizarValorTotal = function atualizarValorTotal() {
-    const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
+    const cfg = _getPagCfg();
     const valorBase = cfg.valor || '120,00';
     const valorAbs  = cfg.valorAbsoluto || '30,00';
     const absoluto  = document.getElementById('absoluto')?.checked;
@@ -517,7 +526,7 @@
   }
 
   function renderizarPagamento() {
-    const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
+    const cfg = _getPagCfg();
     const valor = cfg.valor || '120,00';
     const container = document.getElementById('pagamento-opcoes');
     const info = document.getElementById('pag-info');
@@ -548,7 +557,7 @@
   }
 
   function mostrarInfoPagamento() {
-    const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
+    const cfg = _getPagCfg();
     const selecionado = document.querySelector('input[name="pagamento"]:checked')?.value;
     const info = document.getElementById('pag-info');
 
@@ -569,13 +578,22 @@
   }
 
   function copiarPix() {
-    const cfg = JSON.parse(localStorage.getItem('gaditas_pagamento') || '{}');
+    const cfg = _getPagCfg();
     navigator.clipboard.writeText(cfg.pix?.chave || '');
     alert('Chave PIX copiada!');
   }
 
-  renderizarPagamento();
-  atualizarValorTotal();
+  // SÓ renderiza imediatamente se não há id na URL (modo offline/local).
+  // Se há id, aguarda o Firebase carregar a config correta do campeonato.
+  if (_pagCampId === 'local') {
+    renderizarPagamento();
+    atualizarValorTotal();
+  } else {
+    // Mostra seção em branco / loading enquanto Firebase responde
+    document.getElementById('pagamento-opcoes').innerHTML =
+      '<p style="font-size:0.82rem;color:#8A9CB0">⏳ Carregando opções de pagamento…</p>';
+    document.getElementById('pag-valor-display').textContent = '';
+  }
   </script>
 
   <!-- Firebase: expõe função de salvar inscrição para o código legado -->
@@ -650,13 +668,12 @@
         }
       });
 
-      // Carrega config de pagamento do Firebase
+      // Carrega config de pagamento do Firebase — salva na chave DESTE campeonato
       buscarConfig(id).then(cfg => {
-        if (cfg?.pagamento) {
-          localStorage.setItem('gaditas_pagamento', JSON.stringify(cfg.pagamento));
-          if (window.renderizarPagamento) renderizarPagamento();
-          if (window.atualizarValorTotal) atualizarValorTotal();
-        }
+        const dadosPag = cfg?.pagamento || {};
+        localStorage.setItem('gaditas_pagamento_' + id, JSON.stringify(dadosPag));
+        if (window.renderizarPagamento) renderizarPagamento();
+        if (window.atualizarValorTotal) atualizarValorTotal();
       });
 
       // Carrega equipes cadastradas no Firebase

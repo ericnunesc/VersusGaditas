@@ -4,235 +4,316 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Placar TV — Liga BJJ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700;900&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     :root {
-      --c1: #3B82F6;    /* azul – lado 1 */
-      --c2: #EF4444;    /* vermelho – lado 2 */
-      --gold: #C9A03D;
-      --bg: #060A10;
-      --bg2: #0D1520;
-      --border: #1E293B;
-      --muted: #64748B;
-      --text: #E2E8F0;
+      --c1:#1D4ED8; --c1-bg:#071835; --c1-mid:#0D2654; --c1-light:#93C5FD;
+      --c2:#B91C1C; --c2-bg:#1A0505; --c2-mid:#2D0808; --c2-light:#FCA5A5;
+      --gold:#C9A03D; --gold-dim:rgba(201,160,61,0.15);
+      --van:#22C55E; --pun:#F59E0B;
+      --bg:#04060C; --surface:#0D1520; --border:#1E293B;
+      --muted:#64748B; --text:#E2E8F0;
     }
     html, body { height:100%; overflow:hidden; }
     body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      user-select: none;
-    }
-
-    /* ─── TOP BAR ─────────────────────────────────────────────── */
-    .top-bar {
-      background: var(--bg2);
-      border-bottom: 2px solid var(--gold);
-      padding: 10px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-shrink: 0;
-    }
-    .top-info { display:flex; flex-direction:column; gap:2px; }
-    .top-cat {
-      font-size: 1.5rem; font-weight: 900; letter-spacing: 3px;
-      color: var(--gold); text-transform: uppercase;
-    }
-    .top-meta { font-size: 0.72rem; color: var(--muted); letter-spacing: 1px; }
-    .top-btns { display:flex; gap:8px; }
-
-    /* ─── MAIN GRID ───────────────────────────────────────────── */
-    .fight-grid {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 200px 1fr;
-      min-height: 0;
-    }
-
-    /* ─── SIDE ────────────────────────────────────────────────── */
-    .side {
-      padding: 16px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 7px;
-      overflow-y: auto;
-    }
-    .side-1 { border-right: 1px solid var(--border); background: rgba(59,130,246,0.04); }
-    .side-2 { border-left:  1px solid var(--border); background: rgba(239,68,68,0.04); }
-
-    .side-badge {
-      font-size: 0.6rem; font-weight: 800; letter-spacing: 2px;
-      padding: 3px 12px; border-radius: 20px; text-transform: uppercase;
-    }
-    .side-1 .side-badge { background:rgba(59,130,246,0.15); color:var(--c1); }
-    .side-2 .side-badge { background:rgba(239,68,68,0.15);  color:var(--c2); }
-
-    .team-name {
-      font-size: 0.85rem; font-weight: 800; text-align:center;
-      color: var(--muted); text-transform:uppercase; letter-spacing:1px;
-    }
-    .athlete-name {
-      font-size: 1.6rem; font-weight: 900; text-align:center; line-height:1.1;
-      max-width: 100%;
-    }
-    .side-1 .athlete-name { color: #93C5FD; }
-    .side-2 .athlete-name { color: #FCA5A5; }
-
-    .leading-badge {
-      font-size: 0.62rem; font-weight: 800; letter-spacing: 1px;
-      padding: 2px 10px; border-radius: 20px; text-transform: uppercase;
-      background: rgba(201,160,61,0.15); border: 1px solid rgba(201,160,61,0.35);
-      color: var(--gold); height: 20px;
-    }
-    .leading-badge.invisible { opacity:0; pointer-events:none; }
-
-    /* Big score */
-    .score-num {
-      font-size: clamp(7rem, 20vw, 16rem);
-      font-weight: 900; line-height: 1;
-      font-variant-numeric: tabular-nums;
-      transition: color 0.3s;
-    }
-    .side-1 .score-num { color: var(--c1); }
-    .side-2 .score-num { color: var(--c2); }
-    .score-num.leading {
-      filter: drop-shadow(0 0 24px currentColor);
-    }
-
-    /* Van / Pun */
-    .score-sub {
-      display:flex; gap:20px;
-    }
-    .sub-item { text-align:center; }
-    .sub-lbl { font-size:0.55rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:2px; }
-    .sub-num { font-size:1.6rem; font-weight:800; }
-    .van-num { color:#22C55E; }
-    .pun-num { color:#F59E0B; }
-
-    /* Scoring buttons */
-    .btns-wrap {
-      display:flex; flex-direction:column; gap:6px; width:100%; max-width:260px;
-    }
-    .btn-s {
-      padding:11px 10px; border:none; border-radius:10px; cursor:pointer;
-      font-size:0.85rem; font-weight:700; transition:transform 0.1s, filter 0.15s;
-      text-align:center;
-    }
-    .btn-s:active { transform:scale(0.93); }
-    .btn-s.b2  { background:#1D4ED8; color:#fff; }
-    .btn-s.b2:hover { filter:brightness(1.2); }
-    .btn-s.b3  { background:#7C3AED; color:#fff; }
-    .btn-s.b3:hover { filter:brightness(1.2); }
-    .btn-s.b4  { background:#0E7490; color:#fff; }
-    .btn-s.b4:hover { filter:brightness(1.2); }
-    .btn-s.bv  { background:#166534; color:#fff; }
-    .btn-s.bv:hover { filter:brightness(1.2); }
-    .btn-s.bp  { background:#78350F; color:#fff; }
-    .btn-s.bp:hover { filter:brightness(1.2); }
-    .btn-s.bsub { background:#991B1B; color:#fff; font-size:0.9rem; font-weight:800; }
-    .btn-s.bsub:hover { filter:brightness(1.2); }
-    .btn-s.bundo { background:transparent; border:1px solid var(--border); color:var(--muted); font-size:0.65rem; padding:7px 6px; }
-    .btn-s.bundo:hover { border-color:#64748B; color:var(--text); }
-    .undo-row { display:flex; gap:5px; width:100%; max-width:260px; }
-
-    /* ─── CENTER (timer) ──────────────────────────────────────── */
-    .center-col {
+      font-family:'Barlow Condensed', -apple-system, sans-serif;
+      background:var(--bg); color:var(--text);
       display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      gap:10px; padding:20px 10px;
+      user-select:none;
     }
-    .vs-txt { font-size:0.55rem; color:var(--border); font-weight:800; letter-spacing:3px; }
-    .timer-display {
-      font-size:clamp(2.8rem, 5vw, 4rem);
-      font-weight:900; color:var(--gold);
-      font-variant-numeric:tabular-nums; font-family:monospace;
-      text-align:center; line-height:1; width:140px; text-align:center;
-    }
-    .timer-display.urgent { color:#EF4444; animation:urgblink 0.6s infinite; }
-    @keyframes urgblink { 0%,100%{opacity:1} 50%{opacity:0.45} }
 
-    .btn-timer-start {
-      width:100%; padding:10px 0; border-radius:10px;
-      background:var(--bg2); border:2px solid var(--border); color:var(--text);
-      font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.2s;
+    /* ─── TOP BAR ────────────────────────────────────────────── */
+    .top-bar {
+      background:var(--surface);
+      border-bottom:2px solid var(--gold);
+      padding:6px 16px;
+      display:flex; align-items:center; justify-content:space-between;
+      flex-shrink:0; gap:12px;
     }
-    .btn-timer-start:hover { border-color:var(--c1); color:var(--c1); }
-    .btn-timer-start.running { border-color:var(--c2); color:var(--c2); }
-    .btn-timer-reset {
-      width:100%; padding:6px 0; border-radius:8px;
-      background:transparent; border:1px solid var(--border); color:var(--muted);
-      font-size:0.72rem; font-weight:700; cursor:pointer; transition:all 0.2s;
+    .top-info { display:flex; flex-direction:column; gap:1px; }
+    .top-cat {
+      font-family:'Oswald',sans-serif; font-size:1.3rem; font-weight:900;
+      color:var(--gold); letter-spacing:3px; text-transform:uppercase; line-height:1;
     }
-    .btn-timer-reset:hover { border-color:#F59E0B; color:#F59E0B; }
-
-    /* ─── BOTTOM BAR ──────────────────────────────────────────── */
-    .bottom-bar {
-      background:var(--bg2); border-top:1px solid var(--border);
-      padding:10px 18px; display:flex; align-items:center;
-      justify-content:center; gap:10px; flex-wrap:wrap; flex-shrink:0;
-    }
-    .decl-lbl { font-size:0.68rem; color:var(--muted); font-weight:700; letter-spacing:1px; }
-    .decl-btn {
-      padding:9px 18px; border-radius:10px; border:2px solid var(--border);
-      background:var(--bg2); color:var(--muted); font-size:0.82rem; font-weight:700;
-      cursor:pointer; transition:all 0.2s;
-    }
-    .decl-btn:hover { border-color:var(--gold); color:var(--gold); }
-    .decl-btn.sel-1   { background:rgba(59,130,246,0.2);  border-color:var(--c1); color:#93C5FD; }
-    .decl-btn.sel-2   { background:rgba(239,68,68,0.2);   border-color:var(--c2); color:#FCA5A5; }
-    .decl-btn.sel-emp { background:rgba(245,158,11,0.2);  border-color:#F59E0B;   color:#FDE68A; }
-    .fin-lbl {
-      display:flex; align-items:center; gap:6px; font-size:0.78rem; color:var(--muted);
-      cursor:pointer; padding:8px 12px; border:1px solid var(--border); border-radius:8px;
-    }
-    .fin-lbl input { accent-color:var(--gold); width:15px; height:15px; }
-    .sep { width:1px; height:28px; background:var(--border); flex-shrink:0; }
-
-    /* ─── ACTION BUTTONS ──────────────────────────────────────── */
+    .top-meta { font-size:0.65rem; color:var(--muted); letter-spacing:0.5px; }
+    .top-btns { display:flex; gap:8px; flex-shrink:0; }
     .btn-enc {
       background:transparent; border:1px solid var(--c2); color:var(--c2);
-      padding:9px 16px; border-radius:10px; font-size:0.82rem; font-weight:700; cursor:pointer;
-      transition:all 0.2s;
+      padding:6px 13px; border-radius:8px; font-size:0.78rem; font-weight:700;
+      cursor:pointer; transition:all 0.2s; font-family:'Barlow Condensed',sans-serif;
     }
     .btn-enc:hover { background:var(--c2); color:#fff; }
     .btn-fin {
       background:#059669; color:#fff; border:none;
-      padding:9px 20px; border-radius:10px; font-size:0.88rem; font-weight:800; cursor:pointer;
-      transition:all 0.2s;
+      padding:6px 16px; border-radius:8px; font-size:0.82rem; font-weight:800;
+      cursor:pointer; transition:background 0.2s; font-family:'Barlow Condensed',sans-serif;
     }
     .btn-fin:hover { background:#10B981; }
 
-    /* ─── TOAST ───────────────────────────────────────────────── */
+    /* ─── SCOREBOARD ─────────────────────────────────────────── */
+    .scoreboard {
+      flex:1; display:flex; flex-direction:column; min-height:0;
+    }
+
+    /* Each half */
+    .score-half {
+      flex:1; display:flex; flex-direction:column;
+      padding:10px 14px 8px; min-height:0; position:relative;
+    }
+    .half-1 {
+      background:linear-gradient(160deg, var(--c1-bg) 0%, #091D40 60%, #0A1525 100%);
+      border-bottom:1px solid rgba(59,130,246,0.15);
+    }
+    .half-2 {
+      background:linear-gradient(200deg, var(--c2-bg) 0%, #1E0808 60%, #0A0C15 100%);
+    }
+
+    /* Athlete info row */
+    .half-header {
+      display:flex; align-items:center; gap:10px; margin-bottom:8px;
+    }
+    .side-badge {
+      font-size:0.56rem; font-weight:800; letter-spacing:1.5px;
+      padding:3px 10px; border-radius:12px; flex-shrink:0; text-transform:uppercase;
+    }
+    .half-1 .side-badge {
+      background:rgba(59,130,246,0.18); color:var(--c1-light);
+      border:1px solid rgba(59,130,246,0.35);
+    }
+    .half-2 .side-badge {
+      background:rgba(239,68,68,0.18); color:var(--c2-light);
+      border:1px solid rgba(239,68,68,0.35);
+    }
+    .athlete-info { flex:1; min-width:0; }
+    .team-name {
+      font-size:0.65rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:1px; color:var(--muted); line-height:1; margin-bottom:2px;
+    }
+    .athlete-name {
+      font-family:'Oswald',sans-serif; font-size:clamp(1.1rem, 2.5vw, 1.6rem);
+      font-weight:700; text-transform:uppercase; letter-spacing:1px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1;
+    }
+    .half-1 .athlete-name { color:#BFDBFE; }
+    .half-2 .athlete-name { color:#FECACA; }
+    .lead-chip {
+      flex-shrink:0; font-size:0.58rem; font-weight:800; letter-spacing:1px;
+      padding:3px 10px; border-radius:12px; text-transform:uppercase;
+      background:rgba(201,160,61,0.2); border:1px solid rgba(201,160,61,0.5);
+      color:var(--gold); transition:opacity 0.3s;
+    }
+    .lead-chip.hidden { opacity:0; pointer-events:none; }
+
+    /* Score row — the main display */
+    .score-row {
+      display:flex; align-items:stretch; gap:6px; flex:1; min-height:0;
+    }
+
+    /* Score box per category */
+    .s-box {
+      flex:1 1 0; border-radius:10px; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; padding:8px 6px;
+      border:1px solid rgba(255,255,255,0.06);
+      background:rgba(255,255,255,0.04);
+    }
+    .s-box .s-lbl {
+      font-size:0.55rem; color:var(--muted); text-transform:uppercase;
+      letter-spacing:0.5px; text-align:center; line-height:1.3; margin-bottom:6px;
+      font-weight:700;
+    }
+    .s-box .s-val {
+      font-family:'Oswald',sans-serif; font-size:clamp(3.5rem, 8vw, 9rem);
+      font-weight:900; line-height:1; font-variant-numeric:tabular-nums;
+    }
+    .half-1 .s-box .s-val { color:#60A5FA; }
+    .half-2 .s-box .s-val { color:#F87171; }
+
+    /* Van / Pun — coluna empilhada */
+    .van-pun-col {
+      display:flex; flex-direction:column; gap:5px;
+      flex:0 0 auto; width:clamp(70px,9vw,110px);
+    }
+    .van-pun-col .s-box {
+      flex:1; max-width:none; min-height:0;
+    }
+    .s-box.van .s-val { color:var(--van); font-size:clamp(2rem,4vw,4rem); }
+    .s-box.pun .s-val { color:var(--pun); font-size:clamp(2rem,4vw,4rem); }
+
+    /* Separator */
+    .score-sep {
+      width:1px; background:rgba(255,255,255,0.08); flex-shrink:0; border-radius:1px;
+    }
+
+    /* Total box */
+    .total-box {
+      flex:0 0 auto; min-width:clamp(90px,13vw,150px);
+      border-radius:12px; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; padding:6px 8px;
+      border:2px solid rgba(255,255,255,0.1);
+      background:rgba(255,255,255,0.05);
+      transition:all 0.3s;
+    }
+    .total-box .t-lbl {
+      font-size:0.48rem; color:var(--muted); text-transform:uppercase;
+      letter-spacing:1.5px; margin-bottom:3px;
+    }
+    .total-box .t-val {
+      font-family:'Oswald',sans-serif; font-size:clamp(3.5rem,8vw,8rem);
+      font-weight:900; line-height:1; font-variant-numeric:tabular-nums;
+    }
+    .half-1 .total-box { border-color:rgba(59,130,246,0.3); }
+    .half-1 .total-box .t-val { color:#93C5FD; }
+    .half-2 .total-box { border-color:rgba(239,68,68,0.3); }
+    .half-2 .total-box .t-val { color:#FCA5A5; }
+    .total-box.leading {
+      border-color:var(--gold) !important;
+      background:rgba(201,160,61,0.1) !important;
+    }
+    .total-box.leading .t-val {
+      color:var(--gold) !important;
+      text-shadow:0 0 20px rgba(201,160,61,0.6);
+    }
+
+    /* ─── TIMER STRIP ────────────────────────────────────────── */
+    .timer-strip {
+      background:var(--surface); flex-shrink:0;
+      border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      gap:10px; padding:5px 16px;
+    }
+    .timer-status-lbl {
+      font-size:0.58rem; font-weight:800; letter-spacing:2px;
+      text-transform:uppercase; color:var(--muted); min-width:70px; text-align:right;
+    }
+    .timer-status-lbl.running { color:var(--van); }
+    .timer-status-lbl.done    { color:var(--c2); }
+    .timer-val {
+      font-family:'Oswald',sans-serif; font-size:clamp(1.8rem,3.5vw,2.8rem);
+      font-weight:900; color:var(--gold); font-variant-numeric:tabular-nums;
+      letter-spacing:4px; min-width:100px; text-align:center; line-height:1;
+    }
+    .timer-val.urgent { color:#EF4444; animation:urgblink 0.6s infinite; }
+    .timer-val.done   { color:var(--muted); }
+    @keyframes urgblink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+    .btn-timer {
+      padding:7px 18px; border-radius:8px; border:2px solid var(--border);
+      background:transparent; color:var(--text); font-size:0.82rem;
+      font-weight:700; cursor:pointer; transition:all 0.2s; min-width:95px;
+      font-family:'Barlow Condensed',sans-serif;
+    }
+    .btn-timer:hover { border-color:var(--c1); color:var(--c1); }
+    .btn-timer.running { border-color:#EF4444 !important; color:#EF4444 !important; }
+    .btn-reset {
+      padding:6px 12px; border-radius:8px; border:1px solid var(--border);
+      background:transparent; color:var(--muted); font-size:0.72rem;
+      font-weight:700; cursor:pointer; transition:all 0.2s;
+      font-family:'Barlow Condensed',sans-serif;
+    }
+    .btn-reset:hover { border-color:var(--pun); color:var(--pun); }
+
+    /* ─── ADMIN PANEL ────────────────────────────────────────── */
+    .admin-panel {
+      background:var(--surface); border-top:2px solid var(--border);
+      padding:8px 12px; flex-shrink:0;
+    }
+    .adm-row {
+      display:flex; align-items:center; gap:4px; margin-bottom:5px;
+      padding:6px 8px; border-radius:9px;
+    }
+    .adm-row:last-of-type { margin-bottom:0; }
+    .adm-row.row1 { background:rgba(29,78,216,0.18); border:1px solid rgba(59,130,246,0.22); }
+    .adm-row.row2 { background:rgba(185,28,28,0.18); border:1px solid rgba(239,68,68,0.22); }
+    .adm-lbl {
+      font-size:0.58rem; font-weight:800; letter-spacing:0.5px;
+      text-transform:uppercase; flex-shrink:0; width:44px;
+      padding:5px 4px; border-radius:6px; text-align:center;
+    }
+    .lbl1 { background:rgba(59,130,246,0.15); color:var(--c1-light); }
+    .lbl2 { background:rgba(239,68,68,0.15);  color:var(--c2-light); }
+
+    .btn-a {
+      flex:1; padding:9px 4px; border-radius:8px; cursor:pointer;
+      font-size:1.1rem; font-weight:900; transition:transform 0.1s, opacity 0.15s;
+      font-family:'Oswald',sans-serif; text-align:center;
+      background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+      letter-spacing:1px;
+    }
+    .btn-a:active { transform:scale(0.90); opacity:0.7; }
+    .btn-a:hover  { background:rgba(255,255,255,0.09); }
+
+    /* CASA row — todos azul */
+    .adm-row.row1 .btn-a { color:var(--c1-light); }
+    .adm-row.row1 .btn-a:hover { border-color:var(--c1); color:#fff; }
+
+    /* VISIT row — todos vermelho */
+    .adm-row.row2 .btn-a { color:var(--c2-light); }
+    .adm-row.row2 .btn-a:hover { border-color:var(--c2); color:#fff; }
+
+    /* Undo — menor e mais discreto */
+    .bundo {
+      flex:0 0 34px; font-size:0.6rem; font-weight:700; font-family:'Barlow Condensed',sans-serif;
+      padding:6px 2px; opacity:0.6;
+    }
+    .bundo:hover { opacity:1; }
+
+    /* Vencedor bar */
+    .decl-bar {
+      display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+      margin-top:8px; padding-top:7px; border-top:1px solid var(--border);
+    }
+    .decl-lbl { font-size:0.62rem; color:var(--muted); font-weight:700; letter-spacing:1px; flex-shrink:0; }
+    .decl-btn {
+      padding:7px 14px; border-radius:8px; border:1.5px solid var(--border);
+      background:transparent; color:var(--muted); font-size:0.8rem; font-weight:700;
+      cursor:pointer; transition:all 0.2s; font-family:'Barlow Condensed',sans-serif;
+    }
+    .decl-btn:hover { border-color:var(--gold); color:var(--gold); }
+    .decl-btn.sel-1   { background:rgba(59,130,246,0.15); border-color:var(--c1); color:var(--c1-light); }
+    .decl-btn.sel-2   { background:rgba(239,68,68,0.15);  border-color:var(--c2); color:var(--c2-light); }
+    .decl-btn.sel-emp { background:rgba(201,160,61,0.15); border-color:var(--gold); color:var(--gold); }
+    .fin-lbl {
+      margin-left:auto; display:flex; align-items:center; gap:6px;
+      font-size:0.72rem; color:var(--muted); cursor:pointer;
+      padding:6px 10px; border:1px solid var(--border); border-radius:7px;
+    }
+    .fin-lbl input { accent-color:var(--gold); width:13px; height:13px; }
+
+    /* ─── TOAST ──────────────────────────────────────────────── */
     #toast-box {
-      position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
-      display:flex; flex-direction:column; align-items:center; gap:6px; z-index:99;
-      pointer-events:none;
+      position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+      display:flex; flex-direction:column; align-items:center; gap:5px;
+      z-index:99; pointer-events:none;
     }
     .toast-msg {
       background:#1E293B; border:1px solid #334155; color:var(--text);
-      padding:8px 18px; border-radius:8px; font-size:0.83rem; font-weight:600;
-      animation:slideUp 0.25s ease;
+      padding:8px 18px; border-radius:8px; font-size:0.82rem; font-weight:600;
+      animation:slideUp 0.2s ease; white-space:nowrap;
     }
     @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
-    /* ─── OVERLAY (sem dados) ─────────────────────────────────── */
+    /* ─── OVERLAY ────────────────────────────────────────────── */
     #overlay {
       position:fixed; inset:0; background:var(--bg);
       display:flex; align-items:center; justify-content:center;
-      font-size:1.1rem; color:var(--muted); z-index:50;
+      font-size:1.1rem; color:var(--muted); z-index:50; flex-direction:column; gap:10px;
     }
+    .overlay-spin {
+      width:32px; height:32px; border:3px solid var(--border);
+      border-top-color:var(--gold); border-radius:50%;
+      animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
   </style>
 </head>
 <body>
 
-<div id="overlay">⏳ Aguardando dados da luta…</div>
+<div id="overlay">
+  <div class="overlay-spin"></div>
+  <span>Aguardando dados da luta…</span>
+</div>
 
-<!-- TOP BAR -->
+<!-- ─── TOP BAR ──────────────────────────────────────────────── -->
 <div class="top-bar">
   <div class="top-info">
     <div class="top-cat" id="top-cat">—</div>
@@ -244,162 +325,223 @@
   </div>
 </div>
 
-<!-- FIGHT GRID -->
-<div class="fight-grid">
+<!-- ─── SCOREBOARD ────────────────────────────────────────────── -->
+<div class="scoreboard">
 
-  <!-- SIDE 1 -->
-  <div class="side side-1">
-    <div class="side-badge">🔵 CASA</div>
-    <div class="team-name"  id="team1">—</div>
-    <div class="athlete-name" id="at1">—</div>
-    <div class="leading-badge invisible" id="lead1">▲ LIDERANDO</div>
-    <div class="score-num" id="pts1-big">0</div>
-    <div class="score-sub">
-      <div class="sub-item">
-        <div class="sub-lbl">Van</div>
-        <div class="sub-num van-num" id="van1-d">0</div>
+  <!-- SIDE 1 — CASA -->
+  <div class="score-half half-1">
+    <div class="half-header">
+      <div class="side-badge">🔵 CASA</div>
+      <div class="athlete-info">
+        <div class="team-name"    id="team1">—</div>
+        <div class="athlete-name" id="at1">—</div>
       </div>
-      <div class="sub-item">
-        <div class="sub-lbl">Pun</div>
-        <div class="sub-num pun-num" id="pun1-d">0</div>
+      <div class="lead-chip hidden" id="lead1">▲ LIDERANDO</div>
+    </div>
+    <div class="score-row">
+      <div class="s-box">
+        <div class="s-lbl">Queda · Raspagem<br>Joelho na Barriga</div>
+        <div class="s-val" id="der1-d">00</div>
+      </div>
+      <div class="s-box">
+        <div class="s-lbl">Passagem<br>de Guarda</div>
+        <div class="s-val" id="pas1-d">00</div>
+      </div>
+      <div class="s-box">
+        <div class="s-lbl">Montada<br>Costas</div>
+        <div class="s-val" id="mon1-d">00</div>
+      </div>
+      <div class="score-sep"></div>
+      <div class="van-pun-col">
+        <div class="s-box van">
+          <div class="s-lbl">Vantagem</div>
+          <div class="s-val" id="van1-d">0</div>
+        </div>
+        <div class="s-box pun">
+          <div class="s-lbl">Punição</div>
+          <div class="s-val" id="pun1-d">0</div>
+        </div>
+      </div>
+      <div class="score-sep"></div>
+      <div class="total-box" id="total1-box">
+        <div class="t-lbl">TOTAL</div>
+        <div class="t-val" id="pts1-big">00</div>
       </div>
     </div>
-    <div class="btns-wrap">
-      <button class="btn-s b2"  onclick="addPts(1,2)">+2 Derrubada</button>
-      <button class="btn-s b3"  onclick="addPts(1,3)">+3 Passagem de Guarda</button>
-      <button class="btn-s b4"  onclick="addPts(1,4)">+4 Montada / Costas</button>
-      <button class="btn-s bv"  onclick="addVan(1)">+1 Vantagem</button>
-      <button class="btn-s bp"  onclick="addPun(1)">⚠️ Punição</button>
-      <button class="btn-s bsub" onclick="submissao(1)">🔒 Submissão / Finalização</button>
-      <div class="undo-row">
-        <button class="btn-s bundo" style="flex:1" onclick="undoPts(1)">↩ pts</button>
-        <button class="btn-s bundo" style="flex:1" onclick="undoVan(1)">↩ van</button>
-        <button class="btn-s bundo" style="flex:1" onclick="undoPun(1)">↩ pun</button>
+  </div>
+
+  <!-- ─── TIMER STRIP ─────────────────────────────────────────── -->
+  <div class="timer-strip">
+    <div class="timer-status-lbl" id="timer-status">PARADO</div>
+    <div class="timer-val" id="timer-d">05:00</div>
+    <button class="btn-timer" id="btn-timer" onclick="toggleTimer()">▶ Iniciar</button>
+    <button class="btn-reset" onclick="resetTimer()">↺ Zerar</button>
+  </div>
+
+  <!-- SIDE 2 — VISIT. -->
+  <div class="score-half half-2">
+    <div class="half-header">
+      <div class="side-badge">🔴 VISIT.</div>
+      <div class="athlete-info">
+        <div class="team-name"    id="team2">—</div>
+        <div class="athlete-name" id="at2">—</div>
+      </div>
+      <div class="lead-chip hidden" id="lead2">▲ LIDERANDO</div>
+    </div>
+    <div class="score-row">
+      <div class="s-box">
+        <div class="s-lbl">Queda · Raspagem<br>Joelho na Barriga</div>
+        <div class="s-val" id="der2-d">00</div>
+      </div>
+      <div class="s-box">
+        <div class="s-lbl">Passagem<br>de Guarda</div>
+        <div class="s-val" id="pas2-d">00</div>
+      </div>
+      <div class="s-box">
+        <div class="s-lbl">Montada<br>Costas</div>
+        <div class="s-val" id="mon2-d">00</div>
+      </div>
+      <div class="score-sep"></div>
+      <div class="van-pun-col">
+        <div class="s-box van">
+          <div class="s-lbl">Vantagem</div>
+          <div class="s-val" id="van2-d">0</div>
+        </div>
+        <div class="s-box pun">
+          <div class="s-lbl">Punição</div>
+          <div class="s-val" id="pun2-d">0</div>
+        </div>
+      </div>
+      <div class="score-sep"></div>
+      <div class="total-box" id="total2-box">
+        <div class="t-lbl">TOTAL</div>
+        <div class="t-val" id="pts2-big">00</div>
       </div>
     </div>
   </div>
 
-  <!-- CENTER -->
-  <div class="center-col">
-    <div class="vs-txt">VS</div>
-    <div class="timer-display" id="timer-d">05:00</div>
-    <button class="btn-timer-start" id="btn-timer" onclick="toggleTimer()">▶ Iniciar</button>
-    <button class="btn-timer-reset" onclick="resetTimer()">↺ Zerar</button>
+</div><!-- /scoreboard -->
+
+<!-- ─── ADMIN PANEL ───────────────────────────────────────────── -->
+<div class="admin-panel">
+
+  <div class="adm-row row1">
+    <span class="adm-lbl lbl1">🔵<br>CASA</span>
+    <button class="btn-a bder" onclick="addDer(1)" title="Derrubada">+2</button>
+    <button class="btn-a bpas" onclick="addPas(1)" title="Passagem de Guarda">+3</button>
+    <button class="btn-a bmon" onclick="addMon(1)" title="Montada / Costas">+4</button>
+    <button class="btn-a bvan" onclick="addVan(1)" title="Vantagem">+V</button>
+    <button class="btn-a bpun" onclick="addPun(1)" title="Punição">⚠</button>
+    <button class="btn-a bsub" onclick="submissao(1)" title="Submissão">🔒</button>
+    <button class="btn-a bundo" onclick="undoPts(1)"  title="Desfazer pts">↩p</button>
+    <button class="btn-a bundo" onclick="undoVan(1)"  title="Desfazer van">↩v</button>
+    <button class="btn-a bundo" onclick="undoPun(1)"  title="Desfazer pun">↩u</button>
   </div>
 
-  <!-- SIDE 2 -->
-  <div class="side side-2">
-    <div class="side-badge">🔴 VISIT.</div>
-    <div class="team-name"   id="team2">—</div>
-    <div class="athlete-name" id="at2">—</div>
-    <div class="leading-badge invisible" id="lead2">▲ LIDERANDO</div>
-    <div class="score-num" id="pts2-big">0</div>
-    <div class="score-sub">
-      <div class="sub-item">
-        <div class="sub-lbl">Van</div>
-        <div class="sub-num van-num" id="van2-d">0</div>
-      </div>
-      <div class="sub-item">
-        <div class="sub-lbl">Pun</div>
-        <div class="sub-num pun-num" id="pun2-d">0</div>
-      </div>
-    </div>
-    <div class="btns-wrap">
-      <button class="btn-s b2"  onclick="addPts(2,2)">+2 Derrubada</button>
-      <button class="btn-s b3"  onclick="addPts(2,3)">+3 Passagem de Guarda</button>
-      <button class="btn-s b4"  onclick="addPts(2,4)">+4 Montada / Costas</button>
-      <button class="btn-s bv"  onclick="addVan(2)">+1 Vantagem</button>
-      <button class="btn-s bp"  onclick="addPun(2)">⚠️ Punição</button>
-      <button class="btn-s bsub" onclick="submissao(2)">🔒 Submissão / Finalização</button>
-      <div class="undo-row">
-        <button class="btn-s bundo" style="flex:1" onclick="undoPts(2)">↩ pts</button>
-        <button class="btn-s bundo" style="flex:1" onclick="undoVan(2)">↩ van</button>
-        <button class="btn-s bundo" style="flex:1" onclick="undoPun(2)">↩ pun</button>
-      </div>
-    </div>
+  <div class="adm-row row2">
+    <span class="adm-lbl lbl2">🔴<br>VISIT</span>
+    <button class="btn-a bder" onclick="addDer(2)" title="Derrubada">+2</button>
+    <button class="btn-a bpas" onclick="addPas(2)" title="Passagem de Guarda">+3</button>
+    <button class="btn-a bmon" onclick="addMon(2)" title="Montada / Costas">+4</button>
+    <button class="btn-a bvan" onclick="addVan(2)" title="Vantagem">+V</button>
+    <button class="btn-a bpun" onclick="addPun(2)" title="Punição">⚠</button>
+    <button class="btn-a bsub" onclick="submissao(2)" title="Submissão">🔒</button>
+    <button class="btn-a bundo" onclick="undoPts(2)"  title="Desfazer pts">↩p</button>
+    <button class="btn-a bundo" onclick="undoVan(2)"  title="Desfazer van">↩v</button>
+    <button class="btn-a bundo" onclick="undoPun(2)"  title="Desfazer pun">↩u</button>
   </div>
-</div>
 
-<!-- BOTTOM BAR -->
-<div class="bottom-bar">
-  <span class="decl-lbl">🏆 VENCEDOR:</span>
-  <button class="decl-btn" id="decl-1"   onclick="declararVenc('1')">
-    🏆 <span id="decl-n1">—</span>
-  </button>
-  <button class="decl-btn" id="decl-emp" onclick="declararVenc('empate')">🤝 Empate</button>
-  <button class="decl-btn" id="decl-2"   onclick="declararVenc('2')">
-    🏆 <span id="decl-n2">—</span>
-  </button>
-  <div class="sep"></div>
-  <label class="fin-lbl">
-    <input type="checkbox" id="fin-chk"> 🔒 Finalização / Sub.
-  </label>
+  <div class="decl-bar">
+    <span class="decl-lbl">🏆 VENCEDOR:</span>
+    <button class="decl-btn" id="decl-1"   onclick="declararVenc('1')">🏆 <span id="decl-n1">—</span></button>
+    <button class="decl-btn" id="decl-emp" onclick="declararVenc('empate')">🤝 Empate</button>
+    <button class="decl-btn" id="decl-2"   onclick="declararVenc('2')">🏆 <span id="decl-n2">—</span></button>
+    <label class="fin-lbl">
+      <input type="checkbox" id="fin-chk"> 🔒 Finalização / Sub.
+    </label>
+  </div>
 </div>
 
 <div id="toast-box"></div>
 
 <script>
 // ── Init ───────────────────────────────────────────────────────
-const urlP  = new URLSearchParams(location.search);
+const urlP   = new URLSearchParams(location.search);
 const campId = urlP.get('id');
 const idx    = parseInt(urlP.get('idx'));
 
-let initData = null;
-let sc = { pts1:0, pts2:0, van1:0, van2:0, pun1:0, pun2:0 };
-let vencedor   = null;
+let initData    = null;
+let vencedor    = null;
 let finalizacao = false;
-let lastPts    = []; // [{side,val}] — undo stack
+
+// Score state — individual categories
+let sc = {
+  mon1:0, pas1:0, der1:0, van1:0, pun1:0,
+  mon2:0, pas2:0, der2:0, van2:0, pun2:0
+};
+
+// Undo stack for points actions [{side, cat, val}]
+let lastActions = [];
 
 let timerSecs    = 300;
 let timerRunning = false;
 let timerInt     = null;
 
-// BroadcastChannel — same key used in liga-placar-adm.html
-const ch = new BroadcastChannel(`liga_luta_${campId}`);
+// BroadcastChannel — canal customizável via URL param (padrão: liga)
+const canalParam = urlP.get('canal') || `liga_luta_${campId}`;
+const ch = new BroadcastChannel(canalParam);
+
+function total(s) { return sc[`mon${s}`] + sc[`pas${s}`] + sc[`der${s}`]; }
+function pad(n)   { return String(n).padStart(2,'0'); }
 
 // ── Load data ──────────────────────────────────────────────────
 function tryLoad() {
   const raw = localStorage.getItem(`liga_luta_init_${campId}_${idx}`);
   if (!raw) return false;
-  initData = JSON.parse(raw);
+  initData  = JSON.parse(raw);
   timerSecs = initData.tempoLuta || 300;
 
   document.getElementById('overlay').style.display = 'none';
-  document.getElementById('top-cat').textContent  = initData.categoria || '—';
-  document.getElementById('top-meta').textContent =
-    `${initData.faixaLabel || ''} · R${initData.rodada||''} · ${initData.equipe1||''} × ${initData.equipe2||''}`;
-  document.getElementById('team1').textContent = initData.equipe1 || '—';
-  document.getElementById('team2').textContent = initData.equipe2 || '—';
-  document.getElementById('at1').textContent   = initData.atleta1 || '—';
-  document.getElementById('at2').textContent   = initData.atleta2 || '—';
-
-  const n1 = (initData.atleta1 || initData.equipe1 || '?').split(' ')[0];
-  const n2 = (initData.atleta2 || initData.equipe2 || '?').split(' ')[0];
-  document.getElementById('decl-n1').textContent = n1;
-  document.getElementById('decl-n2').textContent = n2;
+  document.getElementById('top-cat').textContent   = initData.categoria || '—';
+  document.getElementById('top-meta').textContent  =
+    `${initData.faixaLabel||''} · R${initData.rodada||''} · ${initData.equipe1||''} × ${initData.equipe2||''}`;
+  document.getElementById('team1').textContent     = initData.equipe1  || '—';
+  document.getElementById('team2').textContent     = initData.equipe2  || '—';
+  document.getElementById('at1').textContent       = initData.atleta1  || (initData.equipe1 || '—');
+  document.getElementById('at2').textContent       = initData.atleta2  || (initData.equipe2 || '—');
+  document.getElementById('decl-n1').textContent   = (initData.atleta1 || initData.equipe1 || '?').split(' ')[0];
+  document.getElementById('decl-n2').textContent   = (initData.atleta2 || initData.equipe2 || '?').split(' ')[0];
 
   updateTimerDisplay();
   return true;
 }
 
-// Try immediately; if not yet written, poll briefly
 if (!tryLoad()) {
   const t = setInterval(() => { if (tryLoad()) clearInterval(t); }, 200);
-  setTimeout(() => clearInterval(t), 4000);
+  setTimeout(() => clearInterval(t), 5000);
 }
 
-// Listen for "fechar" from main page
 ch.addEventListener('message', e => {
   if (e.data?.type === 'fechar') window.close();
 });
 
 // ── Timer ──────────────────────────────────────────────────────
 function updateTimerDisplay() {
-  const m = Math.floor(timerSecs / 60);
-  const s = timerSecs % 60;
-  const el = document.getElementById('timer-d');
-  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  el.classList.toggle('urgent', timerSecs > 0 && timerSecs <= 30);
+  const abs  = Math.abs(timerSecs);
+  const m    = Math.floor(abs / 60);
+  const s    = abs % 60;
+  const el   = document.getElementById('timer-d');
+  el.textContent = `${pad(m)}:${pad(s)}`;
+  el.className   = 'timer-val' +
+    (timerSecs > 0 && timerSecs <= 30 ? ' urgent' : '') +
+    (timerSecs <= 0 && !timerRunning   ? ' done'   : '');
+}
+
+function updateTimerStatus() {
+  const el = document.getElementById('timer-status');
+  if (timerRunning)      { el.textContent = 'EM CURSO'; el.className = 'timer-status-lbl running'; }
+  else if (timerSecs<=0) { el.textContent = 'ESGOTADO'; el.className = 'timer-status-lbl done'; }
+  else                   { el.textContent = 'PARADO';   el.className = 'timer-status-lbl'; }
 }
 
 function toggleTimer() {
@@ -411,155 +553,158 @@ function toggleTimer() {
     timerRunning = true;
     btn.textContent = '⏸ Pausar'; btn.classList.add('running');
     timerInt = setInterval(() => {
+      timerSecs--;
+      updateTimerDisplay();
+      updateTimerStatus();
       if (timerSecs <= 0) {
         clearInterval(timerInt); timerInt = null; timerRunning = false;
         document.getElementById('btn-timer').textContent = '▶ Iniciar';
         document.getElementById('btn-timer').classList.remove('running');
+        updateTimerStatus();
         toast('⏰ Tempo esgotado!');
-        return;
       }
-      timerSecs--;
-      updateTimerDisplay();
     }, 1000);
   }
+  updateTimerStatus();
 }
 
 function resetTimer() {
   clearInterval(timerInt); timerInt = null; timerRunning = false;
   timerSecs = initData?.tempoLuta || 300;
-  const btn = document.getElementById('btn-timer');
-  btn.textContent = '▶ Iniciar'; btn.classList.remove('running');
+  document.getElementById('btn-timer').textContent = '▶ Iniciar';
+  document.getElementById('btn-timer').classList.remove('running');
   updateTimerDisplay();
+  updateTimerStatus();
 }
 
 // ── Scoring ────────────────────────────────────────────────────
-function addPts(side, val) {
-  sc[`pts${side}`] += val;
-  lastPts.push({ side, val });
-  if (lastPts.length > 8) lastPts.shift();
-  updateUI();
-  broadcastScore();
+function addMon(side) { pushAct(side,'mon',4); refresh(); }
+function addPas(side) { pushAct(side,'pas',3); refresh(); }
+function addDer(side) { pushAct(side,'der',2); refresh(); }
+
+function pushAct(side, cat, val) {
+  sc[`${cat}${side}`] += val;
+  lastActions.push({ side, cat, val });
+  if (lastActions.length > 12) lastActions.shift();
 }
 
 function undoPts(side) {
-  for (let i = lastPts.length - 1; i >= 0; i--) {
-    if (lastPts[i].side === side) {
-      sc[`pts${side}`] = Math.max(0, sc[`pts${side}`] - lastPts[i].val);
-      lastPts.splice(i, 1);
-      updateUI();
-      broadcastScore();
+  for (let i = lastActions.length - 1; i >= 0; i--) {
+    const a = lastActions[i];
+    if (a.side === side && ['mon','pas','der'].includes(a.cat)) {
+      sc[`${a.cat}${side}`] = Math.max(0, sc[`${a.cat}${side}`] - a.val);
+      lastActions.splice(i, 1);
+      refresh();
       return;
     }
   }
   toast('Nada para desfazer.');
 }
 
-function addVan(side) {
-  sc[`van${side}`]++;
-  updateUI();
-  broadcastScore();
-}
-
-function addPun(side) {
-  const adv = side === 1 ? 2 : 1;
-  const newPun = ++sc[`pun${side}`];
-  const nAdv = nome(adv);
-
-  if (newPun === 2) {
-    sc[`van${adv}`]++;
-    toast(`⚠️ 2ª Punição: +1 van para ${nAdv}!`);
-  } else if (newPun === 3) {
-    sc[`pts${adv}`] += 2;
-    toast(`⚡ 3ª Punição: +2 pts para ${nAdv}!`);
-  } else if (newPun >= 4) {
-    toast(`⛔ 4ª Punição — DQ! Clique em 🏆 ${nAdv} e Finalizar.`);
-  }
-  updateUI();
-  broadcastScore();
-}
+function addVan(side) { sc[`van${side}`]++; refresh(); }
 
 function undoVan(side) {
   if (sc[`van${side}`] <= 0) { toast('Vantagem já está em 0.'); return; }
   sc[`van${side}`]--;
-  updateUI();
-  broadcastScore();
+  refresh();
+}
+
+function addPun(side) {
+  const adv    = side === 1 ? 2 : 1;
+  const newPun = ++sc[`pun${side}`];
+  const nAdv   = nome(adv);
+  if (newPun === 2) {
+    sc[`van${adv}`]++;
+    toast(`⚠️ 2ª Punição: +1 van para ${nAdv}!`);
+  } else if (newPun >= 3) {
+    // A partir da 3ª punição: +2 pts ao adversário a cada vez
+    sc[`der${adv}`] += 2;
+    if (newPun === 3) {
+      toast(`⚡ 3ª Punição: +2 pts para ${nAdv}!`);
+    } else {
+      toast(`⛔ ${newPun}ª Punição: +2 pts para ${nAdv}! (considere DQ)`);
+    }
+  }
+  refresh();
 }
 
 function undoPun(side) {
-  const cur = sc[`pun${side}`];
+  const cur  = sc[`pun${side}`];
   if (cur <= 0) { toast('Punição já está em 0.'); return; }
-  const adv = side === 1 ? 2 : 1;
+  const adv  = side === 1 ? 2 : 1;
   const nAdv = nome(adv);
-  // Reverter efeito automático
   if (cur === 2) {
-    // A 2ª punição tinha dado +1 van ao adversário — devolver
     sc[`van${adv}`] = Math.max(0, sc[`van${adv}`] - 1);
-    toast(`↩ Correção: −1 van de ${nAdv} (2ª punição removida)`);
-  } else if (cur === 3) {
-    // A 3ª punição tinha dado +2 pts ao adversário — devolver
-    sc[`pts${adv}`] = Math.max(0, sc[`pts${adv}`] - 2);
-    toast(`↩ Correção: −2 pts de ${nAdv} (3ª punição removida)`);
+    toast(`↩ −1 van de ${nAdv} (2ª pun removida)`);
+  } else if (cur >= 3) {
+    // Reverte os +2 pts dados por esta punição
+    sc[`der${adv}`] = Math.max(0, sc[`der${adv}`] - 2);
+    toast(`↩ −2 pts de ${nAdv} (${cur}ª pun removida)`);
   }
   sc[`pun${side}`]--;
-  updateUI();
-  broadcastScore();
+  refresh();
 }
 
 function submissao(side) {
-  vencedor = String(side);
-  finalizacao = true;
+  vencedor = String(side); finalizacao = true;
   document.getElementById('fin-chk').checked = true;
-  clearInterval(timerInt); timerInt = null; timerRunning = false;
-  const btn = document.getElementById('btn-timer');
-  btn.textContent = '▶ Iniciar'; btn.classList.remove('running');
-  updateUI();
+  if (timerRunning) {
+    clearInterval(timerInt); timerInt = null; timerRunning = false;
+    document.getElementById('btn-timer').textContent = '▶ Iniciar';
+    document.getElementById('btn-timer').classList.remove('running');
+    updateTimerStatus();
+  }
+  refresh();
   toast('🔒 Submissão! Confirme o vencedor e clique em Finalizar Luta.');
 }
 
-function declararVenc(v) {
-  vencedor = v;
-  updateUI();
-}
+function declararVenc(v) { vencedor = v; refresh(); }
 
 function nome(side) {
   const n = side === 1
-    ? initData?.atleta1 || initData?.equipe1
-    : initData?.atleta2 || initData?.equipe2;
+    ? (initData?.atleta1 || initData?.equipe1)
+    : (initData?.atleta2 || initData?.equipe2);
   return (n || '?').split(' ')[0];
 }
 
-// ── UI update ──────────────────────────────────────────────────
-function updateUI() {
-  document.getElementById('pts1-big').textContent = sc.pts1;
-  document.getElementById('pts2-big').textContent = sc.pts2;
-  document.getElementById('van1-d').textContent   = sc.van1;
-  document.getElementById('van2-d').textContent   = sc.van2;
-  document.getElementById('pun1-d').textContent   = sc.pun1;
-  document.getElementById('pun2-d').textContent   = sc.pun2;
+// ── UI Refresh ─────────────────────────────────────────────────
+function refresh() {
+  const t1 = total(1), t2 = total(2);
+
+  document.getElementById('mon1-d').textContent  = pad(sc.mon1);
+  document.getElementById('pas1-d').textContent  = pad(sc.pas1);
+  document.getElementById('der1-d').textContent  = pad(sc.der1);
+  document.getElementById('van1-d').textContent  = sc.van1;
+  document.getElementById('pun1-d').textContent  = sc.pun1;
+  document.getElementById('pts1-big').textContent = pad(t1);
+
+  document.getElementById('mon2-d').textContent  = pad(sc.mon2);
+  document.getElementById('pas2-d').textContent  = pad(sc.pas2);
+  document.getElementById('der2-d').textContent  = pad(sc.der2);
+  document.getElementById('van2-d').textContent  = sc.van2;
+  document.getElementById('pun2-d').textContent  = sc.pun2;
+  document.getElementById('pts2-big').textContent = pad(t2);
 
   const lead = calcLead();
-  const p1 = document.getElementById('pts1-big');
-  const p2 = document.getElementById('pts2-big');
-  const l1 = document.getElementById('lead1');
-  const l2 = document.getElementById('lead2');
-  p1.classList.toggle('leading', lead === '1');
-  p2.classList.toggle('leading', lead === '2');
-  l1.classList.toggle('invisible', lead !== '1');
-  l2.classList.toggle('invisible', lead !== '2');
+  document.getElementById('lead1').classList.toggle('hidden', lead !== '1');
+  document.getElementById('lead2').classList.toggle('hidden', lead !== '2');
+  document.getElementById('total1-box').classList.toggle('leading', lead === '1');
+  document.getElementById('total2-box').classList.toggle('leading', lead === '2');
 
-  // winner buttons
-  ['decl-1','decl-emp','decl-2'].forEach(id => {
-    document.getElementById(id)?.classList.remove('sel-1','sel-emp','sel-2');
-  });
-  if (vencedor === '1')      document.getElementById('decl-1').classList.add('sel-1');
-  else if (vencedor === '2') document.getElementById('decl-2').classList.add('sel-2');
+  ['decl-1','decl-emp','decl-2'].forEach(id =>
+    document.getElementById(id)?.classList.remove('sel-1','sel-emp','sel-2'));
+  if (vencedor === '1')        document.getElementById('decl-1').classList.add('sel-1');
+  else if (vencedor === '2')   document.getElementById('decl-2').classList.add('sel-2');
   else if (vencedor === 'empate') document.getElementById('decl-emp').classList.add('sel-emp');
+
+  broadcastScore();
 }
 
 function calcLead() {
   if (vencedor) return vencedor === 'empate' ? null : vencedor;
-  if (sc.pts1 > sc.pts2) return '1';
-  if (sc.pts2 > sc.pts1) return '2';
+  const t1 = total(1), t2 = total(2);
+  if (t1 > t2) return '1';
+  if (t2 > t1) return '2';
   if (sc.van1 > sc.van2) return '1';
   if (sc.van2 > sc.van1) return '2';
   if (sc.pun1 < sc.pun2) return '1';
@@ -568,7 +713,16 @@ function calcLead() {
 }
 
 function broadcastScore() {
-  ch.postMessage({ type:'tv_score', idx, state:{ ...sc } });
+  ch.postMessage({
+    type: 'tv_score', idx,
+    state: {
+      pts1: total(1), pts2: total(2),
+      van1: sc.van1,  van2: sc.van2,
+      pun1: sc.pun1,  pun2: sc.pun2,
+      mon1: sc.mon1,  pas1: sc.pas1, der1: sc.der1,
+      mon2: sc.mon2,  pas2: sc.pas2, der2: sc.der2
+    }
+  });
 }
 
 // ── Finalizar / Encerrar ───────────────────────────────────────
@@ -582,9 +736,8 @@ function finalizar() {
   }
   clearInterval(timerInt);
   ch.postMessage({
-    type: 'tv_finalizar',
-    idx,
-    state: { ...sc, vencedor: v, finalizacao }
+    type: 'tv_finalizar', idx,
+    state: { ...sc, pts1: total(1), pts2: total(2), vencedor: v, finalizacao }
   });
   setTimeout(() => window.close(), 600);
 }
@@ -592,7 +745,7 @@ function finalizar() {
 function encerrar() {
   if (!confirm('Encerrar esta luta?\nO confronto voltará ao status Pendente.')) return;
   clearInterval(timerInt);
-  ch.postMessage({ type:'tv_encerrar', idx });
+  ch.postMessage({ type: 'tv_encerrar', idx });
   window.close();
 }
 
@@ -600,7 +753,7 @@ function encerrar() {
 function toast(msg) {
   const box = document.getElementById('toast-box');
   const el  = document.createElement('div');
-  el.className = 'toast-msg';
+  el.className  = 'toast-msg';
   el.textContent = msg;
   box.appendChild(el);
   setTimeout(() => el.remove(), 3500);

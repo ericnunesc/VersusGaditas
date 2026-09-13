@@ -255,7 +255,7 @@
 </div>
 
 <script type="module">
-  import { listarInscricoes, atualizarInscricao, salvarAtleta, deletarAtleta, buscarCampeonato, onLogin, atualizarAtleta } from './js/firebase.js';
+  import { listarInscricoes, atualizarInscricao, deletarInscricao, salvarAtleta, deletarAtleta, buscarCampeonato, onLogin, atualizarAtleta } from './js/firebase.js';
 
   // Tabela de categorias de idade CBJJ — nomes oficiais
   const CATEGORIAS_IDADE = [
@@ -399,6 +399,7 @@
             ${i.status === 'aprovado' ? `<button class="btn btn-realocar" onclick="abrirRealocacao('${i.id}')">🔀 Realocar</button>` : ''}
             ${i.status === 'rejeitado' ? `<button class="btn btn-aprovar" onclick="aprovar('${i.id}')">✅ Aprovar</button>` : ''}
           `}
+          <button class="btn btn-rejeitar" onclick="excluirInscricao('${i.id}','${(i.nome||'').replace(/'/g,"\\'")}')">🗑️ Excluir</button>
         </div>
       </div>
     `).join('');
@@ -461,6 +462,23 @@
       renderizar();
     } catch(e) {
       alert('Erro ao rejeitar: ' + e.message);
+    }
+  };
+
+  window.excluirInscricao = async function(id, nome) {
+    if (!window.confirm(`Excluir permanentemente a inscrição de ${nome}?\n\nEsta ação não pode ser desfeita — o atleta sumirá da lista pública.`)) return;
+    if (!campeonatoId) return;
+    try {
+      // Se estava aprovado, remove também da subcoleção atletas
+      const insc = todasInscricoes.find(x => x.id === id);
+      if (insc?.status === 'aprovado' && insc?.atletaId) {
+        try { await deletarAtleta(campeonatoId, insc.atletaId); } catch(_) {}
+      }
+      await deletarInscricao(campeonatoId, id);
+      todasInscricoes = todasInscricoes.filter(x => x.id !== id);
+      renderizar();
+    } catch(e) {
+      alert('Erro ao excluir: ' + e.message);
     }
   };
 

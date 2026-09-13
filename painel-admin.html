@@ -379,6 +379,7 @@
     <select id="f-tipo" onchange="onTipoChange()">
       <option value="chaveamento">🥋 Chaveamento (Eliminatórias)</option>
       <option value="liga">⚽ Liga (Pontos Corridos)</option>
+      <option value="pontos-corridos">🔄 Pontos Corridos Individual</option>
     </select>
 
     <label>Cliente responsável <span style="font-weight:400;color:#8A9CB0">(opcional — dá acesso pelo portal)</span></label>
@@ -435,6 +436,46 @@
     <label style="margin-top:16px">Logo / Marca da Organização <span style="font-weight:400;color:#8A9CB0">(URL da imagem)</span></label>
     <input type="text" id="f-marca" placeholder="https://exemplo.com/logo.png">
     <p style="font-size:0.68rem;color:#8A9CB0;margin-top:4px;">Logo exibida nas páginas públicas do evento (cabeçalho, inscrição, placar). Cole a URL de uma imagem hospedada.</p>
+
+    <!-- ── PAGAMENTO ── -->
+    <div class="modal-section" style="margin-top:16px;padding:16px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;" id="secao-pagamento">
+      <div class="modal-section-title" style="margin-bottom:12px">💰 Configuração de Pagamento</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label>Valor da inscrição (R$)</label>
+          <input type="number" id="f-pag-valor" placeholder="120,00" step="0.01" min="0" style="border:1px solid #E2E8F0;border-radius:8px;padding:9px 12px;font-size:0.85rem;outline:none;width:100%;">
+        </div>
+        <div>
+          <label>Valor do Absoluto (R$)</label>
+          <input type="number" id="f-pag-absoluto" placeholder="30,00" step="0.01" min="0" style="border:1px solid #E2E8F0;border-radius:8px;padding:9px 12px;font-size:0.85rem;outline:none;width:100%;">
+        </div>
+      </div>
+
+      <div style="border:1px solid #E2E8F0;border-radius:8px;padding:12px;margin-bottom:8px;background:#fff;">
+        <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;font-weight:700;font-size:0.82rem;">
+          <input type="checkbox" id="f-pag-pix-on" style="width:16px;height:16px;accent-color:#C9A03D;cursor:pointer;">
+          📱 PIX
+        </label>
+        <div id="f-pag-pix-wrap" style="display:none;margin-top:8px;">
+          <label style="font-size:0.72rem;font-weight:600;color:#8A9CB0;">Chave PIX</label>
+          <input type="text" id="f-pag-pix-chave" placeholder="CPF, e-mail, telefone ou chave aleatória"
+            style="width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;font-size:0.85rem;outline:none;margin-top:4px;">
+        </div>
+      </div>
+
+      <div style="border:1px solid #E2E8F0;border-radius:8px;padding:12px;background:#fff;">
+        <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;font-weight:700;font-size:0.82rem;">
+          <input type="checkbox" id="f-pag-link-on" style="width:16px;height:16px;accent-color:#C9A03D;cursor:pointer;">
+          🔗 Link de Pagamento (Mercado Pago, InfinitePay, etc.)
+        </label>
+        <div id="f-pag-link-wrap" style="display:none;margin-top:8px;">
+          <label style="font-size:0.72rem;font-weight:600;color:#8A9CB0;">URL do link</label>
+          <input type="url" id="f-pag-link-url" placeholder="https://..."
+            style="width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;font-size:0.85rem;outline:none;margin-top:4px;">
+        </div>
+      </div>
+    </div>
 
     <label>Cartaz do evento</label>
     <div id="cartaz-preview-box" class="cartaz-preview" style="display:none">
@@ -570,6 +611,7 @@
     onLogin, logout,
     listarCampeonatos, criarCampeonato, atualizarCampeonato, deletarCampeonato,
     salvarPlanos, buscarPlanos,
+    salvarConfig, buscarConfig,
     criarCliente, listarClientes, atualizarCliente, deletarCliente
   } from './js/firebase.js';
 
@@ -645,12 +687,17 @@
         const tagEscopo = isLiga && c.escopo
           ? `<span style="background:${c.escopo==='academia'?'#F0FDF4':'#FFF7ED'};color:${c.escopo==='academia'?'#166534':'#C2410C'};padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">${c.escopo==='academia'?'🏫 Interno':'⚔️ Externo'}</span> `
           : '';
+        const isPC   = c.tipo === 'pontos-corridos';
         const acoes = isLiga
           ? `<a href="liga-adm.html?id=${c.id}" class="btn-sm primary">⚽ Admin Liga</a>
              <a href="liga-placar-adm.html?id=${c.id}" class="btn-sm" style="background:#10B981;color:#fff;border-color:#10B981">🎙️ Placar</a>
              <a href="liga-inscricao.html?id=${c.id}" target="_blank" class="btn-sm">📝 Inscrições</a>
              <a href="liga-portal.html?id=${c.id}" target="_blank" class="btn-sm">🔐 Portal</a>
              <a href="liga-tv.html?id=${c.id}" target="_blank" class="btn-sm">📺 TV</a>
+             <button class="btn-sm" onclick="editar('${c.id}')">✏️</button>
+             <button class="btn-sm danger" onclick="excluir('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>`
+          : isPC
+          ? `<a href="pontos-corridos-adm.html?id=${c.id}" class="btn-sm primary">🔄 Admin PC</a>
              <button class="btn-sm" onclick="editar('${c.id}')">✏️</button>
              <button class="btn-sm danger" onclick="excluir('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>`
           : (() => {
@@ -694,7 +741,7 @@
              <button class="btn-sm danger" onclick="excluir('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button>`;
             })();
         return `<div class="card">${banner}<div class="card-body">
-          <div style="margin-bottom:5px">${tagCliente}${tagEscopo}<span class="status-pill status-${c.status||'ativo'}">${{ativo:'✅ Aberto',breve:'🕐 Em breve',encerrado:'🔒 Encerrado'}[c.status||'ativo']}</span>${isLiga?' <span style="background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">⚽ Liga</span>':''}</div>
+          <div style="margin-bottom:5px">${tagCliente}${tagEscopo}<span class="status-pill status-${c.status||'ativo'}">${{ativo:'✅ Aberto',breve:'🕐 Em breve',encerrado:'🔒 Encerrado'}[c.status||'ativo']}</span>${isLiga?' <span style="background:#EFF6FF;color:#1D4ED8;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">⚽ Liga</span>':''}${isPC?' <span style="background:#F0FDF4;color:#065F46;padding:2px 8px;border-radius:20px;font-size:0.62rem;font-weight:700;">🔄 Individual</span>':''}</div>
           <div class="card-nome">${c.nome}</div>
           <div class="card-info">📅 ${data}${c.local?' · 📍 '+c.local:''}</div>
           ${!isLiga && (c.dataInicioInscricoes||c.dataFimInscricoes) ? (() => {
@@ -716,6 +763,14 @@
       grid.innerHTML = `<div class="vazio"><span>⚠️</span>Erro ao carregar campeonatos.</div>`;
     }
   }
+
+  // Toggle PIX / Link checkboxes
+  document.getElementById('f-pag-pix-on').addEventListener('change', function() {
+    document.getElementById('f-pag-pix-wrap').style.display = this.checked ? 'block' : 'none';
+  });
+  document.getElementById('f-pag-link-on').addEventListener('change', function() {
+    document.getElementById('f-pag-link-wrap').style.display = this.checked ? 'block' : 'none';
+  });
 
   window.abrirModal = function(dados) {
     cartazBase64 = dados?.cartaz || null;
@@ -744,6 +799,36 @@
       document.getElementById('cartaz-preview-img').src = cartazBase64;
       prev.style.display = 'block'; up.style.display = 'none';
     } else { prev.style.display = 'none'; up.style.display = 'block'; }
+
+    // Limpa campos de pagamento antes de carregar
+    document.getElementById('f-pag-valor').value   = '';
+    document.getElementById('f-pag-absoluto').value = '';
+    document.getElementById('f-pag-pix-on').checked  = false;
+    document.getElementById('f-pag-pix-chave').value = '';
+    document.getElementById('f-pag-pix-wrap').style.display  = 'none';
+    document.getElementById('f-pag-link-on').checked  = false;
+    document.getElementById('f-pag-link-url').value   = '';
+    document.getElementById('f-pag-link-wrap').style.display = 'none';
+
+    // Se editando, carrega config de pagamento existente
+    if (dados?.id) {
+      buscarConfig(dados.id).then(cfg => {
+        const p = cfg?.pagamento || {};
+        if (p.valor)    document.getElementById('f-pag-valor').value   = parseFloat(p.valor.replace(',','.')) || '';
+        if (p.valorAbsoluto) document.getElementById('f-pag-absoluto').value = parseFloat(p.valorAbsoluto.replace(',','.')) || '';
+        if (p.pix?.ativo) {
+          document.getElementById('f-pag-pix-on').checked = true;
+          document.getElementById('f-pag-pix-wrap').style.display = 'block';
+          document.getElementById('f-pag-pix-chave').value = p.pix.chave || '';
+        }
+        if (p.link?.ativo && p.link?.url) {
+          document.getElementById('f-pag-link-on').checked = true;
+          document.getElementById('f-pag-link-wrap').style.display = 'block';
+          document.getElementById('f-pag-link-url').value = p.link.url || '';
+        }
+      }).catch(() => {});
+    }
+
     document.getElementById('modal-bg').classList.add('open');
   };
 
@@ -887,10 +972,36 @@
     if (tipo === 'liga') {
       dados.escopo = document.getElementById('f-escopo').value;
     }
+    // Montar config de pagamento
+    const pagValor    = document.getElementById('f-pag-valor').value.trim();
+    const pagAbsoluto = document.getElementById('f-pag-absoluto').value.trim();
+    const pixOn       = document.getElementById('f-pag-pix-on').checked;
+    const pixChave    = document.getElementById('f-pag-pix-chave').value.trim();
+    const linkOn      = document.getElementById('f-pag-link-on').checked;
+    const linkUrl     = document.getElementById('f-pag-link-url').value.trim();
+
+    const pagamento = {
+      valor:        pagValor   ? parseFloat(pagValor).toFixed(2).replace('.',',')   : '0,00',
+      valorAbsoluto: pagAbsoluto ? parseFloat(pagAbsoluto).toFixed(2).replace('.',',') : '0,00',
+      pix:  { ativo: pixOn,  chave: pixOn ? pixChave : '' },
+      link: { ativo: linkOn && !!linkUrl, url: linkOn ? linkUrl : '' },
+    };
+
     const id = document.getElementById('f-id').value;
     try {
-      if (id) await atualizarCampeonato(id, dados);
-      else    await criarCampeonato(dados);
+      let campId = id;
+      if (id) {
+        await atualizarCampeonato(id, dados);
+      } else {
+        const ref = await criarCampeonato(dados);
+        campId = ref?.id || null;
+      }
+
+      // Salvar config de pagamento sempre (criar ou editar)
+      if (campId) {
+        try { await salvarConfig(campId, { pagamento }); } catch(e) { console.warn('Config pagamento não salva:', e.message); }
+      }
+
       fecharModal(); carregarCampeonatos();
     } catch(e) { alert('Erro ao salvar: ' + e.message); }
     finally { btn.textContent = 'Salvar'; btn.disabled = false; }

@@ -212,6 +212,7 @@
 
   function render(c) {
     const isLiga = c.tipo === 'liga';
+    const isPC   = c.tipo === 'pontos-corridos';
 
     // Banner
     if (c.cartaz) {
@@ -244,6 +245,8 @@
     let pillCls, pillTxt;
     if (isLiga) {
       pillCls = 'pill-liga'; pillTxt = '⚔️ Liga';
+    } else if (isPC) {
+      pillCls = 'pill-ativo'; pillTxt = inscAberta ? '✅ Inscrições abertas' : isEnc ? '🔒 Inscrições encerradas' : '🔄 Pontos Corridos';
     } else if (isResultados) {
       pillCls = 'pill-res'; pillTxt = '🏅 Resultados';
     } else if (isCompetindo) {
@@ -267,6 +270,17 @@
       secHtml  += btn('🔐 Portal da Equipe',    `liga-portal.html?id=${c.id}`,       'dark sm');
       secHtml  += btn('📅 Calendário de Jogos', `liga-cronograma.html?id=${c.id}`,   'dark sm');
       secHtml  += btn('📺 Placar Ao Vivo',      `liga-placar-publico.html?id=${c.id}`,'dark sm');
+    } else if (isPC) {
+      // ── Pontos Corridos Individual ──
+      if (inscAberta) {
+        primHtml += btn('📝 Inscrever-se', `inscricao.html?id=${c.id}`, 'green');
+      }
+      primHtml += btn('🏆 Classificação', `tv-chaveamento.html?id=${c.id}`, 'gold');
+      if (c.edital) {
+        secHtml += btn('📋 Edital', c.edital, 'dark sm', true);
+      }
+      secHtml += btn('👥 Lista de Atletas',    `atletas-publico.html?id=${c.id}`,  'dark sm');
+      secHtml += btn('📅 Rodadas',             `cronograma-lutas.html?id=${c.id}`, 'dark sm');
     } else if (isResultados) {
       primHtml += btn('🏆 Resultado por Equipe',     `placar-publico.html?id=${c.id}`,   'gold');
       primHtml += btn('📊 Resultado por Categoria',  `tv-chaveamento.html?id=${c.id}`,   'gold');
@@ -285,7 +299,7 @@
       secHtml  += btn('📅 Cronograma de Lutas', `cronograma-lutas.html?id=${c.id}`, 'dark sm');
       secHtml  += btn('📊 Chaveamento',         `tv-chaveamento.html?id=${c.id}`,   'dark sm');
     } else {
-      // Abertas ou breve
+      // Abertas ou breve (chaveamento normal)
       if (inscAberta) {
         primHtml += btn('📝 Inscrever-se', `inscricao.html?id=${c.id}`, 'green');
       }
