@@ -179,11 +179,11 @@ export async function salvarLigaConfronto(campeonatoId, confronto) {
   });
 }
 export async function listarLigaConfrontos(campeonatoId) {
-  const snap = await getDocs(query(
-    collection(db, "campeonatos", campeonatoId, "liga-confrontos"),
-    orderBy("rodada", "asc")
-  ));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // Sem orderBy: Firestore exclui docs sem o campo 'rodada' (ex: fi_ antigos sem rodada:0)
+  // Ordenamos client-side para garantir que todos os docs sejam retornados
+  const snap = await getDocs(collection(db, "campeonatos", campeonatoId, "liga-confrontos"));
+  const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return docs.sort((a, b) => (a.rodada ?? 0) - (b.rodada ?? 0));
 }
 export async function atualizarLigaConfronto(campeonatoId, confrontoId, dados) {
   await updateDoc(doc(db, "campeonatos", campeonatoId, "liga-confrontos", confrontoId), dados);
