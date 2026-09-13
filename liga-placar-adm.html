@@ -234,7 +234,8 @@ import {
   listarLigaEquipes, listarLigaAtletas,
   listarLigaConfrontos, atualizarLigaConfronto,
   atualizarLigaAtleta, buscarLigaConfig,
-  salvarEstadoPublico
+  salvarEstadoPublico,
+  db, collection, doc, getDoc
 } from './js/firebase.js';
 
 const params        = new URLSearchParams(location.search);
@@ -398,7 +399,18 @@ async function iniciar() {
 
   // Se vier com ?confronto=ID direto (mata-mata ou final-individual), auto-ativar esse confronto
   if (confrontoParam) {
-    const cParam = confrontos.find(c => c.id === confrontoParam);
+    // Busca no array local primeiro; se não achar (fi_ sem rodada excluído pelo orderBy antigo),
+    // busca direto no Firestore para garantir
+    let cParam = confrontos.find(c => c.id === confrontoParam);
+    if (!cParam) {
+      try {
+        const snap = await getDoc(doc(collection(db, 'campeonatos', campId, 'liga-confrontos'), confrontoParam));
+        if (snap.exists()) {
+          cParam = { id: snap.id, ...snap.data() };
+          confrontos.push(cParam); // adiciona ao array local
+        }
+      } catch(e) { console.warn('Erro ao buscar confronto direto:', e); }
+    }
     if (cParam) {
       if (cParam.status === 'ao_vivo') {
         confrontoAtivo = cParam;
@@ -417,6 +429,12 @@ async function iniciar() {
         confrontoAtivo = cParam;
         inicializarLutaData();
         salvarEstado();
+        mostrarControle();
+        return;
+      } else {
+        // concluido ou outro status: exibe mesmo assim (para review/reativar)
+        confrontoAtivo = cParam;
+        inicializarLutaData();
         mostrarControle();
         return;
       }
