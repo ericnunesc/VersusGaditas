@@ -449,11 +449,53 @@ function preencherSelect() {
   if (!pendentes.length) {
     sel.innerHTML = `<option value="">Nenhum confronto pendente</option>`; return;
   }
-  sel.innerHTML = `<option value="">Selecione um confronto...</option>` +
-    pendentes.map(c => {
-      const fl = FAIXAS_LABEL[c.faixa] || c.faixa;
-      return `<option value="${c.id}">${nomeEquipe(c.equipe1Id)} × ${nomeEquipe(c.equipe2Id)} — R${c.rodada} (${fl}) · ${c.data||'—'}</option>`;
-    }).join('');
+
+  const mm = pendentes.filter(c => c.fase === 'mata-mata');
+  const fi = pendentes.filter(c => c.fase === 'final-individual');
+  const rr = pendentes.filter(c => c.fase !== 'mata-mata' && c.fase !== 'final-individual');
+
+  function labelMM(c) {
+    const mmRodadas = confrontos.filter(x => x.fase === 'mata-mata' && x.faixa === c.faixa);
+    const maxR = Math.max(...mmRodadas.map(x => x.rodada));
+    const fl = FAIXAS_LABEL[c.faixa] || c.faixa;
+    const fase = c.rodada === maxR       ? '🏆 Final'
+               : c.rodada === maxR - 1  ? '🥊 Semifinal'
+               : c.rodada === maxR - 2  ? '⚡ Quartas de Final'
+               : `🔹 R${c.rodada} Mata-Mata`;
+    return `${nomeEquipe(c.equipe1Id)} × ${nomeEquipe(c.equipe2Id)} — ${fase} (${fl})`;
+  }
+
+  function labelFI(c) {
+    const fl = FAIXAS_LABEL[c.faixa] || c.faixa;
+    const a1 = atletas.find(x => x.id === c.atleta1Id);
+    const a2 = atletas.find(x => x.id === c.atleta2Id);
+    const n1 = a1?.nome || nomeEquipe(c.equipe1Id);
+    const n2 = a2?.nome || nomeEquipe(c.equipe2Id);
+    return `${n1} × ${n2} — 🥋 Final Individual (${fl}) · ${c.categoria || '—'}`;
+  }
+
+  sel.innerHTML = `<option value="">Selecione um confronto...</option>`;
+
+  if (mm.length) {
+    sel.innerHTML += `<optgroup label="🏆 Final por Equipe">` +
+      mm.map(c => `<option value="${c.id}">${labelMM(c)}</option>`).join('') +
+      `</optgroup>`;
+  }
+
+  if (fi.length) {
+    sel.innerHTML += `<optgroup label="🥋 Final Individual">` +
+      fi.map(c => `<option value="${c.id}">${labelFI(c)}</option>`).join('') +
+      `</optgroup>`;
+  }
+
+  if (rr.length) {
+    sel.innerHTML += `<optgroup label="📋 Confrontos por Equipe">` +
+      rr.map(c => {
+        const fl = FAIXAS_LABEL[c.faixa] || c.faixa;
+        return `<option value="${c.id}">${nomeEquipe(c.equipe1Id)} × ${nomeEquipe(c.equipe2Id)} — R${c.rodada} (${fl}) · ${c.data||'—'}</option>`;
+      }).join('') +
+      `</optgroup>`;
+  }
 }
 
 window.iniciarAoVivo = async function() {
@@ -461,10 +503,11 @@ window.iniciarAoVivo = async function() {
   if (!id) { alert('Selecione um confronto.'); return; }
   confrontoAtivo = confrontos.find(c => c.id === id);
   if (!confrontoAtivo) return;
-  const resultado = {
-    categorias: getCategorias().map(cat => ({ categoria: cat, vencedor: null, finalizacao: false })),
-    vitoriasEq1: 0, vitoriasEq2: 0
-  };
+  // Final Individual: apenas 1 luta na categoria específica do confronto
+  const catsList = confrontoAtivo.fase === 'final-individual'
+    ? [{ categoria: confrontoAtivo.categoria || 'Final Individual', vencedor: null, finalizacao: false }]
+    : getCategorias().map(cat => ({ categoria: cat, vencedor: null, finalizacao: false }));
+  const resultado = { categorias: catsList, vitoriasEq1: 0, vitoriasEq2: 0 };
   await atualizarLigaConfronto(campId, id, { status: 'ao_vivo', resultado });
   confrontoAtivo.status = 'ao_vivo';
   confrontoAtivo.resultado = resultado;
@@ -477,9 +520,17 @@ function mostrarControle() {
   document.getElementById('card-select').style.display = 'none';
   document.getElementById('live-control').style.display = 'block';
   const c = confrontoAtivo;
-  document.getElementById('lv-eq1').textContent    = nomeEquipe(c.equipe1Id);
-  document.getElementById('lv-eq2').textContent    = nomeEquipe(c.equipe2Id);
-  // Mata-mata: exibir fase correta em vez de "Rodada N"
+  // Final Individual: mostrar nomes dos atletas em vez das equipes
+  if (c.fase === 'final-individual') {
+    const a1 = atletas.find(x => x.id === c.atleta1Id);
+    const a2 = atletas.find(x => x.id === c.atleta2Id);
+    document.getElementById('lv-eq1').textContent = a1?.nome || nomeEquipe(c.equipe1Id);
+    document.getElementById('lv-eq2').textContent = a2?.nome || nomeEquipe(c.equipe2Id);
+  } else {
+    document.getElementById('lv-eq1').textContent = nomeEquipe(c.equipe1Id);
+    document.getElementById('lv-eq2').textContent = nomeEquipe(c.equipe2Id);
+  }
+  // Exibir fase correta em vez de "Rodada N"
   if (c.fase === 'mata-mata') {
     const mmRodadas = confrontos.filter(x => x.fase === 'mata-mata' && x.faixa === c.faixa);
     const maxR = Math.max(...mmRodadas.map(x => x.rodada));
@@ -488,6 +539,8 @@ function mostrarControle() {
                     : c.rodada === maxR - 2 ? '⚡ Quartas de Final'
                     : `🔹 Rodada ${c.rodada} (Mata-Mata)`;
     document.getElementById('lv-rodada').textContent = faseLabel;
+  } else if (c.fase === 'final-individual') {
+    document.getElementById('lv-rodada').textContent = `🥋 Final Individual · ${c.categoria || ''}`;
   } else {
     document.getElementById('lv-rodada').textContent = `Rodada ${c.rodada}`;
   }
@@ -858,8 +911,15 @@ window.iniciarLuta = function(idx) {
   // ── Abrir página de placar para TV ────────────────────────────
   const c  = confrontoAtivo;
   const cr = c.resultado?.categorias?.[idx];
-  const at1 = atletas.find(a => a.equipeId===c.equipe1Id && a.faixa===c.faixa && a.categoria===cr?.categoria);
-  const at2 = atletas.find(a => a.equipeId===c.equipe2Id && a.faixa===c.faixa && a.categoria===cr?.categoria);
+  // Final Individual: usar atleta1Id/atleta2Id diretamente
+  let at1, at2;
+  if (c.fase === 'final-individual') {
+    at1 = atletas.find(a => a.id === c.atleta1Id);
+    at2 = atletas.find(a => a.id === c.atleta2Id);
+  } else {
+    at1 = atletas.find(a => a.equipeId===c.equipe1Id && a.faixa===c.faixa && a.categoria===cr?.categoria);
+    at2 = atletas.find(a => a.equipeId===c.equipe2Id && a.faixa===c.faixa && a.categoria===cr?.categoria);
+  }
   const initData = {
     idx, campId,
     categoria:   cr?.categoria || '—',
@@ -947,7 +1007,7 @@ window.finalizarConfronto = async function() {
   const pend = cats.filter(c => !c.vencedor).length;
   if (pend > 0 && !confirm(`Ainda há ${pend} categoria(s) sem resultado.\nFinalizar mesmo assim?`)) return;
   try {
-    // 1. Salva confronto como concluido no Firestore (inclui vencedorId p/ mata-mata)
+    // 1. Salva confronto como concluido no Firestore (inclui vencedorId p/ mata-mata e final-individual)
     const extraFields = {};
     if (confrontoAtivo.fase === 'mata-mata') {
       const cats = confrontoAtivo.resultado?.categorias || [];
@@ -955,6 +1015,12 @@ window.finalizarConfronto = async function() {
       cats.forEach(cr => { if (cr.vencedor === '1') v1++; else if (cr.vencedor === '2') v2++; });
       if (v1 > v2) extraFields.vencedorId = confrontoAtivo.equipe1Id;
       else if (v2 > v1) extraFields.vencedorId = confrontoAtivo.equipe2Id;
+    } else if (confrontoAtivo.fase === 'final-individual') {
+      const cats = confrontoAtivo.resultado?.categorias || [];
+      let v1 = 0, v2 = 0;
+      cats.forEach(cr => { if (cr.vencedor === '1') v1++; else if (cr.vencedor === '2') v2++; });
+      if (v1 > v2) extraFields.vencedorId = confrontoAtivo.atleta1Id;
+      else if (v2 > v1) extraFields.vencedorId = confrontoAtivo.atleta2Id;
     }
     await atualizarLigaConfronto(campId, confrontoAtivo.id, { status:'concluido', resultado: confrontoAtivo.resultado, ...extraFields });
     confrontoAtivo.status = 'concluido';
