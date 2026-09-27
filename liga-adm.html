@@ -1151,6 +1151,7 @@ function renderCalendario() {
         </div>
         <!-- athletes -->
         <div style="padding:10px 12px;display:flex;flex-direction:column;gap:5px;">
+          <!-- Atleta 1 -->
           <div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;border:1.5px solid ${w1?'#FDE68A':isDone?'#E2E8F0':'#DBEAFE'};background:${w1?'#FFFBEB':isDone?'#FAFAFA':'#EFF6FF'};">
             <span style="width:22px;height:22px;background:#3B82F6;color:#fff;border-radius:50%;font-size:0.55rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:-0.5px;">1º</span>
             <div style="flex:1;min-width:0;">
@@ -1158,8 +1159,21 @@ function renderCalendario() {
               <div style="font-size:0.63rem;color:#64748B;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t1}</div>
             </div>
             ${w1?`<span style="font-size:1rem;flex-shrink:0;">🥇</span>`:''}
+            <button onclick="toggleSubstFI('${m.id}','1')" title="Substituir atleta" style="background:transparent;border:1px solid #CBD5E1;border-radius:6px;padding:2px 5px;font-size:0.7rem;cursor:pointer;color:#64748B;flex-shrink:0;">✏️</button>
+          </div>
+          <!-- Form substituição atleta 1 -->
+          <div id="subst-form-${m.id}-1" style="display:none;flex-direction:column;gap:5px;padding:6px 9px;background:#F8FAFC;border-radius:8px;border:1px solid #DBEAFE;">
+            <div style="font-size:0.65rem;font-weight:700;color:#1D4ED8;">Substituir 1º colocado:</div>
+            <select id="subst-${m.id}-1" style="font-size:0.78rem;border:1px solid #CBD5E1;border-radius:6px;padding:5px 8px;background:#fff;color:#1A2C3E;">
+              ${optsAtletaFI(m.faixa, m.atleta1Id)}
+            </select>
+            <div style="display:flex;gap:5px;">
+              <button onclick="substituirAtletaFI('${m.id}','1')" style="flex:1;background:#1D4ED8;color:#fff;border:none;border-radius:6px;padding:6px;font-size:0.72rem;font-weight:700;cursor:pointer;">💾 Salvar</button>
+              <button onclick="toggleSubstFI('${m.id}','1')" style="background:#F1F5F9;color:#334155;border:none;border-radius:6px;padding:6px 10px;font-size:0.72rem;cursor:pointer;">Cancelar</button>
+            </div>
           </div>
           <div style="text-align:center;font-size:0.65rem;font-weight:800;color:#CBD5E1;letter-spacing:2px;padding:1px 0;">VS</div>
+          <!-- Atleta 2 -->
           <div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;border:1.5px solid ${w2?'#FDE68A':isDone?'#E2E8F0':'#FEE2E2'};background:${w2?'#FFFBEB':isDone?'#FAFAFA':'#FEF2F2'};">
             <span style="width:22px;height:22px;background:#EF4444;color:#fff;border-radius:50%;font-size:0.55rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;letter-spacing:-0.5px;">2º</span>
             <div style="flex:1;min-width:0;">
@@ -1167,6 +1181,18 @@ function renderCalendario() {
               <div style="font-size:0.63rem;color:#64748B;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t2}</div>
             </div>
             ${w2?`<span style="font-size:1rem;flex-shrink:0;">🥇</span>`:''}
+            <button onclick="toggleSubstFI('${m.id}','2')" title="Substituir atleta" style="background:transparent;border:1px solid #CBD5E1;border-radius:6px;padding:2px 5px;font-size:0.7rem;cursor:pointer;color:#64748B;flex-shrink:0;">✏️</button>
+          </div>
+          <!-- Form substituição atleta 2 -->
+          <div id="subst-form-${m.id}-2" style="display:none;flex-direction:column;gap:5px;padding:6px 9px;background:#FFF5F5;border-radius:8px;border:1px solid #FEE2E2;">
+            <div style="font-size:0.65rem;font-weight:700;color:#B91C1C;">Substituir 2º colocado:</div>
+            <select id="subst-${m.id}-2" style="font-size:0.78rem;border:1px solid #CBD5E1;border-radius:6px;padding:5px 8px;background:#fff;color:#1A2C3E;">
+              ${optsAtletaFI(m.faixa, m.atleta2Id)}
+            </select>
+            <div style="display:flex;gap:5px;">
+              <button onclick="substituirAtletaFI('${m.id}','2')" style="flex:1;background:#B91C1C;color:#fff;border:none;border-radius:6px;padding:6px;font-size:0.72rem;font-weight:700;cursor:pointer;">💾 Salvar</button>
+              <button onclick="toggleSubstFI('${m.id}','2')" style="background:#F1F5F9;color:#334155;border:none;border-radius:6px;padding:6px 10px;font-size:0.72rem;cursor:pointer;">Cancelar</button>
+            </div>
           </div>
         </div>
         <!-- winner banner -->
@@ -2063,6 +2089,53 @@ window.apagarFinalIndividual = async function(faixa, silent = false) {
   }
   confrontos = confrontos.filter(c => !(c.faixa === faixa && c.fase === 'final-individual'));
   if (!silent) renderClassificacao();
+};
+
+// ── Substituir atleta numa Final Individual ───────────────────
+function optsAtletaFI(faixa, excludeId) {
+  return atletas
+    .filter(a => a.faixa === faixa)
+    .sort((a,b) => a.nome.localeCompare(b.nome))
+    .map(a => {
+      const eq = equipes.find(e => e.id === a.equipeId);
+      const sel = a.id === excludeId ? ' selected' : '';
+      return `<option value="${a.id}"${sel}>${a.nome} — ${eq?.nome||'?'}</option>`;
+    }).join('');
+}
+
+window.substituirAtletaFI = async function(docId, side) {
+  const sel = document.getElementById(`subst-${docId}-${side}`);
+  if (!sel) return;
+  const novoId = sel.value;
+  const conf = confrontos.find(c => c.id === docId);
+  if (!conf || !novoId) return;
+  const novoAt = atletas.find(a => a.id === novoId);
+  if (!novoAt) return;
+  const oldId = side === '1' ? conf.atleta1Id : conf.atleta2Id;
+  if (oldId === novoId) { toggleSubstFI(docId, side); return; }
+  const nomeAntigo = atletas.find(a => a.id === oldId)?.nome || oldId;
+  if (!confirm(`Substituir "${nomeAntigo}" por "${novoAt.nome}" na ${conf.categoria}?`)) return;
+  const update = {};
+  if (side === '1') {
+    update.atleta1Id = novoId; update.equipe1Id = novoAt.equipeId;
+    if (conf.vencedorId === oldId) update.vencedorId = novoId;
+  } else {
+    update.atleta2Id = novoId; update.equipe2Id = novoAt.equipeId;
+    if (conf.vencedorId === oldId) update.vencedorId = novoId;
+  }
+  try {
+    await atualizarLigaConfronto(campeonatoId, docId, update);
+    Object.assign(conf, update);
+    salvarEstado();
+    renderCalendario();
+    if (tabAtiva === 'classificacao') renderClassificacao();
+    toast('✅ Atleta substituído!', 'sucesso');
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
+};
+
+window.toggleSubstFI = function(docId, side) {
+  const el = document.getElementById(`subst-form-${docId}-${side}`);
+  if (el) el.style.display = el.style.display === 'none' ? 'flex' : 'none';
 };
 
 window.declararVencedorFI = async function(confrontoId, vencedorAtletaId) {
