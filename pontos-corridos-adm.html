@@ -1795,16 +1795,23 @@ async function carregarInscricoesPub() {
       const cor = STATUS_COR[st] || '#666';
       const label = STATUS_LABEL[st] || st;
       const extra = [i.peso && `⚖️ ${i.peso}kg`, i.faixa && `🥋 ${i.faixa}`, i.categoria && `📂 ${i.categoria}`].filter(Boolean).join(' &nbsp;·&nbsp; ');
+      const jaConfirmado = st === 'aprovado' || st === 'confirmado';
       return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px solid var(--borda);gap:8px;flex-wrap:wrap;">
         <div style="flex:1;min-width:0;">
           <strong style="font-size:0.85rem;">${i.nome || '—'}</strong>
           <span style="margin-left:8px;font-size:0.7rem;font-weight:600;color:${cor};">${label}</span>
           ${extra ? `<div style="font-size:0.72rem;color:var(--fraco);margin-top:2px;">${extra}</div>` : ''}
         </div>
-        <button onclick="excluirInscPub('${i.id}','${(i.nome||'').replace(/'/g,"\\'")}','${i.status||''}')"
-          style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:0.7rem;cursor:pointer;white-space:nowrap;">
-          🗑️ Excluir
-        </button>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          ${!jaConfirmado ? `<button onclick="confirmarInscPub('${i.id}')"
+            style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:0.7rem;cursor:pointer;white-space:nowrap;">
+            ✅ Confirmar
+          </button>` : ''}
+          <button onclick="excluirInscPub('${i.id}','${(i.nome||'').replace(/'/g,"\\'")}','${i.status||''}')"
+            style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:0.7rem;cursor:pointer;white-space:nowrap;">
+            🗑️ Excluir
+          </button>
+        </div>
       </div>`;
     }).join('');
   } catch(e) {
@@ -1812,6 +1819,51 @@ async function carregarInscricoesPub() {
     console.error(e);
   }
 }
+
+window.confirmarInscPub = async function(id) {
+  try {
+    const inscSnap = await getDoc(doc(db, 'campeonatos', campId, 'inscricoes', id));
+    if (!inscSnap.exists()) { toast('Inscrição não encontrada.', 'erro'); return; }
+    const insc = inscSnap.data();
+    const nome = insc.nome || '?';
+
+    // Verificar se já está na lista pública (evitar duplicatas)
+    const atletasSnap = await getDocs(collection(db, 'campeonatos', campId, 'atletas'));
+    const jaExiste = atletasSnap.docs.some(d => {
+      const n = (d.data().nome || '').toLowerCase().trim();
+      return n === nome.toLowerCase().trim();
+    });
+    if (jaExiste) {
+      toast(`${nome} já está na lista pública.`, 'aviso');
+      await updateDoc(doc(db, 'campeonatos', campId, 'inscricoes', id), { status: 'aprovado' });
+      carregarInscricoesPub();
+      return;
+    }
+
+    // Adicionar à coleção atletas (lista pública)
+    const novoAtleta = {
+      nome: insc.nome || '',
+      faixa: insc.faixa || '',
+      categoria: insc.categoria || '',
+      peso: insc.peso || '',
+      nascimento: insc.nascimento || '',
+      equipe: insc.equipe || '',
+      status: 'aprovado',
+      criadoEm: new Date()
+    };
+    const atletaRef = await addDoc(collection(db, 'campeonatos', campId, 'atletas'), novoAtleta);
+
+    // Atualizar inscrição com status e referência ao atleta criado
+    await updateDoc(doc(db, 'campeonatos', campId, 'inscricoes', id), {
+      status: 'aprovado',
+      atletaId: atletaRef.id
+    });
+
+    toast(`${nome} confirmado(a) na lista pública!`, 'ok');
+    carregarInscricoesPub();
+    // O onSnapshot em 'atletas' já vai disparar carregarAtletasPub automaticamente
+  } catch(e) { toast('Erro ao confirmar.', 'erro'); console.error(e); }
+};
 
 window.excluirInscPub = async function(id, nome, status) {
   const aviso = status === 'aprovado'
