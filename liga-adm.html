@@ -2307,7 +2307,7 @@ function renderHoF() {
       <div class="hof-trophy">🏆</div>
       <div style="flex:1">
         <div class="hof-nome">${h.campeaoNome}</div>
-        <div class="hof-sub"><span class="hof-faixa-dot" style="background:${cor}"></span>Faixa ${FAIXAS_LABEL[h.faixa]} · ${h.temporada} · ${h.pontos}pts · ${h.vitorias}V ${h.empates||0}E ${h.derrotas||0}D</div>
+        <div class="hof-sub"><span class="hof-faixa-dot" style="background:${cor}"></span>Faixa ${FAIXAS_LABEL[h.faixa]} · ${h.temporada} · ${h.pontos}pts · ${h.vitorias}V ${h.empates||0}E ${h.derrotas||0}D${h.vitoriasMataMata ? ` <span style="color:#C9A03D;font-size:0.75em;">(${h.vitoriasMataMata} MM)</span>` : ''}</div>
       </div>
       <button class="btn btn-danger btn-xs" onclick="removerHoF('${h.id}')">🗑️</button>
     </div>`).join('')}
@@ -2321,6 +2321,7 @@ window.finalizarTemporada = async function() {
   // Prioriza o vencedor da Final do mata-mata (rodada mais alta finalizada)
   const mmFaixa = confrontos.filter(c => c.faixa === faixaSelecionada && c.fase === 'mata-mata' && c.vencedorId && c.status === 'concluido' && c.metodo !== 'bye');
   let campeao = ranking[0];
+  let vitoriasMataMata = 0;
   if (mmFaixa.length) {
     const maxRodada = Math.max(...mmFaixa.map(c => c.rodada || 0));
     const final = mmFaixa.find(c => c.rodada === maxRodada);
@@ -2329,20 +2330,23 @@ window.finalizarTemporada = async function() {
       if (eqFinal) {
         const stats = ranking.find(r => r.equipe.id === eqFinal.id) || { v:0, emp:0, d:0, pts:0 };
         campeao = { equipe: eqFinal, v: stats.v, emp: stats.emp, d: stats.d, pts: stats.pts };
+        vitoriasMataMata = mmFaixa.filter(c => c.vencedorId === eqFinal.id).length;
       }
     }
   }
 
+  const totalV = campeao.v + vitoriasMataMata;
   const temporada = prompt(`Nome da temporada?\nEx: 2025/1ª Edição\n\nCampeão: ${campeao.equipe.nome}`, new Date().getFullYear().toString());
   if (!temporada) return;
-  if (!confirm(`🏆 Registrar campeão:\n\n${campeao.equipe.nome}\nFaixa ${FAIXAS_LABEL[faixaSelecionada]} · ${campeao.pts} pontos`)) return;
+  if (!confirm(`🏆 Registrar campeão:\n\n${campeao.equipe.nome}\nFaixa ${FAIXAS_LABEL[faixaSelecionada]} · ${campeao.pts} pts · ${totalV}V ${campeao.emp||0}E ${campeao.d||0}D`)) return;
   try {
     const ref = await salvarLigaHistorico(campeonatoId, {
       temporada, faixa: faixaSelecionada,
       campeaoEquipeId: campeao.equipe.id, campeaoNome: campeao.equipe.nome,
-      pontos: campeao.pts, vitorias: campeao.v, empates: campeao.emp, derrotas: campeao.d
+      pontos: campeao.pts, vitorias: totalV, empates: campeao.emp, derrotas: campeao.d,
+      vitoriasMataMata
     });
-    historico.push({ id: ref.id, temporada, faixa: faixaSelecionada, campeaoEquipeId: campeao.equipe.id, campeaoNome: campeao.equipe.nome, pontos: campeao.pts, vitorias: campeao.v, empates: campeao.emp, derrotas: campeao.d });
+    historico.push({ id: ref.id, temporada, faixa: faixaSelecionada, campeaoEquipeId: campeao.equipe.id, campeaoNome: campeao.equipe.nome, pontos: campeao.pts, vitorias: totalV, empates: campeao.emp, derrotas: campeao.d, vitoriasMataMata });
     salvarEstado(); renderHoF();
     alert(`✅ Campeão registrado: ${campeao.equipe.nome}!`);
   } catch(e) { alert('Erro: ' + e.message); }
