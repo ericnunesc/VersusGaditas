@@ -1971,7 +1971,7 @@ function renderFinalIndividual(faixa, fiMatches) {
     const t1 = thumb(at1, eq1);
     const t2 = thumb(at2, eq2);
 
-    const atletaRow = (at, eq, t, seed, isV) => `
+    const atletaRow = (at, eq, t, seed, isV, confrontoId, side, faixa) => `
       <div style="display:flex;align-items:center;gap:9px;padding:11px 14px;background:${isV?'linear-gradient(90deg,#FFF8E8,#FFFDF5)':'transparent'};">
         ${t.foto}
         <div style="flex:1;min-width:0;">
@@ -1980,6 +1980,17 @@ function renderFinalIndividual(faixa, fiMatches) {
         </div>
         <span style="min-width:22px;height:22px;border-radius:11px;background:#C9A03D;color:#fff;font-size:0.58rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 5px;">${seed}º</span>
         ${isV ? `<span style="background:#C9A03D;color:#fff;border-radius:20px;padding:2px 9px;font-size:0.6rem;font-weight:800;flex-shrink:0;">✓ Campeão</span>` : '<span style="width:62px;flex-shrink:0;"></span>'}
+        <button onclick="toggleSubstFI('${confrontoId}','${side}')" title="Substituir atleta" style="background:transparent;border:1px solid #CBD5E1;border-radius:6px;padding:2px 5px;font-size:0.7rem;cursor:pointer;color:#64748B;flex-shrink:0;">✏️</button>
+      </div>
+      <div id="subst-form-${confrontoId}-${side}" style="display:none;flex-direction:column;gap:5px;padding:6px 14px 10px;background:${side==='1'?'#EFF6FF':'#FFF5F5'};border-top:1px solid ${side==='1'?'#DBEAFE':'#FEE2E2'};">
+        <div style="font-size:0.65rem;font-weight:700;color:${side==='1'?'#1D4ED8':'#B91C1C'};">✏️ Substituir ${seed}º colocado:</div>
+        <select id="subst-${confrontoId}-${side}" style="font-size:0.78rem;border:1px solid #CBD5E1;border-radius:6px;padding:5px 8px;background:#fff;color:#1A2C3E;">
+          ${optsAtletaFI(faixa, at?.id)}
+        </select>
+        <div style="display:flex;gap:5px;">
+          <button onclick="substituirAtletaFI('${confrontoId}','${side}')" style="flex:1;background:${side==='1'?'#1D4ED8':'#B91C1C'};color:#fff;border:none;border-radius:6px;padding:6px;font-size:0.72rem;font-weight:700;cursor:pointer;">💾 Salvar</button>
+          <button onclick="toggleSubstFI('${confrontoId}','${side}')" style="background:#F1F5F9;color:#334155;border:none;border-radius:6px;padding:6px 10px;font-size:0.72rem;cursor:pointer;">Cancelar</button>
+        </div>
       </div>`;
 
     const vsBadge = isDone
@@ -2006,14 +2017,14 @@ function renderFinalIndividual(faixa, fiMatches) {
         <div style="flex:1;height:1px;background:linear-gradient(to left,#C9A03D44,transparent);"></div>
       </div>
       <div style="border:1.5px solid ${isDone?'#D1D5DB':'#C9A03D'};border-radius:13px;background:${isDone?'#F9FAFB':'#FFFDF8'};overflow:hidden;box-shadow:0 1px 4px #0000000A;">
-        ${atletaRow(at1, eq1, t1, 1, v1)}
+        ${atletaRow(at1, eq1, t1, 1, v1, m.id, '1', m.faixa)}
         <div style="display:flex;align-items:center;justify-content:center;gap:8px;background:#F8FAFC;border-top:1px solid #F1F5F9;border-bottom:1px solid #F1F5F9;padding:5px 14px;">
           <div style="flex:1;height:1px;background:#E2E8F0;"></div>
           <span style="font-size:0.58rem;font-weight:800;color:#94A3B8;letter-spacing:.8px;">VS</span>
           <div style="flex:1;height:1px;background:#E2E8F0;"></div>
           ${vsBadge}
         </div>
-        ${atletaRow(at2, eq2, t2, 2, v2)}
+        ${atletaRow(at2, eq2, t2, 2, v2, m.id, '2', m.faixa)}
         ${actions}
       </div>
     </div>`;
