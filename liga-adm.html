@@ -421,6 +421,11 @@
       </div>
     </div>
     <div id="hof-list"></div>
+    <div class="card" style="margin-top:16px;border:1.5px solid #FCA5A5;">
+      <div class="card-header" style="background:#FFF5F5;"><h3 style="color:#DC2626;">🔄 Nova Temporada</h3></div>
+      <p style="font-size:0.82rem;color:#8A9CB0;margin-bottom:14px;">Apaga todos os jogos e resultados desta liga para começar uma nova temporada. Equipes, atletas e Hall of Fame são preservados.</p>
+      <button class="btn btn-danger" onclick="iniciarNovaTemporada()">🔄 Iniciar Nova Temporada</button>
+    </div>
   </div>
 </div>
 
@@ -2438,6 +2443,33 @@ window.removerHoF = async function(id) {
   if (!confirm('Remover este registro?')) return;
   try { await deletarLigaHistorico(campeonatoId, id); historico = historico.filter(h => h.id !== id); renderHoF(); }
   catch(e) { alert('Erro: ' + e.message); }
+};
+
+window.iniciarNovaTemporada = async function() {
+  if (!confirm('⚠️ NOVA TEMPORADA\n\nIsto vai apagar TODOS os jogos e resultados desta liga.\n\nEquipes, atletas e Hall of Fame serão preservados.\n\nTem certeza?')) return;
+  if (!confirm('🔴 Confirmação final:\n\nTodos os confrontos, mata-mata e resultados serão deletados permanentemente.\n\nDigite OK para continuar.')) return;
+
+  try {
+    // 1. Deletar todos os confrontos
+    const total = confrontos.length;
+    for (const c of confrontos) {
+      await deletarLigaConfronto(campeonatoId, c.id);
+    }
+
+    // 2. Zerar stats de todos os atletas
+    const zeroStats = { vitorias:0, derrotas:0, empates:0, pontos:0, finalizacoes:0, catStats:{} };
+    for (const a of atletas) {
+      await atualizarLigaAtleta(campeonatoId, a.id, zeroStats);
+      Object.assign(a, zeroStats);
+    }
+
+    confrontos = [];
+    salvarEstado();
+    renderClassificacao();
+    renderCalendario();
+    renderHoF();
+    alert(`✅ Nova temporada iniciada! ${total} jogo(s) removido(s). Equipes e atletas mantidos.`);
+  } catch(e) { alert('Erro ao iniciar nova temporada: ' + e.message); }
 };
 
 // ── Imagem / Logo Equipe ──────────────────────────────────────
