@@ -414,8 +414,11 @@
   <div class="tab-pane" id="tab-hof">
     <div class="card">
       <div class="card-header"><h3 id="hof-titulo">👑 Finalizar Temporada</h3></div>
-      <p style="font-size:0.82rem;color:#8A9CB0;margin-bottom:14px;">Encerra a temporada atual e registra o campeão desta faixa no Hall of Fame.</p>
-      <button class="btn btn-success" onclick="finalizarTemporada()">🏆 Finalizar Temporada e Registrar Campeão</button>
+      <p style="font-size:0.82rem;color:#8A9CB0;margin-bottom:14px;">Encerra a temporada atual e registra os campeões desta faixa no Hall of Fame.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-success" onclick="finalizarTemporada()">🏆 Registrar Campeão por Equipe</button>
+        <button class="btn btn-primary" onclick="registrarCampeoesFI()">🥋 Registrar Campeões Individuais</button>
+      </div>
     </div>
     <div id="hof-list"></div>
   </div>
@@ -2301,17 +2304,38 @@ function renderHoF() {
   const el = document.getElementById('hof-list');
   if (!hofF.length) { el.innerHTML=`<div class="vazio"><span>👑</span>Nenhuma temporada finalizada para ${fl}.</div>`; return; }
   const cor = FAIXAS_COR[faixaSelecionada];
-  el.innerHTML = `<div class="card">
-    <div class="card-header"><h3>🏆 Campeões — ${fl}</h3></div>
-    ${hofF.map(h=>`<div class="hof-item">
-      <div class="hof-trophy">🏆</div>
-      <div style="flex:1">
-        <div class="hof-nome">${h.campeaoNome}</div>
-        <div class="hof-sub"><span class="hof-faixa-dot" style="background:${cor}"></span>Faixa ${FAIXAS_LABEL[h.faixa]} · ${h.temporada} · ${h.pontos}pts · ${h.vitorias}V ${h.empates||0}E ${h.derrotas||0}D${h.vitoriasMataMata ? ` <span style="color:#C9A03D;font-size:0.75em;">(${h.vitoriasMataMata} MM)</span>` : ''}</div>
-      </div>
-      <button class="btn btn-danger btn-xs" onclick="removerHoF('${h.id}')">🗑️</button>
-    </div>`).join('')}
-  </div>`;
+
+  const equipeRecs = hofF.filter(h => h.tipo !== 'individual');
+  const indivRecs  = hofF.filter(h => h.tipo === 'individual').sort((a,b) => (a.categoria||'').localeCompare(b.categoria||'','pt-BR'));
+
+  let html = '';
+  if (equipeRecs.length) {
+    html += `<div class="card" style="margin-top:8px;">
+      <div class="card-header"><h3>🏆 Campeões por Equipe — ${fl}</h3></div>
+      ${equipeRecs.map(h=>`<div class="hof-item">
+        <div class="hof-trophy">🏆</div>
+        <div style="flex:1">
+          <div class="hof-nome">${h.campeaoNome}</div>
+          <div class="hof-sub"><span class="hof-faixa-dot" style="background:${cor}"></span>Faixa ${FAIXAS_LABEL[h.faixa]} · ${h.temporada} · ${h.pontos}pts · ${h.vitorias}V ${h.empates||0}E ${h.derrotas||0}D${h.vitoriasMataMata ? ` <span style="color:#C9A03D;font-size:0.75em;">(${h.vitoriasMataMata} MM)</span>` : ''}</div>
+        </div>
+        <button class="btn btn-danger btn-xs" onclick="removerHoF('${h.id}')">🗑️</button>
+      </div>`).join('')}
+    </div>`;
+  }
+  if (indivRecs.length) {
+    html += `<div class="card" style="margin-top:8px;">
+      <div class="card-header"><h3>🥋 Campeões Individuais — ${fl}</h3></div>
+      ${indivRecs.map(h=>`<div class="hof-item">
+        <div class="hof-trophy">🥇</div>
+        <div style="flex:1">
+          <div class="hof-nome">${h.atletaNome}</div>
+          <div class="hof-sub"><span class="hof-faixa-dot" style="background:${cor}"></span>${h.categoria} · ${h.equipeNome||''} · ${h.temporada}</div>
+        </div>
+        <button class="btn btn-danger btn-xs" onclick="removerHoF('${h.id}')">🗑️</button>
+      </div>`).join('')}
+    </div>`;
+  }
+  el.innerHTML = html;
 }
 
 window.finalizarTemporada = async function() {
@@ -2354,6 +2378,41 @@ window.finalizarTemporada = async function() {
     historico.push({ id: ref.id, temporada, faixa: faixaSelecionada, campeaoEquipeId: campeao.equipe.id, campeaoNome: campeao.equipe.nome, pontos: campeao.pts, vitorias: totalV, empates: campeao.emp, derrotas: campeao.d, vitoriasMataMata });
     salvarEstado(); renderHoF();
     alert(`✅ Campeão registrado: ${campeao.equipe.nome}!`);
+  } catch(e) { alert('Erro: ' + e.message); }
+};
+
+window.registrarCampeoesFI = async function() {
+  const fis = confrontos.filter(c => c.faixa === faixaSelecionada && c.fase === 'final-individual' && c.vencedorId);
+  if (!fis.length) { alert('Nenhum campeão individual encontrado para esta faixa.\nFinalize as lutas da Final Individual primeiro.'); return; }
+
+  const temporada = prompt(`Nome da temporada?\nEx: 2025/1ª Edição`, new Date().getFullYear().toString());
+  if (!temporada) return;
+
+  const linhas = fis.map(c => {
+    const at = atletas.find(a => a.id === c.vencedorId);
+    const eq = equipes.find(e => e.id === (at?.equipeId || c.equipe1Id));
+    return `• ${c.categoria}: ${at?.nome || '?'} (${eq?.nome || '?'})`;
+  }).join('\n');
+
+  if (!confirm(`🥋 Registrar campeões individuais — Faixa ${FAIXAS_LABEL[faixaSelecionada]}:\n\n${linhas}`)) return;
+
+  try {
+    for (const c of fis) {
+      const at = atletas.find(a => a.id === c.vencedorId);
+      const eq = equipes.find(e => e.id === (at?.equipeId || c.equipe1Id));
+      const ref = await salvarLigaHistorico(campeonatoId, {
+        tipo: 'individual', temporada, faixa: faixaSelecionada,
+        categoria: c.categoria || 'Geral',
+        atletaId: c.vencedorId, atletaNome: at?.nome || '?',
+        equipeId: eq?.id || '', equipeNome: eq?.nome || '?'
+      });
+      historico.push({ id: ref.id, tipo: 'individual', temporada, faixa: faixaSelecionada,
+        categoria: c.categoria || 'Geral',
+        atletaId: c.vencedorId, atletaNome: at?.nome || '?',
+        equipeId: eq?.id || '', equipeNome: eq?.nome || '?' });
+    }
+    salvarEstado(); renderHoF();
+    alert(`✅ ${fis.length} campeão(ões) individual(is) registrado(s)!`);
   } catch(e) { alert('Erro: ' + e.message); }
 };
 
