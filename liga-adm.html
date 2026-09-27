@@ -2355,11 +2355,13 @@ window.finalizarTemporada = async function() {
       if (eqFinal) {
         const stats = ranking.find(r => r.equipe.id === eqFinal.id) || { v:0, emp:0, d:0, pts:0 };
         campeao = { equipe: eqFinal, v: stats.v, emp: stats.emp, d: stats.d, pts: stats.pts };
-        // Conta todas as vitórias MM do campeão (semifinal + final + etc), sem byes
-        vitoriasMataMata = confrontos.filter(c =>
+        // O campeão venceu uma luta por rodada (1 até maxRodada).
+        // Subtrai apenas os byes que ele teve (não contam como vitória real).
+        const champByes = confrontos.filter(c =>
           c.faixa === faixaSelecionada && c.fase === 'mata-mata' &&
-          c.vencedorId === eqFinal.id && c.metodo !== 'bye'
+          c.vencedorId === eqFinal.id && c.metodo === 'bye'
         ).length;
+        vitoriasMataMata = maxRodada - champByes;
       }
     }
   }
