@@ -2317,7 +2317,22 @@ function renderHoF() {
 window.finalizarTemporada = async function() {
   const ranking = calcularClassificacao(faixaSelecionada);
   if (!ranking.length) { alert('Nenhuma equipe classificada.'); return; }
-  const campeao = ranking[0];
+
+  // Prioriza o vencedor da Final do mata-mata (rodada mais alta finalizada)
+  const mmFaixa = confrontos.filter(c => c.faixa === faixaSelecionada && c.fase === 'mata-mata' && c.vencedorId && c.status === 'concluido' && c.metodo !== 'bye');
+  let campeao = ranking[0];
+  if (mmFaixa.length) {
+    const maxRodada = Math.max(...mmFaixa.map(c => c.rodada || 0));
+    const final = mmFaixa.find(c => c.rodada === maxRodada);
+    if (final?.vencedorId) {
+      const eqFinal = equipes.find(e => e.id === final.vencedorId);
+      if (eqFinal) {
+        const stats = ranking.find(r => r.equipe.id === eqFinal.id) || { v:0, emp:0, d:0, pts:0 };
+        campeao = { equipe: eqFinal, v: stats.v, emp: stats.emp, d: stats.d, pts: stats.pts };
+      }
+    }
+  }
+
   const temporada = prompt(`Nome da temporada?\nEx: 2025/1ª Edição\n\nCampeão: ${campeao.equipe.nome}`, new Date().getFullYear().toString());
   if (!temporada) return;
   if (!confirm(`🏆 Registrar campeão:\n\n${campeao.equipe.nome}\nFaixa ${FAIXAS_LABEL[faixaSelecionada]} · ${campeao.pts} pontos`)) return;
