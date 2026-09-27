@@ -514,6 +514,8 @@ onAuthStateChanged(auth, async user => {
   renderAll();
   carregarMataMata();
   carregarInscricoesPub();
+  // Listener em tempo real para atletas inscritos no torneio
+  onSnapshot(collection(db, 'campeonatos', campId, 'pc-atletas'), async () => { await carregarAtletas(); renderAll(); });
   // Listener em tempo real para a lista pública de atletas
   onSnapshot(collection(db, 'campeonatos', campId, 'atletas'), () => carregarAtletasPub());
   // Listener em tempo real para as inscrições (status atualizado em adm-inscricoes.html)
