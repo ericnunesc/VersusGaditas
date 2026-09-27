@@ -2312,27 +2312,43 @@ function renderHoF() {
   if (equipeRecs.length) {
     html += `<div class="card" style="margin-top:8px;">
       <div class="card-header"><h3>🏆 Campeões por Equipe — ${fl}</h3></div>
-      ${equipeRecs.map(h=>`<div class="hof-item">
-        <div class="hof-trophy">🏆</div>
-        <div style="flex:1">
-          <div class="hof-nome">${h.campeaoNome}</div>
-          <div class="hof-sub"><span class="hof-faixa-dot" style="background:${cor}"></span>Faixa ${FAIXAS_LABEL[h.faixa]} · ${h.temporada} · ${h.pontos}pts · ${h.vitorias}V ${h.empates||0}E ${h.derrotas||0}D${h.vitoriasMataMata ? ` <span style="color:#C9A03D;font-size:0.75em;">(${h.vitoriasMataMata} MM)</span>` : ''}</div>
-        </div>
-        <button class="btn btn-danger btn-xs" onclick="removerHoF('${h.id}')">🗑️</button>
-      </div>`).join('')}
+      ${equipeRecs.map(h=>{
+        const eq = equipes.find(e => e.id === h.campeaoEquipeId);
+        const logoHtml = eq?.logoBase64
+          ? `<img src="${eq.logoBase64}" style="width:42px;height:42px;object-fit:contain;border-radius:8px;border:1px solid #E2E8F0;flex-shrink:0;">`
+          : `<div style="width:42px;height:42px;background:#F1F5F9;border-radius:8px;border:1px solid #E2E8F0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🏅</div>`;
+        return `<div class="hof-item">
+          ${logoHtml}
+          <div style="flex:1;min-width:0;">
+            <div class="hof-nome">${h.campeaoNome}</div>
+            <div class="hof-sub"><span class="hof-faixa-dot" style="background:${cor}"></span>Faixa ${FAIXAS_LABEL[h.faixa]} · ${h.temporada} · ${h.pontos}pts · ${h.vitorias}V ${h.empates||0}E ${h.derrotas||0}D${h.vitoriasMataMata ? ` <span style="color:#C9A03D;font-size:0.75em;">(${h.vitoriasMataMata} MM)</span>` : ''}</div>
+          </div>
+          <button class="btn btn-danger btn-xs" onclick="removerHoF('${h.id}')">🗑️</button>
+        </div>`;
+      }).join('')}
     </div>`;
   }
   if (indivRecs.length) {
     html += `<div class="card" style="margin-top:8px;">
       <div class="card-header"><h3>🥋 Campeões Individuais — ${fl}</h3></div>
-      ${indivRecs.map(h=>`<div class="hof-item">
-        <div class="hof-trophy">🥇</div>
-        <div style="flex:1">
-          <div class="hof-nome">${h.atletaNome}</div>
-          <div class="hof-sub"><span class="hof-faixa-dot" style="background:${cor}"></span>${h.categoria} · ${h.equipeNome||''} · ${h.temporada}</div>
-        </div>
-        <button class="btn btn-danger btn-xs" onclick="removerHoF('${h.id}')">🗑️</button>
-      </div>`).join('')}
+      ${indivRecs.map(h=>{
+        const at = atletas.find(a => a.id === h.atletaId);
+        const eq = equipes.find(e => e.id === h.equipeId);
+        const fotoHtml = at?.fotoBase64
+          ? `<img src="${at.fotoBase64}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #C9A03D;">`
+          : `<div style="width:42px;height:42px;border-radius:50%;background:#FFF8E8;border:2px solid #C9A03D;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">👤</div>`;
+        const logoHtml = eq?.logoBase64
+          ? `<img src="${eq.logoBase64}" style="width:20px;height:20px;object-fit:contain;border-radius:4px;vertical-align:middle;margin-right:4px;">`
+          : '';
+        return `<div class="hof-item">
+          ${fotoHtml}
+          <div style="flex:1;min-width:0;">
+            <div class="hof-nome">${h.atletaNome}</div>
+            <div class="hof-sub"><span class="hof-faixa-dot" style="background:${cor}"></span>${h.categoria} · ${logoHtml}${h.equipeNome||''} · ${h.temporada}</div>
+          </div>
+          <button class="btn btn-danger btn-xs" onclick="removerHoF('${h.id}')">🗑️</button>
+        </div>`;
+      }).join('')}
     </div>`;
   }
   el.innerHTML = html;
