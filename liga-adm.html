@@ -2318,8 +2318,9 @@ window.finalizarTemporada = async function() {
   const ranking = calcularClassificacao(faixaSelecionada);
   if (!ranking.length) { alert('Nenhuma equipe classificada.'); return; }
 
-  // Prioriza o vencedor da Final do mata-mata (rodada mais alta finalizada)
-  const mmFaixa = confrontos.filter(c => c.faixa === faixaSelecionada && c.fase === 'mata-mata' && c.vencedorId && c.status === 'concluido' && c.metodo !== 'bye');
+  // Prioriza o vencedor da Final do mata-mata (rodada mais alta com vencedorId)
+  // Usa apenas vencedorId para filtrar — status pode variar entre confrontos
+  const mmFaixa = confrontos.filter(c => c.faixa === faixaSelecionada && c.fase === 'mata-mata' && c.vencedorId && c.metodo !== 'bye');
   let campeao = ranking[0];
   let vitoriasMataMata = 0;
   if (mmFaixa.length) {
@@ -2330,7 +2331,11 @@ window.finalizarTemporada = async function() {
       if (eqFinal) {
         const stats = ranking.find(r => r.equipe.id === eqFinal.id) || { v:0, emp:0, d:0, pts:0 };
         campeao = { equipe: eqFinal, v: stats.v, emp: stats.emp, d: stats.d, pts: stats.pts };
-        vitoriasMataMata = mmFaixa.filter(c => c.vencedorId === eqFinal.id).length;
+        // Conta todas as vitórias MM do campeão (semifinal + final + etc), sem byes
+        vitoriasMataMata = confrontos.filter(c =>
+          c.faixa === faixaSelecionada && c.fase === 'mata-mata' &&
+          c.vencedorId === eqFinal.id && c.metodo !== 'bye'
+        ).length;
       }
     }
   }
