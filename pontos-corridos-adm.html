@@ -513,8 +513,11 @@ onAuthStateChanged(auth, async user => {
   await carregarLutas();
   renderAll();
   carregarMataMata();
-  carregarAtletasPub();
   carregarInscricoesPub();
+  // Listener em tempo real para a lista pública de atletas
+  onSnapshot(collection(db, 'campeonatos', campId, 'atletas'), () => carregarAtletasPub());
+  // Listener em tempo real para as inscrições (status atualizado em adm-inscricoes.html)
+  onSnapshot(collection(db, 'campeonatos', campId, 'inscricoes'), () => carregarInscricoesPub());
 });
 
 window.logout = () => signOut(auth).then(() => location.replace('painel-admin.html'));
@@ -770,6 +773,7 @@ window.importarInscricoes = async function() {
     await carregarAtletas();
     renderAtletas();
     renderStats();
+    carregarAtletasPub();
 
     resEl.style.display = 'block';
     resEl.textContent = `✅ ${novos.length} atleta(s) importado(s)!`;
