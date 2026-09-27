@@ -518,8 +518,25 @@ onAuthStateChanged(auth, async user => {
   onSnapshot(collection(db, 'campeonatos', campId, 'pc-atletas'), async () => { await carregarAtletas(); renderAll(); });
   // Listener em tempo real para a lista pública de atletas
   onSnapshot(collection(db, 'campeonatos', campId, 'atletas'), () => carregarAtletasPub());
-  // Listener em tempo real para as inscrições (status atualizado em adm-inscricoes.html)
-  onSnapshot(collection(db, 'campeonatos', campId, 'inscricoes'), () => carregarInscricoesPub());
+  // Listener em tempo real para as inscrições — auto-sincroniza aprovados para pc-atletas
+  onSnapshot(collection(db, 'campeonatos', campId, 'inscricoes'), async (snap) => {
+    carregarInscricoesPub();
+    const nomesExistentes = new Set(atletas.map(a => (a.nome || '').toLowerCase().trim()));
+    for (const d of snap.docs) {
+      const i = d.data();
+      if ((i.status === 'aprovado' || i.status === 'confirmado') && i.nome &&
+          !nomesExistentes.has((i.nome || '').toLowerCase().trim())) {
+        await addDoc(atsCol(), {
+          nome: i.nome || '', faixa: i.faixa || '', peso: i.peso || '',
+          sexo: i.sexo || '', equipe: i.equipe || '', categoria: i.categoria || '',
+          telefone: i.telefone || '', email: i.email || '',
+          nascimento: i.nascimento || '', cpf: i.cpf || '',
+          criadoEm: new Date()
+        });
+        nomesExistentes.add((i.nome || '').toLowerCase().trim());
+      }
+    }
+  });
 });
 
 window.logout = () => signOut(auth).then(() => location.replace('painel-admin.html'));
